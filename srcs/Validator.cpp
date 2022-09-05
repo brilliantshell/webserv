@@ -9,8 +9,18 @@
 
 #include "Validator.hpp"
 
+#include <algorithm>
+#include <iostream>
+
 ServerBlock Validator::Validate(const std::string& config) {
-  if (config.find("server") == std::string::npos)
+  size_t pos = config.find("server");
+  if (pos == std::string::npos) throw InvalidConfigException();
+  pos = config.find("{", pos);
+  if (pos == std::string::npos) throw InvalidConfigException();
+  ConstIterator_ it = std::find_if(config.begin() + pos + 1, config.end(),
+                                   IsNotHorizWhiteSpace());
+  if (*it != '\n') throw InvalidConfigException();
+  if (config.find("}", it - config.begin() + 1) == std::string::npos)
     throw InvalidConfigException();
-  return ServerBlock("example.com", 80, "error.html");
+  return ServerBlock(std::string(), int(), std::string());
 }

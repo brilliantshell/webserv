@@ -22,13 +22,17 @@ struct ServerBlock {
       : host(host), port(port), error(error) {}
 };
 
+struct IsNotHorizWhiteSpace {
+  bool operator()(const char& c) { return (c != ' ') && (c != '\t'); }
+};
+
 class Validator {
  private:
   class InvalidConfigException : public std::exception {
-    virtual const char* what() const throw() {
-      return "this config is invalid";
-    }
+    virtual const char* what() const throw() { return "syntax error"; }
   };
+
+  typedef std::string::const_iterator ConstIterator_;
 
  public:
   ServerBlock Validate(const std::string& config);
