@@ -14,88 +14,35 @@ std::string FileToString(const std::string& file_path) {
   return ss.str();
 }
 
-TEST(ValidatorTest, NoServerBlock) {
+TEST(ValidatorTest, BasicValidConfig) {
   Validator validator;
   try {
-    validator.Validate(
-        FileToString(std::string(PATH_PREFIX) + std::string("case_01.conf")));
-    ASSERT_EQ(1, 2);
-  } catch (const std::exception& e) {
-    EXPECT_STREQ(e.what(), "syntax error");
-  }
-}
-
-// TEST(ValidatorTest, DuplicateHostPortPair) {
-//   Validator validator;
-//   EXPECT_EQ("error.html",
-//             validator
-//                 .Validate(FileToString(std::string(PATH_PREFIX) +
-//                                        std::string("case_02.conf")))
-//                 .error);
-// }
-
-TEST(ValidatorTest, InvalidServerBracket) {
-  Validator validator;
-  try {
-    validator.Validate(
-        FileToString(std::string(PATH_PREFIX) + std::string("case_12.0.conf")));
-    ASSERT_NE(0, 0) << "CASE 12.0";
-  } catch (const std::exception& e) {
-    EXPECT_STREQ(e.what(), "syntax error");
-  }
-  try {
-    validator.Validate(
-        FileToString(std::string(PATH_PREFIX) + std::string("case_12.1.conf")));
-    ASSERT_NE(1, 1) << "CASE 12.1";
-  } catch (const std::exception& e) {
-    EXPECT_STREQ(e.what(), "syntax error");
-  }
-  try {
-    validator.Validate(
-        FileToString(std::string(PATH_PREFIX) + std::string("case_12.2.conf")));
-    ASSERT_NE(2, 2) << "CASE 12.2";
-  } catch (const std::exception& e) {
-    EXPECT_STREQ(e.what(), "syntax error");
-  }
-  try {
-    validator.Validate(
-        FileToString(std::string(PATH_PREFIX) + std::string("case_12.3.conf")));
-    ASSERT_NE(3, 3) << "CASE 12.3";
-  } catch (const std::exception& e) {
-    EXPECT_STREQ(e.what(), "syntax error");
-  }
-  try {
-    validator.Validate(
-        FileToString(std::string(PATH_PREFIX) + std::string("case_12.4.conf")));
-    ASSERT_NE(4, 4) << "CASE 12.4";
-  } catch (const std::exception& e) {
-    EXPECT_STREQ(e.what(), "syntax error");
+    validator.Validate(FileToString(PATH_PREFIX "case_00.config"));
+    ASSERT_NE(1, 1);
+  } catch (std::exception& e) {
+    EXPECT_STREQ(e.what(), "syntax error") << "CASE 00";
   }
 
-  {
-    ServerBlock server_block = validator.Validate(
-        FileToString(std::string(PATH_PREFIX) + std::string("case_12.5.conf")));
-    EXPECT_EQ(std::string(), server_block.host) << "CASE 12.5";
-    EXPECT_EQ(int(), server_block.port);
-    EXPECT_EQ(std::string(), server_block.error);
-  }
+  ServerBlock server_block =
+      validator.Validate(FileToString(PATH_PREFIX "case_01.config"));
+  EXPECT_EQ(server_block.port, 80);
+  EXPECT_EQ(server_block.route.path, "/") << "CASE 01";
 
-  {
-    ServerBlock server_block = validator.Validate(
-        FileToString(std::string(PATH_PREFIX) + std::string("case_12.6.conf")));
-    EXPECT_EQ(std::string(), server_block.host) << "CASE 12.6";
-    EXPECT_EQ(int(), server_block.port);
-    EXPECT_EQ(std::string(), server_block.error);
-  }
+  ServerBlock server_block2 =
+      validator.Validate(FileToString(PATH_PREFIX "case_02.config"));
+  EXPECT_EQ(server_block2.port, 8080);
+  EXPECT_EQ(server_block2.route.path, "/trash") << "CASE 02";
 
-  // try {
-  //   validator.Validate(
-  //       FileToString(std::string(PATH_PREFIX) +
-  //       std::string("case_12.7.conf")));
-  //   ASSERT_NE(2, 2) << "CASE 12.7";
-  // } catch (const std::exception& e) {
-  //   EXPECT_STREQ(e.what(), "syntax error");
-  // }
+  ServerBlock server_block3 =
+      validator.Validate(FileToString(PATH_PREFIX "case_03.config"));
+  EXPECT_EQ(server_block3.port, 4242);
+  EXPECT_EQ(server_block3.route.path, "/hi") << "CASE 03";
+
+  // EXPECT_EQ(server_block.host, "127.0.0.1");
+  // EXPECT_EQ(server_block.error, "error.html");
+  // EXPECT_EQ(server_block.route.index, "index.html");
+  // EXPECT_EQ(server_block.route.autoindex, false);
+  // EXPECT_EQ(server_block.route.method, "GET");
 }
 
 int main(int argc, char** argv) {

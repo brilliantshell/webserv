@@ -73,7 +73,12 @@
 		"unordered_set": "cpp",
 		"variant": "cpp",
 		"vector": "cpp",
-		"algorithm": "cpp"
+		"algorithm": "cpp",
+		"__functional_base": "cpp",
+		"bit": "cpp",
+		"functional": "cpp",
+		"iterator": "cpp",
+		"utility": "cpp"
 	},
 	"cmake.configureOnOpen": false
 }

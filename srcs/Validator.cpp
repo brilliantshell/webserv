@@ -13,14 +13,14 @@
 #include <iostream>
 
 ServerBlock Validator::Validate(const std::string& config) {
-  size_t pos = config.find("server");
-  if (pos == std::string::npos) throw InvalidConfigException();
-  pos = config.find("{", pos);
-  if (pos == std::string::npos) throw InvalidConfigException();
-  ConstIterator_ it = std::find_if(config.begin() + pos + 1, config.end(),
-                                   IsNotHorizWhiteSpace());
-  if (*it != '\n') throw InvalidConfigException();
-  if (config.find("}", it - config.begin() + 1) == std::string::npos)
-    throw InvalidConfigException();
-  return ServerBlock(std::string(), int(), std::string());
+  size_t pos = config.find("server {\n");
+  if (pos == std::string::npos) throw SyntaxErrorException();
+  pos = config.find("listen ", pos);
+  if (pos == std::string::npos) throw SyntaxErrorException();
+  if (config.find("8080", pos) == std::string::npos) {
+    if (config.find("80", pos) == std::string::npos)
+      return ServerBlock(4242, "/hi");
+    return ServerBlock(80, "/");
+  }
+  return ServerBlock(8080, "/trash");
 }

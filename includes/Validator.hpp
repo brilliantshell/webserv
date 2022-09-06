@@ -10,32 +10,36 @@
 #ifndef VALIDATOR_HPP
 #define VALIDATOR_HPP
 
+#include <cstdint>
 #include <exception>
 #include <string>
 
-struct ServerBlock {
-  const std::string host;
-  const int port;
-  const std::string error;
+struct Route {
+  const std::string path;
 
-  ServerBlock(std::string host, int port, std::string error)
-      : host(host), port(port), error(error) {}
+  Route(const std::string path) : path(path) {}
 };
 
-struct IsNotHorizWhiteSpace {
-  bool operator()(const char& c) { return (c != ' ') && (c != '\t'); }
+struct ServerBlock {
+  const uint16_t port;
+  const std::string host;
+  const std::string error;
+  const Route route;
+
+  ServerBlock(uint16_t port, std::string route_path,
+              std::string host = "127.0.0.1", std::string error = "error.html")
+      : port(port), host(host), error(error), route(route_path) {}
 };
 
 class Validator {
- private:
-  class InvalidConfigException : public std::exception {
-    virtual const char* what() const throw() { return "syntax error"; }
-  };
-
-  typedef std::string::const_iterator ConstIterator_;
-
  public:
   ServerBlock Validate(const std::string& config);
+
+ private:
+  class SyntaxErrorException : public std::exception {
+   public:
+    virtual const char* what() const throw() { return "syntax error"; }
+  };
 };
 
 #endif  // VALIDATOR_HPP
