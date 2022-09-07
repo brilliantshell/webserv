@@ -22,11 +22,12 @@ include_directories("includes")
 add_executable(
 	test_webserv
 	tests/test.cpp
+	srcs/Validator.cpp
 )
 
 target_link_libraries(
 	test_webserv
-	GTest::gtest_main
+	GTest::gtest
 )
 
 include(GoogleTest)
