@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <exception>
 #include <iostream>
+#include <map>
 #include <set>
 #include <sstream>
 #include <string>
@@ -32,6 +33,9 @@ struct ServerBlock {
   std::string server_name;
   std::string error;
   Route route;
+
+  ServerBlock(void)
+      : port(0), server_name("127.0.0.1"), error("error.html"), route("/") {}
 
   std::string& operator[](const std::string& key) {
     if (key == "server_name") {
@@ -65,12 +69,20 @@ class Validator {
     const bool kIsTrue_;
   };
 
-  typedef std::string::const_iterator ConstIterator_;
-  typedef std::set<std::string>::iterator KeyIt_;
+  enum class ServerDirective {
+    kListen = 0,
+    kServerName,
+    kError,
+    kRoute,
+  };
 
-  std::set<std::string> key_set_;
+  typedef std::string::const_iterator ConstIterator_;
+  typedef std::map<std::string, ServerDirective> ServerKeyMap_;
+  typedef std::map<std::string, ServerDirective>::iterator ServerKeyIt_;
+
   const std::string kConfig_;
 
+  void InitializeKeyMap(std::map<std::string, ServerDirective>& key_map);
   ServerBlock ValidateServerBlock(ConstIterator_& it);
   uint16_t TokenizePort(ConstIterator_ it, ConstIterator_& token_end) const;
   std::string TokenizeSingleString(ConstIterator_ it,
