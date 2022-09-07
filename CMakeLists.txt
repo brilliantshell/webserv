@@ -3,6 +3,7 @@ project(webserv)
 
 # GoogleTest requires at least C++14
 set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_FLAGS_DEBUG "-g3 -fsanitize=address")
 
 include(FetchContent)
 FetchContent_Declare(
