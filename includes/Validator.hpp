@@ -7,8 +7,8 @@
  * @copyright Copyright (c) 2022
  */
 
-#ifndef VALIDATOR_HPP
-#define VALIDATOR_HPP
+#ifndef INCLUDES_VALIDATOR_HPP_
+#define INCLUDES_VALIDATOR_HPP_
 
 #include <algorithm>
 #include <cstdint>
@@ -68,10 +68,10 @@ class Validator {
   std::set<std::string> key_set_;
   const std::string config_;
 
-  ServerBlock ValidateServerBlock_(ConstIterator_& it);
-  uint16_t TokenizePort_(ConstIterator_ it, ConstIterator_& token_end) const;
-  std::string TokenizeRoutePath_(ConstIterator_ it,
-                                 ConstIterator_& token_end) const;
+  ServerBlock ValidateServerBlock(ConstIterator_& it);
+  uint16_t TokenizePort(ConstIterator_ it, ConstIterator_& token_end) const;
+  std::string TokenizeRoutePath(ConstIterator_ it,
+                                ConstIterator_& token_end) const;
 };
 
-#endif  // VALIDATOR_HPP
+#endif  // INCLUDES_VALIDATOR_HPP_
