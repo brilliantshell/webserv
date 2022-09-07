@@ -53,42 +53,62 @@ std::string Validator::TokenizeSingleString(ConstIterator_ it,
   return std::string(it, token_end);
 }
 
-void Validator::InitializeKeyMap(ServerKeyMap_& key_map) {
+void Validator::InitializeKeyMap(ServerKeyMap_& key_map) const {
   key_map["listen"] = ServerDirective::kListen;
   key_map["server_name"] = ServerDirective::kServerName;
   key_map["error"] = ServerDirective::kError;
   key_map["route"] = ServerDirective::kRoute;
 }
 
-ServerBlock Validator::ValidateServerBlock(ConstIterator_& it) {
+Validator::RouteNode Validator::ValidateRouteBlock(
+    ConstIterator_ it, ConstIterator_& token_end) const {
+  RouteBlock route_block;
+  std::string path = TokenizeRoutePath(it, token_end);
+  token_end = std::find(token_end, kConfig_.end(), '}');
+  if (token_end == kConfig_.end()) {
+    throw SyntaxErrorException();
+  }
+  ++token_end;
+  return RouteNode(path, route_block);
+}
+
+Validator::ServerKeyIt_ Validator::FindDirectiveKey(
+    ConstIterator_& it, ConstIterator_& token_end,
+    ServerKeyMap_& key_map) const {
+  it = std::find_if(it, kConfig_.end(), IsCharSet(" \n\t", false));
+  if (*it == '}') {
+    return key_map.end();
+  }
+  token_end = std::find_if(it, kConfig_.end(), IsCharSet(" \t", true));
+  ServerKeyIt_ key_it = key_map.find(std::string(it, token_end));
+  if (key_it == key_map.end()) {
+    throw SyntaxErrorException();
+  }
+  it = std::find_if(it, kConfig_.end(), IsCharSet(" \t", true)) + 1;
+  return key_it;
+}
+
+Validator::ServerNode Validator::ValidateServerBlock(ConstIterator_& it) const {
   ServerBlock server_block;
+  RouteMap route_map;
   ServerKeyMap_ key_map;
+  ConstIterator_ token_end;
 
   InitializeKeyMap(key_map);
   for (; it != kConfig_.end(); ++it) {
-    it = std::find_if(it, kConfig_.end(), IsCharSet("\n\t ", false));
-    if (*it == '}') {
+    ServerKeyIt_ key_it = FindDirectiveKey(it, token_end, key_map);
+    if (key_it == key_map.end()) {
       break;
     }
-    ConstIterator_ token_end =
-        std::find_if(it, kConfig_.end(), IsCharSet(" \t", true));
-    ServerKeyIt_ key_it = key_map.find(std::string(it, token_end));
-    if (key_it == key_map.end()) {
-      throw SyntaxErrorException();
-    }
-    it = std::find_if(it, kConfig_.end(), IsCharSet(" \t", true)) + 1;
     switch (key_it->second) {
       case ServerDirective::kListen:
         key_map.erase(key_it->first);
         server_block.port = TokenizePort(it, token_end);
         break;
       case ServerDirective::kRoute:
-        server_block.route.path = TokenizeRoutePath(it, token_end);
-        token_end = std::find(token_end, kConfig_.end(), '}');
-        if (token_end == kConfig_.end()) {
+        if (!route_map.insert(ValidateRouteBlock(it, token_end)).second) {
           throw SyntaxErrorException();
         }
-        ++token_end;
         break;
       case ServerDirective::kServerName:
       case ServerDirective::kError:
@@ -105,24 +125,25 @@ ServerBlock Validator::ValidateServerBlock(ConstIterator_& it) {
   if (key_map.count("listen")) {
     throw SyntaxErrorException();
   }
-  return server_block;
+  return ServerNode(server_block, route_map);
 }
 
-ServerBlock Validator::Validate(void) {
-  ConstIterator_ it =
-      std::find_if(kConfig_.begin(), kConfig_.end(), IsCharSet("\n\t ", false));
-  if (std::string(it, it + 8).compare("server {")) {
-    throw SyntaxErrorException();
-  }
-  it += 8;
-  it = std::find_if(it, kConfig_.end(), IsCharSet(" \t", false));
-  if (it == kConfig_.end() || (*it != '\n' && *it != '{')) {
-    throw SyntaxErrorException();
-  }
-  ServerBlock server_block = ValidateServerBlock(++it);
-  if (kConfig_.find("}") == std::string::npos) {
-    throw SyntaxErrorException();
-  }
+Validator::ServerMap Validator::Validate(void) {
+  ServerMap server_map;
 
-  return server_block;
+  for (ConstIterator_ it = std::find_if(kConfig_.begin(), kConfig_.end(),
+                                        IsCharSet(" \n\t", false));
+       it != kConfig_.end();) {
+    if (std::string(it, it + 8).compare("server {")) {
+      throw SyntaxErrorException();
+    }
+    it += 8;
+    it = std::find_if(it, kConfig_.end(), IsCharSet(" \t", false));
+    if (it == kConfig_.end() || (*it != '\n' && *it != '{')) {
+      throw SyntaxErrorException();
+    }
+    server_map.insert(ValidateServerBlock(++it));
+    it = std::find_if(++it, kConfig_.end(), IsCharSet(" \n\t", false));
+  }
+  return server_map;
 }

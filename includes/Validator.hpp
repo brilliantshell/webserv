@@ -20,22 +20,14 @@
 
 #include "Types.hpp"
 
-struct Route {
-  std::string path;
-
-  Route(void) {}
-
-  Route(const std::string path) : path(path) {}
-};
+struct RouteBlock {};
 
 struct ServerBlock {
   uint16_t port;
   std::string server_name;
   std::string error;
-  Route route;
 
-  ServerBlock(void)
-      : port(0), server_name("127.0.0.1"), error("error.html"), route("/") {}
+  ServerBlock(void) : port(0), server_name("127.0.0.1"), error("error.html") {}
 
   std::string& operator[](const std::string& key) {
     if (key == "server_name") {
@@ -46,9 +38,21 @@ struct ServerBlock {
 };
 
 class Validator {
+ private:
+  struct CompareServerBlock {
+    bool operator()(const ServerBlock& lhs, const ServerBlock& rhs) const {
+      return lhs.port < rhs.port;
+    }
+  };
+
  public:
+  typedef std::map<std::string, RouteBlock> RouteMap;
+  typedef std::pair<std::string, RouteBlock> RouteNode;
+  typedef std::map<ServerBlock, RouteMap, CompareServerBlock> ServerMap;
+  typedef std::pair<ServerBlock, RouteMap> ServerNode;
+
   Validator(const std::string& config);
-  ServerBlock Validate(void);
+  ServerMap Validate(void);
 
  private:
   class SyntaxErrorException : public std::exception {
@@ -82,8 +86,11 @@ class Validator {
 
   const std::string kConfig_;
 
-  void InitializeKeyMap(std::map<std::string, ServerDirective>& key_map);
-  ServerBlock ValidateServerBlock(ConstIterator_& it);
+  void InitializeKeyMap(ServerKeyMap_& key_map) const;
+  ServerNode ValidateServerBlock(ConstIterator_& it) const;
+  RouteNode ValidateRouteBlock(ConstIterator_ it, ConstIterator_& token) const;
+  ServerKeyIt_ FindDirectiveKey(ConstIterator_& it, ConstIterator_& token_end,
+                                ServerKeyMap_& key_map) const;
   uint16_t TokenizePort(ConstIterator_ it, ConstIterator_& token_end) const;
   std::string TokenizeSingleString(ConstIterator_ it,
                                    ConstIterator_& token_end) const;

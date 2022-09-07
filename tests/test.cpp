@@ -29,33 +29,45 @@ TEST(ValidatorTest, BasicValidConfig) {
   {
     std::cout << "CASE 01" << std::endl;
     Validator validator(FileToString(PATH_PREFIX "case_01.config"));
-    ServerBlock server_block = validator.Validate();
+    Validator::ServerMap server_block_map = validator.Validate();
+    Validator::ServerMap::iterator it = server_block_map.begin();
+    ServerBlock server_block = it->first;
+
     EXPECT_EQ(server_block.port, 80);
-    EXPECT_EQ(server_block.route.path, "./") << "CASE 01";
+    EXPECT_EQ(it->second.count("./"), 1) << "CASE 01";
   }
 
   {
     std::cout << "CASE 02" << std::endl;
     Validator validator(FileToString(PATH_PREFIX "case_02.config"));
-    ServerBlock server_block2 = validator.Validate();
-    EXPECT_EQ(server_block2.port, 8080);
-    EXPECT_EQ(server_block2.route.path, "./trash") << "CASE 02";
+    Validator::ServerMap server_block_map = validator.Validate();
+    Validator::ServerMap::iterator it = server_block_map.begin();
+    ServerBlock server_block = it->first;
+
+    EXPECT_EQ(server_block.port, 8080);
+    EXPECT_EQ(it->second.count("./trash"), 1) << "CASE 02";
   }
 
   {
     std::cout << "CASE 03" << std::endl;
     Validator validator(FileToString(PATH_PREFIX "case_03.config"));
-    ServerBlock server_block3 = validator.Validate();
-    EXPECT_EQ(server_block3.port, 4242);
-    EXPECT_EQ(server_block3.route.path, "./hi") << "CASE 03";
+    Validator::ServerMap server_block_map = validator.Validate();
+    Validator::ServerMap::iterator it = server_block_map.begin();
+    ServerBlock server_block = it->first;
+
+    EXPECT_EQ(server_block.port, 4242);
+    EXPECT_EQ(it->second.count("./hi"), 1) << "CASE 03";
   }
 
   {
     std::cout << "CASE 04" << std::endl;
     Validator validator(FileToString(PATH_PREFIX "case_04.config"));
-    ServerBlock server_block4 = validator.Validate();
-    EXPECT_EQ(server_block4.port, 4242);
-    EXPECT_EQ(server_block4.route.path, "./return/42") << "CASE 04";
+    Validator::ServerMap server_block_map = validator.Validate();
+    Validator::ServerMap::iterator it = server_block_map.begin();
+    ServerBlock server_block = it->first;
+
+    EXPECT_EQ(server_block.port, 4242);
+    EXPECT_EQ(it->second.count("./return/42"), 1) << "CASE 04";
   }
 
   {
@@ -72,17 +84,24 @@ TEST(ValidatorTest, BasicValidConfig) {
   {
     std::cout << "CASE 06" << std::endl;
     Validator validator(FileToString(PATH_PREFIX "case_06.config"));
-    ServerBlock server_block4 = validator.Validate();
-    EXPECT_EQ(server_block4.port, 80);
-    EXPECT_EQ(server_block4.route.path, "./") << "CASE 06";
+
+    Validator::ServerMap server_block_map = validator.Validate();
+    Validator::ServerMap::iterator it = server_block_map.begin();
+    ServerBlock server_block = it->first;
+
+    EXPECT_EQ(server_block.port, 80);
+    EXPECT_EQ(it->second.count("./"), 1) << "CASE 06";
   }
 
   {
     std::cout << "CASE 07" << std::endl;
     Validator validator(FileToString(PATH_PREFIX "case_07.config"));
-    ServerBlock server_block4 = validator.Validate();
-    EXPECT_EQ(server_block4.port, 80);
-    EXPECT_EQ(server_block4.route.path, "./") << "CASE 07";
+    Validator::ServerMap server_block_map = validator.Validate();
+    Validator::ServerMap::iterator it = server_block_map.begin();
+    ServerBlock server_block = it->first;
+
+    EXPECT_EQ(server_block.port, 80);
+    EXPECT_EQ(it->second.count("./"), 1) << "CASE 07";
   }
 
   {
@@ -132,11 +151,14 @@ TEST(ValidatorTest, BasicValidConfig) {
   {
     std::cout << "CASE 12" << std::endl;
     Validator validator(FileToString(PATH_PREFIX "case_12.config"));
-    ServerBlock server_block = validator.Validate();
+    Validator::ServerMap server_block_map = validator.Validate();
+    Validator::ServerMap::iterator it = server_block_map.begin();
+    ServerBlock server_block = it->first;
+
     EXPECT_EQ(server_block.port, 80);
     EXPECT_EQ(server_block.server_name, "google.com");
     EXPECT_EQ(server_block.error, "404.html");
-    EXPECT_EQ(server_block.route.path, "./") << "CASE 12";
+    EXPECT_EQ(it->second.count("./"), 1) << "CASE 12";
   }
 
   {
@@ -197,11 +219,14 @@ TEST(ValidatorTest, BasicValidConfig) {
   {
     std::cout << "CASE 18" << std::endl;
     Validator validator(FileToString(PATH_PREFIX "case_18.config"));
-    ServerBlock server_block = validator.Validate();
+    Validator::ServerMap server_block_map = validator.Validate();
+    Validator::ServerMap::iterator it = server_block_map.begin();
+    ServerBlock server_block = it->first;
+
     EXPECT_EQ(server_block.port, 8080);
     EXPECT_EQ(server_block.server_name, "127.0.0.1");
     EXPECT_EQ(server_block.error, "error.html");
-    EXPECT_EQ(server_block.route.path, "./default") << "CASE 18";
+    EXPECT_EQ(it->second.count("./default"), 1) << "CASE 18";
   }
 
   {
@@ -229,13 +254,21 @@ TEST(ValidatorTest, BasicValidConfig) {
   {
     std::cout << "CASE 21" << std::endl;
     Validator validator(FileToString(PATH_PREFIX "case_21.config"));
-    ServerBlock server_block = validator.Validate();
+    Validator::ServerMap server_block_map = validator.Validate();
+    Validator::ServerMap::iterator it = server_block_map.begin();
+    ServerBlock server_block = it->first;
+
     EXPECT_EQ(server_block.port, 80);
     EXPECT_EQ(server_block.server_name, "127.0.0.1");
     EXPECT_EQ(server_block.error, "error.html");
-    EXPECT_EQ(server_block.route.path, "./") << "CASE 21";
-  }
+    EXPECT_EQ(it->second.count("./"), 1) << "CASE 21";
 
+    server_block = (++it)->first;
+    EXPECT_EQ(server_block.port, 4242);
+    EXPECT_EQ(server_block.server_name, "127.0.0.1");
+    EXPECT_EQ(server_block.error, "error.html");
+    EXPECT_EQ(it->second.count("./forty_two"), 1) << "CASE 21";
+  }
   // EXPECT_EQ(server_block.host, "127.0.0.1");
   // EXPECT_EQ(server_block.error, "error.html");
   // EXPECT_EQ(server_block.route.index, "index.html");
