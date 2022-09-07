@@ -11,12 +11,13 @@
 #define INCLUDES_VALIDATOR_HPP_
 
 #include <algorithm>
-#include <cstdint>
 #include <exception>
 #include <iostream>
 #include <set>
 #include <sstream>
 #include <string>
+
+#include "Types.hpp"
 
 struct Route {
   std::string path;
@@ -28,15 +29,16 @@ struct Route {
 
 struct ServerBlock {
   uint16_t port;
-  std::string host;
+  std::string server_name;
   std::string error;
   Route route;
 
-  ServerBlock(void) {}
-
-  ServerBlock(uint16_t port, std::string route_path,
-              std::string host = "127.0.0.1", std::string error = "error.html")
-      : port(port), host(host), error(error), route(route_path) {}
+  std::string& operator[](const std::string& key) {
+    if (key == "server_name") {
+      return server_name;
+    }
+    return error;
+  }
 };
 
 class Validator {
@@ -50,26 +52,30 @@ class Validator {
     virtual const char* what() const throw() { return "syntax error"; }
   };
 
-  struct IsNotWhiteSpace {
-    bool operator()(char c) { return (c != ' ') && (c != '\t') && (c != '\n'); }
-  };
+  class IsCharSet {
+   public:
+    IsCharSet(const std::string char_set, const bool is_true)
+        : kCharSet_(char_set), kIsTrue_(is_true) {}
+    bool operator()(char c) const {
+      return !((kCharSet_.find(c) != std::string::npos) ^ kIsTrue_);
+    }
 
-  struct IsNotHorizWhiteSpace {
-    bool operator()(char c) { return (c != ' ') && (c != '\t'); }
-  };
-
-  struct IsHorizWhiteSpace {
-    bool operator()(char c) { return (c == ' ') || (c == '\t'); }
+   private:
+    const std::string kCharSet_;
+    const bool kIsTrue_;
   };
 
   typedef std::string::const_iterator ConstIterator_;
   typedef std::set<std::string>::iterator KeyIt_;
 
   std::set<std::string> key_set_;
-  const std::string config_;
+  const std::string kConfig_;
 
   ServerBlock ValidateServerBlock(ConstIterator_& it);
   uint16_t TokenizePort(ConstIterator_ it, ConstIterator_& token_end) const;
+  std::string TokenizeSingleString(ConstIterator_ it,
+                                   ConstIterator_& token_end) const;
+
   std::string TokenizeRoutePath(ConstIterator_ it,
                                 ConstIterator_& token_end) const;
 };
