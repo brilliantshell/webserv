@@ -54,14 +54,21 @@ class Validator {
   Validator(const std::string& config);
   ServerMap Validate(void);
 
- private:
   class SyntaxErrorException : public std::exception {
    public:
     virtual const char* what() const throw() { return "syntax error"; }
   };
 
+ private:
   class IsCharSet {
    public:
+    /**
+     * @brief Construct a new Is Char Set object
+     *
+     * @param char_set : character set to find
+     * @param is_true : true면 char_set을 만나면 return, false면 char_set이
+     * 아닌 것을 만나면 return.
+     */
     IsCharSet(const std::string char_set, const bool is_true)
         : kCharSet_(char_set), kIsTrue_(is_true) {}
     bool operator()(char c) const {
@@ -97,6 +104,7 @@ class Validator {
 
   std::string TokenizeRoutePath(ConstIterator_ it,
                                 ConstIterator_& token_end) const;
+  ConstIterator_ CheckEndOfParameter(ConstIterator_ token_end) const;
 };
 
 #endif  // INCLUDES_VALIDATOR_HPP_

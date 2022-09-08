@@ -11,10 +11,8 @@
 
 Validator::Validator(const std::string& config) : kConfig_(config) {}
 
-uint16_t Validator::TokenizePort(ConstIterator_ it,
-                                 ConstIterator_& token_end) const {
-  uint32_t port;
-  token_end = std::find_if(it, kConfig_.end(), IsCharSet("0123456789", false));
+Validator::ConstIterator_ Validator::CheckEndOfParameter(
+    ConstIterator_ token_end) const {
   if (*token_end != '\n') {
     token_end =
         std::find_if(token_end, kConfig_.end(), IsCharSet(" \t", false));
@@ -22,6 +20,14 @@ uint16_t Validator::TokenizePort(ConstIterator_ it,
   if (token_end == kConfig_.end() || *token_end != '\n') {
     throw SyntaxErrorException();
   }
+  return token_end;
+}
+
+uint16_t Validator::TokenizePort(ConstIterator_ it,
+                                 ConstIterator_& token_end) const {
+  uint32_t port;
+  token_end = std::find_if(it, kConfig_.end(), IsCharSet("0123456789", false));
+  token_end = CheckEndOfParameter(token_end);
   std::stringstream ss;
   ss.str(std::string(it, token_end));
   ss >> port;
@@ -43,14 +49,7 @@ std::string Validator::TokenizeRoutePath(ConstIterator_ it,
 std::string Validator::TokenizeSingleString(ConstIterator_ it,
                                             ConstIterator_& token_end) const {
   token_end = std::find_if(it, kConfig_.end(), IsCharSet(" \t\n", true));
-  if (*token_end != '\n') {
-    token_end =
-        std::find_if(token_end, kConfig_.end(), IsCharSet(" \t", false));
-  }
-  if (token_end == kConfig_.end() || *token_end != '\n') {
-    throw SyntaxErrorException();
-  }
-  return std::string(it, token_end);
+  return std::string(it, CheckEndOfParameter(token_end));
 }
 
 void Validator::InitializeKeyMap(ServerKeyMap_& key_map) const {
@@ -65,10 +64,10 @@ Validator::RouteNode Validator::ValidateRouteBlock(
   RouteBlock route_block;
   std::string path = TokenizeRoutePath(it, token_end);
   token_end = std::find(token_end, kConfig_.end(), '}');
-  if (token_end == kConfig_.end()) {
+  if (++token_end == kConfig_.end()) {
     throw SyntaxErrorException();
   }
-  ++token_end;
+  token_end = CheckEndOfParameter(token_end);
   return RouteNode(path, route_block);
 }
 
@@ -77,7 +76,7 @@ Validator::ServerKeyIt_ Validator::FindDirectiveKey(
     ServerKeyMap_& key_map) const {
   it = std::find_if(it, kConfig_.end(), IsCharSet(" \n\t", false));
   if (*it == '}') {
-    return key_map.end();
+    return key_map.end();  // NOTE : ServerBlock loop break 지점
   }
   token_end = std::find_if(it, kConfig_.end(), IsCharSet(" \t", true));
   ServerKeyIt_ key_it = key_map.find(std::string(it, token_end));

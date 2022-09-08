@@ -24,6 +24,7 @@ enable_testing()
 add_executable(
 	test_webserv
 	tests/test.cpp
+	tests/test_validator.cpp
 	srcs/Validator.cpp
 )
 
