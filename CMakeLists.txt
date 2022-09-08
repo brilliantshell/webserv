@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 3.24)
-project(webserv)
+project(
+	webserv
+	LANGUAGES CXX
+)
 
 # GoogleTest requires at least C++14
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_FLAGS "-pedantic -std=c++98")
 set(CMAKE_CXX_FLAGS_DEBUG "-g3 -fsanitize=address")
-
-add_compile_options(-pedantic -std=c++98)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -20,12 +21,15 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-include_directories("includes")
-
 add_executable(
 	test_webserv
 	tests/test.cpp
 	srcs/Validator.cpp
+)
+
+target_include_directories(
+	test_webserv
+	PUBLIC ${CMAKE_SOURCE_DIR}/includes
 )
 
 target_link_libraries(
