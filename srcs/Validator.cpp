@@ -102,8 +102,8 @@ Validator::ServerNode Validator::ValidateServerBlock(ConstIterator_& it) const {
     }
     switch (key_it->second) {
       case ServerDirective::kListen:
-        key_map.erase(key_it->first);
         server_block.port = TokenizePort(it, token_end);
+        key_map.erase(key_it->first);
         break;
       case ServerDirective::kRoute:
         if (!route_map.insert(ValidateRouteBlock(it, token_end)).second) {
@@ -112,8 +112,8 @@ Validator::ServerNode Validator::ValidateServerBlock(ConstIterator_& it) const {
         break;
       case ServerDirective::kServerName:
       case ServerDirective::kError:
-        key_map.erase(key_it->first);
         server_block[key_it->first] = TokenizeSingleString(it, token_end);
+        key_map.erase(key_it->first);
         break;
       default:
         throw SyntaxErrorException();
