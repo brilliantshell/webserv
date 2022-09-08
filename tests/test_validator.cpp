@@ -14,136 +14,234 @@ std::string FileToString(const std::string& file_path) {
   return ss.str();
 }
 
-void TestSyntaxException(const std::string& file_number) {
-  std::cout << file_number << std::endl;
-  Validator validator(FileToString(PATH_PREFIX + file_number + ".config"));
+void TestSyntaxException(const std::string& case_id) {
+  std::cout << case_id << std::endl;
+  Validator validator(FileToString(PATH_PREFIX + case_id + ".config"));
   EXPECT_THROW(validator.Validate(), Validator::SyntaxErrorException);
 }
 
-Validator::ServerMap TestValidatorSuccess(const std::string& file_number) {
-  std::cout << file_number << std::endl;
-  Validator validator(FileToString(PATH_PREFIX + file_number + ".config"));
+Validator::ServerMap TestValidatorSuccess(const std::string& case_id) {
+  std::cout << case_id << std::endl;
+  Validator validator(FileToString(PATH_PREFIX + case_id + ".config"));
   return validator.Validate();
 }
 
-TEST(ValidatorTest, BasicValidConfig) {
-  TestSyntaxException("CASE_00");
+TEST(ValidatorTest, ServerBlock) {
+  TestSyntaxException("ServerBlock/CASE_00");
 
   {
-    Validator::ServerMap server_map = TestValidatorSuccess("CASE_01");
+    Validator::ServerMap server_map =
+        TestValidatorSuccess("ServerBlock/CASE_01");
     Validator::ServerMap::iterator it = server_map.begin();
     ServerBlock server_block = it->first;
 
     EXPECT_EQ(server_block.port, 80);
-    EXPECT_EQ(it->second.count("./"), 1) << "CASE 01";
+    EXPECT_EQ(it->second.count("./"), 1) << "ServerBlock/CASE_01";
   }
 
   {
-    Validator::ServerMap server_map = TestValidatorSuccess("CASE_02");
+    Validator::ServerMap server_map =
+        TestValidatorSuccess("ServerBlock/CASE_02");
     Validator::ServerMap::iterator it = server_map.begin();
     ServerBlock server_block = it->first;
 
     EXPECT_EQ(server_block.port, 8080);
-    EXPECT_EQ(it->second.count("./trash"), 1) << "CASE 02";
+    EXPECT_EQ(it->second.count("./trash"), 1) << "ServerBlock/CASE_02";
   }
 
   {
-    Validator::ServerMap server_map = TestValidatorSuccess("CASE_03");
+    Validator::ServerMap server_map =
+        TestValidatorSuccess("ServerBlock/CASE_03");
     Validator::ServerMap::iterator it = server_map.begin();
     ServerBlock server_block = it->first;
 
     EXPECT_EQ(server_block.port, 4242);
-    EXPECT_EQ(it->second.count("./hi"), 1) << "CASE 03";
+    EXPECT_EQ(it->second.count("./hi"), 1) << "ServerBlock/CASE_03";
   }
 
   {
-    Validator::ServerMap server_map = TestValidatorSuccess("CASE_04");
+    Validator::ServerMap server_map =
+        TestValidatorSuccess("ServerBlock/CASE_04");
     Validator::ServerMap::iterator it = server_map.begin();
     ServerBlock server_block = it->first;
 
     EXPECT_EQ(server_block.port, 4242);
-    EXPECT_EQ(it->second.count("./return/42"), 1) << "CASE 04";
+    EXPECT_EQ(it->second.count("./return/42"), 1) << "ServerBlock/CASE_04";
   }
 
-  TestSyntaxException("CASE_05");
+  TestSyntaxException("ServerBlock/CASE_05");
 
   {
-    Validator::ServerMap server_map = TestValidatorSuccess("CASE_06");
+    Validator::ServerMap server_map =
+        TestValidatorSuccess("ServerBlock/CASE_06");
     Validator::ServerMap::iterator it = server_map.begin();
     ServerBlock server_block = it->first;
 
     EXPECT_EQ(server_block.port, 80);
-    EXPECT_EQ(it->second.count("./"), 1) << "CASE 06";
+    EXPECT_EQ(it->second.count("./"), 1) << "ServerBlock/CASE_06";
   }
 
   {
-    Validator::ServerMap server_map = TestValidatorSuccess("CASE_07");
+    Validator::ServerMap server_map =
+        TestValidatorSuccess("ServerBlock/CASE_07");
     Validator::ServerMap::iterator it = server_map.begin();
     ServerBlock server_block = it->first;
 
     EXPECT_EQ(server_block.port, 80);
-    EXPECT_EQ(it->second.count("./"), 1) << "CASE 07";
+    EXPECT_EQ(it->second.count("./"), 1) << "ServerBlock/CASE_07";
   }
 
-  TestSyntaxException("CASE_08");
-  TestSyntaxException("CASE_09");
-  TestSyntaxException("CASE_10");
-  TestSyntaxException("CASE_11");
+  TestSyntaxException("ServerBlock/CASE_08");
+  TestSyntaxException("ServerBlock/CASE_09");
+  TestSyntaxException("ServerBlock/CASE_10");
+  TestSyntaxException("ServerBlock/CASE_11");
 
   {
-    Validator::ServerMap server_map = TestValidatorSuccess("CASE_12");
+    Validator::ServerMap server_map =
+        TestValidatorSuccess("ServerBlock/CASE_12");
     Validator::ServerMap::iterator it = server_map.begin();
     ServerBlock server_block = it->first;
 
     EXPECT_EQ(server_block.port, 80);
     EXPECT_EQ(server_block.server_name, "google.com");
     EXPECT_EQ(server_block.error, "404.html");
-    EXPECT_EQ(it->second.count("./"), 1) << "CASE 12";
+    EXPECT_EQ(it->second.count("./"), 1) << "ServerBlock/CASE_12";
   }
 
-  TestSyntaxException("CASE_13");
-  TestSyntaxException("CASE_14");
-  TestSyntaxException("CASE_15");
-  TestSyntaxException("CASE_16");
-  TestSyntaxException("CASE_17");
+  TestSyntaxException("ServerBlock/CASE_13");
+  TestSyntaxException("ServerBlock/CASE_14");
+  TestSyntaxException("ServerBlock/CASE_15");
+  TestSyntaxException("ServerBlock/CASE_16");
+  TestSyntaxException("ServerBlock/CASE_17");
 
   {
-    Validator::ServerMap server_map = TestValidatorSuccess("CASE_18");
+    Validator::ServerMap server_map =
+        TestValidatorSuccess("ServerBlock/CASE_18");
     Validator::ServerMap::iterator it = server_map.begin();
     ServerBlock server_block = it->first;
 
     EXPECT_EQ(server_block.port, 8080);
     EXPECT_EQ(server_block.server_name, "127.0.0.1");
     EXPECT_EQ(server_block.error, "error.html");
-    EXPECT_EQ(it->second.count("./default"), 1) << "CASE 18";
+    EXPECT_EQ(it->second.count("./default"), 1) << "ServerBlock/CASE_18";
   }
 
-  TestSyntaxException("CASE_19");
-  TestSyntaxException("CASE_20");
+  TestSyntaxException("ServerBlock/CASE_19");
+  TestSyntaxException("ServerBlock/CASE_20");
 
   {
-    Validator::ServerMap server_map = TestValidatorSuccess("CASE_21");
+    Validator::ServerMap server_map =
+        TestValidatorSuccess("ServerBlock/CASE_21");
     Validator::ServerMap::iterator it = server_map.begin();
     ServerBlock server_block = it->first;
 
     EXPECT_EQ(server_block.port, 80);
     EXPECT_EQ(server_block.server_name, "127.0.0.1");
     EXPECT_EQ(server_block.error, "error.html");
-    EXPECT_EQ(it->second.count("./"), 1) << "CASE 21";
+    EXPECT_EQ(it->second.count("./"), 1) << "ServerBlock/CASE_21";
 
     server_block = (++it)->first;
     EXPECT_EQ(server_block.port, 4242);
     EXPECT_EQ(server_block.server_name, "127.0.0.1");
     EXPECT_EQ(server_block.error, "error.html");
-    EXPECT_EQ(it->second.count("./forty_two"), 1) << "CASE 21";
+    EXPECT_EQ(it->second.count("./forty_two"), 1) << "ServerBlock/CASE_21";
   }
 
-  TestSyntaxException("CASE_22");
-  TestSyntaxException("CASE_23");
+  TestSyntaxException("ServerBlock/CASE_22");
+  TestSyntaxException("ServerBlock/CASE_23");
+  TestSyntaxException("ServerBlock/CASE_24");
+}
 
-  // EXPECT_EQ(server_block.host, "127.0.0.1");
-  // EXPECT_EQ(server_block.error, "error.html");
-  // EXPECT_EQ(server_block.route.index, "index.html");
-  // EXPECT_EQ(server_block.route.autoindex, false);
-  // EXPECT_EQ(server_block.route.method, "GET");
+TEST(ValidatorTest, RouteBlock) {
+  {
+    Validator::ServerMap server_map =
+        TestValidatorSuccess("RouteBlock/CASE_00");
+    Validator::ServerMap::iterator it = server_map.begin();
+    ServerBlock server_block = it->first;
+
+    EXPECT_EQ(server_block.port, 4242);
+    EXPECT_EQ(server_block.server_name, "127.0.0.1");
+    EXPECT_EQ(server_block.error, "error.html");
+    Validator::RouteMap route_map = it->second;
+
+    EXPECT_EQ(route_map.count("./normal"), 1) << "RouteBlock/CASE_00";
+    EXPECT_EQ(route_map.count(".php"), 1) << "RouteBlock/CASE_00";
+  }
+
+  TestSyntaxException("RouteBlock/CASE_01");
+  TestSyntaxException("RouteBlock/CASE_02");
+
+  {
+    Validator::ServerMap server_map =
+        TestValidatorSuccess("RouteBlock/CASE_03");
+    Validator::ServerMap::iterator it = server_map.begin();
+    Validator::RouteMap route_map = it->second;
+    EXPECT_EQ(route_map.count("./"), 1) << "RouteBlock/CASE_03";
+
+    RouteBlock route_block = route_map["./"];
+    EXPECT_EQ(route_block.root, "./");
+    EXPECT_EQ(route_block.index, "");
+    EXPECT_EQ(route_block.methods, GET);
+    EXPECT_EQ(route_block.body_max, INT_MAX);
+    EXPECT_EQ(route_block.autoindex, false);
+    EXPECT_EQ(route_block.upload_path, "");
+    EXPECT_EQ(route_block.redirect_to, "");
+  }
+
+  {
+    Validator::ServerMap server_map =
+        TestValidatorSuccess("RouteBlock/CASE_04");
+    Validator::ServerMap::iterator it = server_map.begin();
+    Validator::RouteMap route_map = it->second;
+    EXPECT_EQ(route_map.count(".js"), 1) << "RouteBlock/CASE_04";
+
+    RouteBlock route_block = route_map[".js"];
+    EXPECT_EQ(route_block.root, "./");
+    EXPECT_EQ(route_block.methods, GET);
+    EXPECT_EQ(route_block.body_max, INT_MAX);
+    EXPECT_EQ(route_block.param, "fastjs_params");
+  }
+
+  TestSyntaxException("RouteBlock/CASE_05");
+
+  {
+    Validator::ServerMap server_map =
+        TestValidatorSuccess("RouteBlock/CASE_06");
+    Validator::ServerMap::iterator it = server_map.begin();
+    Validator::RouteMap route_map = it->second;
+    EXPECT_EQ(route_map.count("./everything"), 1) << "RouteBlock/CASE_06";
+
+    RouteBlock route_block = route_map["./everything"];
+    EXPECT_EQ(route_block.root, "/root");
+    EXPECT_EQ(route_block.index, "your_fault.html");
+    EXPECT_EQ(route_block.upload_path, "/upload");
+  }
+
+  {
+    Validator::ServerMap server_map =
+        TestValidatorSuccess("RouteBlock/CASE_07");
+    Validator::ServerMap::iterator it = server_map.begin();
+    Validator::RouteMap route_map = it->second;
+    EXPECT_EQ(route_map.count("./everything"), 1) << "RouteBlock/CASE_07";
+
+    RouteBlock route_block = route_map["./everything"];
+    EXPECT_EQ(route_block.methods, GET | POST | DELETE);
+  }
+
+  TestSyntaxException("RouteBlock/CASE_08");
+  TestSyntaxException("RouteBlock/CASE_09");
+  TestSyntaxException("RouteBlock/CASE_10");
+
+  {
+    Validator::ServerMap server_map =
+        TestValidatorSuccess("RouteBlock/CASE_11");
+    Validator::ServerMap::iterator it = server_map.begin();
+    Validator::RouteMap route_map = it->second;
+    EXPECT_EQ(route_map.count(".php"), 1) << "RouteBlock/CASE_11";
+
+    RouteBlock route_block = route_map[".php"];
+    EXPECT_EQ(route_block.methods, GET | POST);
+  }
+
+  TestSyntaxException("RouteBlock/CASE_12");
 }

@@ -20,7 +20,42 @@
 
 #include "Types.hpp"
 
-struct RouteBlock {};
+#define GET 0b00000001
+#define POST 0b00000010
+#define DELETE 0b00000100
+
+struct RouteBlock {
+  bool autoindex;
+  uint8_t methods;
+  int32_t body_max;
+  std::string root;
+  std::string index;
+  std::string upload_path;
+  std::string redirect_to;
+  std::string param;
+
+  RouteBlock()
+      : root("./"),
+        index(""),
+        methods(GET),
+        body_max(INT_MAX),
+        autoindex(false),
+        upload_path(""),
+        redirect_to("") {}
+
+  std::string& operator[](const std::string& key) {
+    if (key == "root") {
+      return root;
+    } else if (key == "index") {
+      return index;
+    } else if (key == "upload_path") {
+      return upload_path;
+    } else if (key == "redirect_to") {
+      return redirect_to;
+    }
+    return param;
+  }
+};
 
 struct ServerBlock {
   uint16_t port;
@@ -85,25 +120,48 @@ class Validator {
     kServerName,
     kError,
     kRoute,
+    kCgiRoute,
+  };
+
+  enum class RouteDirective {
+    kAutoindex = 0,
+    kMethods,
+    kBodyMax,
+    kRoot,
+    kIndex,
+    kUploadPath,
+    kRedirectTo,
+    kParam,
   };
 
   typedef std::string::const_iterator ConstIterator_;
   typedef std::map<std::string, ServerDirective> ServerKeyMap_;
   typedef std::map<std::string, ServerDirective>::iterator ServerKeyIt_;
+  typedef std::map<std::string, RouteDirective> RouteKeyMap_;
+  typedef std::map<std::string, RouteDirective>::iterator RouteKeyIt_;
 
   const std::string kConfig_;
 
   void InitializeKeyMap(ServerKeyMap_& key_map) const;
+  void InitializeKeyMap(RouteKeyMap_& key_map, ServerDirective is_cgi) const;
+
   ServerNode ValidateServerBlock(ConstIterator_& it) const;
-  RouteNode ValidateRouteBlock(ConstIterator_ it, ConstIterator_& token) const;
+  RouteNode ValidateRouteBlock(ConstIterator_ it, ConstIterator_& token,
+                               ServerDirective is_cgi) const;
+
   ServerKeyIt_ FindDirectiveKey(ConstIterator_& it, ConstIterator_& token_end,
                                 ServerKeyMap_& key_map) const;
+  RouteKeyIt_ FindDirectiveKey(ConstIterator_& it, ConstIterator_& token_end,
+                               RouteKeyMap_& key_map) const;
+
   uint16_t TokenizePort(ConstIterator_ it, ConstIterator_& token_end) const;
   std::string TokenizeSingleString(ConstIterator_ it,
                                    ConstIterator_& token_end) const;
-
   std::string TokenizeRoutePath(ConstIterator_ it,
                                 ConstIterator_& token_end) const;
+  uint8_t TokenizeMethods(ConstIterator_ it, ConstIterator_& token_end,
+                          ServerDirective is_cgi) const;
+
   ConstIterator_ CheckEndOfParameter(ConstIterator_ token_end) const;
 };
 
