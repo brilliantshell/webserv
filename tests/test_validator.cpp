@@ -244,4 +244,30 @@ TEST(ValidatorTest, RouteBlock) {
   }
 
   TestSyntaxException("RouteBlock/CASE_12");
+
+  {
+    Validator::ServerMap server_map =
+        TestValidatorSuccess("RouteBlock/CASE_13");
+    Validator::ServerMap::iterator it = server_map.begin();
+    Validator::RouteMap route_map = it->second;
+    EXPECT_EQ(route_map.count("./max"), 1) << "RouteBlock/CASE_13";
+
+    RouteBlock route_block = route_map["./max"];
+    EXPECT_EQ(route_block.methods, POST);
+    EXPECT_EQ(route_block.body_max, 4096);
+  }
+
+  {
+    Validator::ServerMap server_map =
+        TestValidatorSuccess("RouteBlock/CASE_14");
+    Validator::ServerMap::iterator it = server_map.begin();
+    Validator::RouteMap route_map = it->second;
+    EXPECT_EQ(route_map.count("./max"), 1) << "RouteBlock/CASE_14";
+
+    RouteBlock route_block = route_map["./max"];
+    EXPECT_EQ(route_block.methods, POST);
+    EXPECT_EQ(route_block.body_max, 128);
+  }
+
+  TestSyntaxException("RouteBlock/CASE_15");
 }

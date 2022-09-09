@@ -123,17 +123,14 @@ Validator::RouteKeyIt_ Validator::FindDirectiveKey(ConstIterator_& delim,
  * @param delim 파라미터 종료 위치 가리킬 레퍼런스, 파싱 후 개행 위치로 설정
  * @return uint16_t 변환된 port 값
  */
-uint16_t Validator::TokenizePort(ConstIterator_& delim) {
-  uint32_t port;
+uint32_t Validator::TokenizeNumber(ConstIterator_& delim) {
+  uint32_t nbr;
   delim = std::find_if(cursor_, kConfig_.end(), IsCharSet("0123456789", false));
   delim = CheckEndOfParameter(delim);
   std::stringstream ss;
   ss.str(std::string(cursor_, delim));
-  ss >> port;
-  if (port == 0 || port > 65535) {
-    throw SyntaxErrorException();
-  }
-  return port;
+  ss >> nbr;
+  return nbr;
 }
 
 /**
@@ -227,10 +224,15 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
     return false;
   }
   switch (key_it->second) {
-    case ServerDirective::kListen:
-      server_block.port = TokenizePort(delim);
+    case ServerDirective::kListen: {
+      uint32_t num = TokenizeNumber(delim);
+      if (num == 0 || num > 65535) {
+        throw SyntaxErrorException();
+      }
+      server_block.port = num;
       key_map.erase(key_it->first);
       break;
+    }
     case ServerDirective::kRoute:
     case ServerDirective::kCgiRoute:
       if (!route_map.insert(ValidateRouteBlock(delim, key_it->second)).second) {
@@ -273,8 +275,14 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
       route_block.autoindex = (autoindex == "on");
       break;
     }
-    case RouteDirective::kBodyMax:
+    case RouteDirective::kBodyMax: {
+      uint32_t num = TokenizeNumber(delim);
+      if (num > INT_MAX) {
+        throw SyntaxErrorException();
+      }
+      route_block.body_max = num;
       break;
+    }
     case RouteDirective::kParam:
     case RouteDirective::kIndex:
     case RouteDirective::kRoot:

@@ -155,7 +155,7 @@ class Validator {
   RouteKeyIt_ FindDirectiveKey(ConstIterator_& delim, RouteKeyMap_& key_map);
 
   // parameter 파싱
-  uint16_t TokenizePort(ConstIterator_& delim);
+  uint32_t TokenizeNumber(ConstIterator_& delim);
   std::string TokenizeSingleString(ConstIterator_& delim);
   std::string TokenizeRoutePath(ConstIterator_& delim);
   uint8_t TokenizeMethods(ConstIterator_& delim, ServerDirective is_cgi);
