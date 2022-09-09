@@ -24,6 +24,7 @@
 #define POST 0b00000010
 #define DELETE 0b00000100
 
+// SECTION : RouteBlock
 struct RouteBlock {
   bool autoindex;
   uint8_t methods;
@@ -57,6 +58,7 @@ struct RouteBlock {
   }
 };
 
+// SECTION : ServerBlock
 struct ServerBlock {
   uint16_t port;
   std::string server_name;
@@ -72,6 +74,7 @@ struct ServerBlock {
   }
 };
 
+// SECTION : Validator
 class Validator {
  private:
   struct CompareServerBlock {
@@ -142,18 +145,17 @@ class Validator {
 
   const std::string kConfig_;
 
+  // 디렉티브 키맵 초기화
   void InitializeKeyMap(ServerKeyMap_& key_map) const;
   void InitializeKeyMap(RouteKeyMap_& key_map, ServerDirective is_cgi) const;
 
-  ServerNode ValidateServerBlock(ConstIterator_& it) const;
-  RouteNode ValidateRouteBlock(ConstIterator_ it, ConstIterator_& token,
-                               ServerDirective is_cgi) const;
-
+  // config 읽는 중 발견한 디렉티브 판별
   ServerKeyIt_ FindDirectiveKey(ConstIterator_& it, ConstIterator_& token_end,
                                 ServerKeyMap_& key_map) const;
   RouteKeyIt_ FindDirectiveKey(ConstIterator_& it, ConstIterator_& token_end,
                                RouteKeyMap_& key_map) const;
 
+  // parameter 파싱
   uint16_t TokenizePort(ConstIterator_ it, ConstIterator_& token_end) const;
   std::string TokenizeSingleString(ConstIterator_ it,
                                    ConstIterator_& token_end) const;
@@ -161,8 +163,12 @@ class Validator {
                                 ConstIterator_& token_end) const;
   uint8_t TokenizeMethods(ConstIterator_ it, ConstIterator_& token_end,
                           ServerDirective is_cgi) const;
-
   ConstIterator_ CheckEndOfParameter(ConstIterator_ token_end) const;
+
+  // ServerBlock, RouteBlock 파싱 및 검증
+  ServerNode ValidateServerBlock(ConstIterator_& it) const;
+  RouteNode ValidateRouteBlock(ConstIterator_ it, ConstIterator_& token,
+                               ServerDirective is_cgi) const;
 };
 
 #endif  // INCLUDES_VALIDATOR_HPP_
