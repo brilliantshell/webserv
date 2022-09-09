@@ -144,31 +144,36 @@ class Validator {
   typedef std::map<std::string, RouteDirective>::iterator RouteKeyIt_;
 
   const std::string kConfig_;
+  ConstIterator_ cursor_;
 
   // 디렉티브 키맵 초기화
   void InitializeKeyMap(ServerKeyMap_& key_map) const;
   void InitializeKeyMap(RouteKeyMap_& key_map, ServerDirective is_cgi) const;
 
   // config 읽는 중 발견한 디렉티브 판별
-  ServerKeyIt_ FindDirectiveKey(ConstIterator_& it, ConstIterator_& token_end,
-                                ServerKeyMap_& key_map) const;
-  RouteKeyIt_ FindDirectiveKey(ConstIterator_& it, ConstIterator_& token_end,
-                               RouteKeyMap_& key_map) const;
+  ServerKeyIt_ FindDirectiveKey(ConstIterator_& delim, ServerKeyMap_& key_map);
+  RouteKeyIt_ FindDirectiveKey(ConstIterator_& delim, RouteKeyMap_& key_map);
 
   // parameter 파싱
-  uint16_t TokenizePort(ConstIterator_ it, ConstIterator_& token_end) const;
-  std::string TokenizeSingleString(ConstIterator_ it,
-                                   ConstIterator_& token_end) const;
-  std::string TokenizeRoutePath(ConstIterator_ it,
-                                ConstIterator_& token_end) const;
-  uint8_t TokenizeMethods(ConstIterator_ it, ConstIterator_& token_end,
-                          ServerDirective is_cgi) const;
-  ConstIterator_ CheckEndOfParameter(ConstIterator_ token_end) const;
+  uint16_t TokenizePort(ConstIterator_& delim);
+  std::string TokenizeSingleString(ConstIterator_& delim);
+  std::string TokenizeRoutePath(ConstIterator_& delim);
+  uint8_t TokenizeMethods(ConstIterator_& delim, ServerDirective is_cgi);
+  ConstIterator_ CheckEndOfParameter(ConstIterator_ delim);
+
+  // 디렉티브별로 파싱하는 switch
+  bool SwitchDirectivesToParseParam(ConstIterator_& delim,
+                                    ServerBlock& server_block,
+                                    ServerKeyMap_& key_map,
+                                    RouteMap& route_map);
+  bool SwitchDirectivesToParseParam(ConstIterator_& delim,
+                                    RouteBlock& route_block,
+                                    RouteKeyMap_& key_map,
+                                    ServerDirective is_cgi);
 
   // ServerBlock, RouteBlock 파싱 및 검증
-  ServerNode ValidateServerBlock(ConstIterator_& it) const;
-  RouteNode ValidateRouteBlock(ConstIterator_ it, ConstIterator_& token,
-                               ServerDirective is_cgi) const;
+  ServerNode ValidateServerBlock(void);
+  RouteNode ValidateRouteBlock(ConstIterator_& token, ServerDirective is_cgi);
 };
 
 #endif  // INCLUDES_VALIDATOR_HPP_
