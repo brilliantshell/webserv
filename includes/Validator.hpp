@@ -156,8 +156,8 @@ class Validator {
 
   // parameter 파싱
   uint32_t TokenizeNumber(ConstIterator_& delim);
-  std::string TokenizeSingleString(ConstIterator_& delim);
-  std::string TokenizeRoutePath(ConstIterator_& delim);
+  const std::string TokenizeSingleString(ConstIterator_& delim);
+  const std::string TokenizeRoutePath(ConstIterator_& delim);
   uint8_t TokenizeMethods(ConstIterator_& delim, ServerDirective is_cgi);
   ConstIterator_ CheckEndOfParameter(ConstIterator_ delim);
 

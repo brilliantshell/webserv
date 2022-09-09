@@ -139,7 +139,7 @@ uint32_t Validator::TokenizeNumber(ConstIterator_& delim) {
  * @param delim 파라미터 종료 위치 가리킬 레퍼런스, 파싱 후 개행 위치로 설정
  * @return std::string
  */
-std::string Validator::TokenizeSingleString(ConstIterator_& delim) {
+const std::string Validator::TokenizeSingleString(ConstIterator_& delim) {
   delim = std::find_if(cursor_, kConfig_.end(), IsCharSet(" \t\n", true));
   return std::string(cursor_, CheckEndOfParameter(delim));
 }
@@ -150,7 +150,7 @@ std::string Validator::TokenizeSingleString(ConstIterator_& delim) {
  * @param delim 파라미터 종료 위치 가리킬 레퍼런스, 파싱 후 개행 위치로 설정
  * @return std::string 라우트 경로 (cgi script 경로일 수도 있다)
  */
-std::string Validator::TokenizeRoutePath(ConstIterator_& delim) {
+const std::string Validator::TokenizeRoutePath(ConstIterator_& delim) {
   delim = std::find(cursor_, kConfig_.end(), ' ');
   if (delim == kConfig_.end() ||
       (*cursor_ == '.' &&
@@ -287,13 +287,13 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
     case RouteDirective::kIndex:
     case RouteDirective::kRoot:
     case RouteDirective::kUploadPath:
+    case RouteDirective::kRedirectTo:
       route_block[key_it->first] = TokenizeSingleString(delim);
       break;
     case RouteDirective::kMethods:
       route_block.methods = TokenizeMethods(delim, is_cgi);
       break;
-    case RouteDirective::kRedirectTo:
-      break;
+
     default:
       throw SyntaxErrorException();
   }

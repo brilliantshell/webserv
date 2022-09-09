@@ -185,7 +185,6 @@ TEST(ValidatorTest, RouteBlock) {
     EXPECT_EQ(route_block.body_max, INT_MAX);
     EXPECT_EQ(route_block.autoindex, false);
     EXPECT_EQ(route_block.upload_path, "");
-    EXPECT_EQ(route_block.redirect_to, "");
   }
 
   {
@@ -270,4 +269,82 @@ TEST(ValidatorTest, RouteBlock) {
   }
 
   TestSyntaxException("RouteBlock/CASE_15");
+  TestSyntaxException("RouteBlock/CASE_16");
+  TestSyntaxException("RouteBlock/CASE_17");
+
+  {
+    Validator::ServerMap server_map =
+        TestValidatorSuccess("RouteBlock/CASE_18");
+    Validator::ServerMap::iterator it = server_map.begin();
+    Validator::RouteMap route_map = it->second;
+
+    EXPECT_EQ(route_map.count("./first"), 1);
+    RouteBlock route_block = route_map["./first"];
+    EXPECT_EQ(route_block.methods, GET);
+
+    EXPECT_EQ(route_map.count("./second"), 1);
+    route_block = route_map["./second"];
+    EXPECT_EQ(route_block.methods, POST);
+
+    EXPECT_EQ(route_map.count(".rb"), 1);
+    route_block = route_map[".rb"];
+    EXPECT_EQ(route_block.param, "rb_param");
+
+    EXPECT_EQ(route_map.count("./third"), 1);
+    route_block = route_map["./third"];
+    EXPECT_EQ(route_block.methods, DELETE);
+  }
+
+  TestSyntaxException("RouteBlock/CASE_19");
+
+  {
+    Validator::ServerMap server_map =
+        TestValidatorSuccess("RouteBlock/CASE_20");
+    Validator::ServerMap::iterator it = server_map.begin();
+    Validator::RouteMap route_map = it->second;
+    EXPECT_EQ(route_map.count(".php"), 1) << "RouteBlock/CASE_20";
+
+    RouteBlock route_block = route_map[".php"];
+    EXPECT_EQ(route_block.methods, GET | POST);
+    EXPECT_EQ(route_block.root, "/oh_no");
+    EXPECT_EQ(route_block.param, "param_param");
+    EXPECT_EQ(route_block.body_max, 1234);
+  }
+
+  {
+    Validator::ServerMap server_map =
+        TestValidatorSuccess("RouteBlock/CASE_21");
+    Validator::ServerMap::iterator it = server_map.begin();
+    Validator::RouteMap route_map = it->second;
+    EXPECT_EQ(route_map.count("./http_no_port"), 1) << "RouteBlock/CASE_21";
+
+    RouteBlock route_block = route_map["./http_no_port"];
+    EXPECT_EQ(route_block.redirect_to, "naver.com");
+
+    EXPECT_EQ(route_map.count("./http_port"), 1) << "RouteBlock/CASE_21";
+
+    route_block = route_map["./http_port"];
+    EXPECT_EQ(route_block.redirect_to, "naver.com:8080");
+
+    EXPECT_EQ(route_map.count("./http_protoc_no_port"), 1)
+        << "RouteBlock/CASE_21";
+    route_block = route_map["./http_protoc_no_port"];
+    EXPECT_EQ(route_block.redirect_to, "http://naver.com");
+
+    EXPECT_EQ(route_map.count("./https_protoc_no_port"), 1)
+        << "RouteBlock/CASE_21";
+    route_block = route_map["./https_protoc_no_port"];
+    EXPECT_EQ(route_block.redirect_to, "https://naver.com");
+
+    EXPECT_EQ(route_map.count("./https_protoc_port"), 1)
+        << "RouteBlock/CASE_21";
+    route_block = route_map["./https_protoc_port"];
+    EXPECT_EQ(route_block.redirect_to, "https://naver.com:80");
+
+    EXPECT_EQ(route_map.count("./https_only_port"), 1) << "RouteBlock/CASE_21";
+    route_block = route_map["./https_only_port"];
+    EXPECT_EQ(route_block.redirect_to, "naver.com:443");
+  }
+
+  TestSyntaxException("RouteBlock/CASE_22");
 }
