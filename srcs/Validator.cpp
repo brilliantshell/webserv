@@ -12,8 +12,8 @@
 // SECTION : public
 Validator::Validator(const std::string& config) : kConfig_(config) {}
 
-Validator::ServerMap Validator::Validate(void) {
-  ServerMap server_map;
+Validator::Result Validator::Validate(void) {
+  Validator::Result result;
 
   for (cursor_ = std::find_if(kConfig_.begin(), kConfig_.end(),
                               IsCharSet(" \n\t", false));
@@ -27,15 +27,16 @@ Validator::ServerMap Validator::Validate(void) {
       throw SyntaxErrorException();
     }
     ++cursor_;
-    server_map.insert(ValidateServerBlock());
+    ResultPair result_pair = ValidateServerBlock();
+    result.server_map.insert(result_pair.server_node);
+    result.host_vector.push_back(result_pair.host_pair);
     cursor_ =
         std::find_if(++cursor_, kConfig_.end(), IsCharSet(" \n\t", false));
   }
-  return server_map;
+  return result;
 }
 
 // SECTION : private
-
 /**
  * @brief ServerBlock 디렉티브 키맵 초기화
  *
@@ -121,7 +122,7 @@ Validator::RouteKeyIt_ Validator::FindDirectiveKey(ConstIterator_& delim,
  * 검사
  *
  * @param delim 파라미터 종료 위치 가리킬 레퍼런스, 파싱 후 개행 위치로 설정
- * @return uint16_t 변환된 port 값
+ * @return uint32_t 변환된 port 값 (범위 체크 이전)
  */
 uint32_t Validator::TokenizeNumber(ConstIterator_& delim) {
   uint32_t nbr;
@@ -165,6 +166,7 @@ const std::string Validator::TokenizeRoutePath(ConstIterator_& delim) {
  * @brief RouteBlock 의 methods 디렉티브의 파라미터 파싱 & 유효성 검사
  *
  * @param delim 파라미터 종료 위치 가리킬 레퍼런스, 파싱 후 개행 위치로 설정
+ * @param is_cgi cgi script 여부
  * @return uint8_t bit-masked 허용 methods 플래그
  */
 uint8_t Validator::TokenizeMethods(ConstIterator_& delim,
@@ -210,15 +212,15 @@ Validator::ConstIterator_ Validator::CheckEndOfParameter(ConstIterator_ delim) {
  *
  * @param delim 디렉티브 종료 위치 가리킬 레퍼런스, 파싱 후 개행 위치로
  * @param server_block 파싱한 파라미터 저장할 ServerBlock
+ * @param host_pair 파싱한 파라미터 저장할 HostPair struct
  * @param key_map 서버 디렉티브 map
- * @param route_map 라우트 디렉티브 map
  * @return true  파싱 성공
  * @return false 서버 블록이 끝난 경우
  */
 bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
                                              ServerBlock& server_block,
-                                             ServerKeyMap_& key_map,
-                                             RouteMap& route_map) {
+                                             HostPair& host_pair,
+                                             ServerKeyMap_& key_map) {
   ServerKeyIt_ key_it = FindDirectiveKey(delim, key_map);
   if (key_it == key_map.end()) {
     return false;
@@ -229,24 +231,30 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
       if (num == 0 || num > 65535) {
         throw SyntaxErrorException();
       }
-      server_block.port = num;
+      host_pair.port = num;
       key_map.erase(key_it->first);
       break;
     }
+    case ServerDirective::kServerName:
+      host_pair.host = TokenizeSingleString(delim);
+      key_map.erase(key_it->first);
+      break;
+    case ServerDirective::kError:
+      server_block.error = TokenizeSingleString(delim);
+      key_map.erase(key_it->first);
+      break;
     case ServerDirective::kRoute:
     case ServerDirective::kCgiRoute:
-      if (!route_map.insert(ValidateRouteBlock(delim, key_it->second)).second) {
+      if (!server_block.route_map
+               .insert(ValidateRouteBlock(delim, key_it->second))
+               .second) {
         throw SyntaxErrorException();
       }
-      break;
-    case ServerDirective::kServerName:
-    case ServerDirective::kError:
-      server_block[key_it->first] = TokenizeSingleString(delim);
-      key_map.erase(key_it->first);
       break;
     default:
       throw SyntaxErrorException();
   }
+
   return true;
 }
 
@@ -293,7 +301,6 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
     case RouteDirective::kMethods:
       route_block.methods = TokenizeMethods(delim, is_cgi);
       break;
-
     default:
       throw SyntaxErrorException();
   }
@@ -304,28 +311,33 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
 /**
  * @brief loop 돌면서 ServerBlock 디렉티브 목록 검증
  *
- * @return Validator::ServerNode 완성된 서버 노드
+ * @return Validator::ResultPair 완성된 ServerBlock, HostPair의 struct
  */
-Validator::ServerNode Validator::ValidateServerBlock(void) {
+Validator::ResultPair Validator::ValidateServerBlock(void) {
   ServerBlock server_block;
-  RouteMap route_map;
+  HostPair host_pair;
   ServerKeyMap_ key_map;
   ConstIterator_ delim;
 
   InitializeKeyMap(key_map);
   for (; cursor_ != kConfig_.end(); ++cursor_) {
-    if (!SwitchDirectivesToParseParam(delim, server_block, key_map,
-                                      route_map)) {
+    if (!SwitchDirectivesToParseParam(delim, server_block, host_pair,
+                                      key_map)) {
       break;
     }
     cursor_ = delim;
   }
 
   // NOTE : listen 은 필수값!
-  if (key_map.count("listen")) {
+  // Route도 필수값인데 체크하는 부분이 없는 줄 알았지만 방금 만듦
+  if (key_map.count("listen") || server_block.route_map.empty()) {
     throw SyntaxErrorException();
   }
-  return ServerNode(server_block, route_map);
+  std::stringstream ss;
+  ss << host_pair.port;
+  std::string host =
+      (host_pair.port == 80) ? host_pair.host : host_pair.host + ":" + ss.str();
+  return ResultPair(ServerNode(host, server_block), host_pair);
 }
 
 /**
@@ -334,10 +346,10 @@ Validator::ServerNode Validator::ValidateServerBlock(void) {
  * @param delim 파라미터 종료 위치 가리킬 레퍼런스, RouteBlock 끝 위치로
  * 설정
  * @param is_cgi ServerDirective::kCgiRoute 인지 여부
- * @return Validator::RouteNode 완성된 서버 노드
+ * @return Validator::RouteNode 완성된 라우트 노드
  */
-Validator::RouteNode Validator::ValidateRouteBlock(ConstIterator_& delim,
-                                                   ServerDirective is_cgi) {
+RouteNode Validator::ValidateRouteBlock(ConstIterator_& delim,
+                                        ServerDirective is_cgi) {
   RouteBlock route_block;
   RouteKeyMap_ key_map;
   std::string path = TokenizeRoutePath(delim);

@@ -16,80 +16,28 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <vector>
 
 #include "Types.hpp"
 
-#define GET 0b00000001
-#define POST 0b00000010
-#define DELETE 0b00000100
-
-// SECTION : RouteBlock
-struct RouteBlock {
-  bool autoindex;
-  uint8_t methods;
-  int32_t body_max;
-  std::string root;
-  std::string index;
-  std::string upload_path;
-  std::string redirect_to;
-  std::string param;
-
-  RouteBlock()
-      : root("./"),
-        index(""),
-        methods(GET),
-        body_max(INT_MAX),
-        autoindex(false),
-        upload_path(""),
-        redirect_to("") {}
-
-  std::string& operator[](const std::string& key) {
-    if (key == "root") {
-      return root;
-    } else if (key == "index") {
-      return index;
-    } else if (key == "upload_path") {
-      return upload_path;
-    } else if (key == "redirect_to") {
-      return redirect_to;
-    }
-    return param;
-  }
-};
-
-// SECTION : ServerBlock
-struct ServerBlock {
-  uint16_t port;
-  std::string server_name;
-  std::string error;
-
-  ServerBlock(void) : port(0), server_name("127.0.0.1"), error("error.html") {}
-
-  std::string& operator[](const std::string& key) {
-    if (key == "server_name") {
-      return server_name;
-    }
-    return error;
-  }
-};
-
 // SECTION : Validator
 class Validator {
- private:
-  struct CompareServerBlock {
-    bool operator()(const ServerBlock& lhs, const ServerBlock& rhs) const {
-      return lhs.port < rhs.port;
-    }
+ public:
+  struct Result {
+    ServerMap server_map;
+    HostVector host_vector;
   };
 
- public:
-  typedef std::map<std::string, RouteBlock> RouteMap;
-  typedef std::pair<std::string, RouteBlock> RouteNode;
-  typedef std::map<ServerBlock, RouteMap, CompareServerBlock> ServerMap;
-  typedef std::pair<ServerBlock, RouteMap> ServerNode;
+  struct ResultPair {
+    ServerNode server_node;
+    HostPair host_pair;
+
+    ResultPair(ServerNode server_node, HostPair host_pair)
+        : server_node(server_node), host_pair(host_pair) {}
+  };
 
   Validator(const std::string& config);
-  ServerMap Validate(void);
+  Result Validate(void);
 
   class SyntaxErrorException : public std::exception {
    public:
@@ -163,15 +111,15 @@ class Validator {
   // 디렉티브별로 파싱하는 switch
   bool SwitchDirectivesToParseParam(ConstIterator_& delim,
                                     ServerBlock& server_block,
-                                    ServerKeyMap_& key_map,
-                                    RouteMap& route_map);
+                                    HostPair& host_pair,
+                                    ServerKeyMap_& key_map);
   bool SwitchDirectivesToParseParam(ConstIterator_& delim,
                                     RouteBlock& route_block,
                                     RouteKeyMap_& key_map,
                                     ServerDirective is_cgi);
 
   // ServerBlock, RouteBlock 파싱 및 검증
-  ServerNode ValidateServerBlock(void);
+  ResultPair ValidateServerBlock(void);
   RouteNode ValidateRouteBlock(ConstIterator_& token, ServerDirective is_cgi);
 };
 
