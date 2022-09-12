@@ -173,12 +173,29 @@ TEST(ValidatorTest, ServerBlock) {
     EXPECT_EQ(server_block.route_map.count("./"), 1);
   }
 
+  TestSyntaxException("ServerBlock/CASE_26");
+  TestSyntaxException("ServerBlock/CASE_27");
+
+  {
+    Validator::Result result = TestValidatorSuccess("ServerBlock/CASE_28");
+    EXPECT_EQ(result.server_map.count("you_are_pro:4242"), 1);
+    ServerBlock server_block = result.server_map["you_are_pro:4242"];
+    RouteMap& route_map = server_block.route_map;
+    HostVector& host_vector = result.host_vector;
+
+    EXPECT_EQ(host_vector[0].port, 4242);
+    EXPECT_EQ(host_vector[0].host, "you_are_pro");
+    EXPECT_EQ(server_block.error, "yes.html");
+    EXPECT_EQ(host_vector.size(), 1);
+  }
+
   // TestSyntaxException("ServerBlock/CASE_25");
 
   // {
-  //   ServerMap server_map =
+  //   Validator::Result =
   //       TestValidatorSuccess("ServerBlock/CASE_26");
 
+  //   EXPECT_EQ(server_map.count("127.0.0.1"), 1);
   //   ServerBlock server_block = server_map["127.0.0.1"];
   //   EXPECT_EQ(server_block.port, 80);
   //   EXPECT_EQ(server_block.server_name, "127.0.0.1");
@@ -427,4 +444,5 @@ TEST(ValidatorTest, RouteBlock) {
   }
 
   TestSyntaxException("RouteBlock/CASE_22");
+  TestSyntaxException("RouteBlock/CASE_23");
 }

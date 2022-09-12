@@ -28,8 +28,15 @@ Validator::Result Validator::Validate(void) {
     }
     ++cursor_;
     ResultPair result_pair = ValidateServerBlock();
-    result.server_map.insert(result_pair.server_node);
-    result.host_vector.push_back(result_pair.host_pair);
+    for (size_t i = 0; i < result.host_vector.size(); ++i) {
+      if (result.host_vector[i].port == result_pair.host_pair.port &&
+          result.host_vector[i].host != result_pair.host_pair.host) {
+        throw SyntaxErrorException();
+      }
+    }
+    if (result.server_map.insert(result_pair.server_node).second) {
+      result.host_vector.push_back(result_pair.host_pair);
+    }
     cursor_ =
         std::find_if(++cursor_, kConfig_.end(), IsCharSet(" \n\t", false));
   }
@@ -328,8 +335,7 @@ Validator::ResultPair Validator::ValidateServerBlock(void) {
     cursor_ = delim;
   }
 
-  // NOTE : listen 은 필수값!
-  // Route도 필수값인데 체크하는 부분이 없는 줄 알았지만 방금 만듦
+  // NOTE : listen 과 route block 은 필수값!
   if (key_map.count("listen") || server_block.route_map.empty()) {
     throw SyntaxErrorException();
   }
