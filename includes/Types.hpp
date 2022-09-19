@@ -10,6 +10,10 @@
 #ifndef INCLUDES_TYPES_HPP_
 #define INCLUDES_TYPES_HPP_
 
+#include <map>
+#include <string>
+#include <vector>
+
 #define GET 0b00000001
 #define POST 0b00000010
 #define DELETE 0b00000100
@@ -81,5 +85,8 @@ struct HostPair {
 typedef std::map<std::string, ServerBlock> ServerMap;
 typedef std::pair<std::string, ServerBlock> ServerNode;
 typedef std::vector<HostPair> HostVector;
+
+// SECTION : SocketGenerator 파싱 구조체 typedef
+typedef std::map<int, std::string> ListenerMap;  // key: fd, value: host:port
 
 #endif  // INCLUDES_TYPES_HPP_
