@@ -25,7 +25,9 @@ add_executable(
 	test_webserv
 	tests/test.cpp
 	tests/test_validator.cpp
+	tests/test_socket_generator.cpp
 	srcs/Validator.cpp
+	srcs/SocketGenerator.cpp
 )
 
 target_include_directories(
