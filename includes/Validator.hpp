@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <exception>
 #include <iostream>
+#include <list>
 #include <sstream>
 #include <string>
 
@@ -22,16 +23,8 @@
 class Validator {
  public:
   struct Result {
-    ServerMap server_map;
-    HostVector host_vector;
-  };
-
-  struct ResultPair {
-    ServerNode server_node;
-    HostPair host_pair;
-
-    ResultPair(ServerNode server_node, HostPair host_pair)
-        : server_node(server_node), host_pair(host_pair) {}
+    PortMap port_map;
+    PortSet port_set;
   };
 
   Validator(const std::string& config);
@@ -82,6 +75,15 @@ class Validator {
     kParam,
   };
 
+  struct PortServerPair {
+    uint16_t port;
+    ServerNode server_node;
+
+    PortServerPair(uint16_t port, ServerNode server_node)
+        : port(port), server_node(server_node) {}
+  };
+
+  typedef std::list<PortServerPair> PortServerList_;
   typedef std::string::const_iterator ConstIterator_;
   typedef std::map<std::string, ServerDirective> ServerKeyMap_;
   typedef std::map<std::string, ServerDirective>::iterator ServerKeyIt_;
@@ -108,8 +110,8 @@ class Validator {
 
   // 디렉티브별로 파싱하는 switch
   bool SwitchDirectivesToParseParam(ConstIterator_& delim,
-                                    ServerBlock& server_block,
-                                    HostPair& host_pair,
+                                    ServerBlock& server_block, uint16_t& port,
+                                    std::string& server_name,
                                     ServerKeyMap_& key_map);
   bool SwitchDirectivesToParseParam(ConstIterator_& delim,
                                     RouteBlock& route_block,
@@ -117,8 +119,11 @@ class Validator {
                                     ServerDirective is_cgi);
 
   // ServerBlock, RouteBlock 파싱 및 검증
-  ResultPair ValidateServerBlock(void);
+  PortServerPair ValidateServerBlock(PortSet& port_set);
   RouteNode ValidateRouteBlock(ConstIterator_& token, ServerDirective is_cgi);
+
+  // PortMap 생성
+  void GeneratePortMap(Result& result, PortServerList_& port_server_list) const;
 };
 
 #endif  // INCLUDES_VALIDATOR_HPP_
