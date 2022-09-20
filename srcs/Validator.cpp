@@ -13,7 +13,8 @@
 Validator::Validator(const std::string& config) : kConfig_(config) {}
 
 Validator::Result Validator::Validate(void) {
-  Validator::Result result;
+  Result result;
+  PortServerList_ port_server_list;
 
   for (cursor_ = std::find_if(kConfig_.begin(), kConfig_.end(),
                               IsCharSet(" \n\t", false));
@@ -27,19 +28,12 @@ Validator::Result Validator::Validate(void) {
       throw SyntaxErrorException();
     }
     ++cursor_;
-    ResultPair result_pair = ValidateServerBlock();
-    for (size_t i = 0; i < result.host_vector.size(); ++i) {
-      if (result.host_vector[i].port == result_pair.host_pair.port &&
-          result.host_vector[i].host != result_pair.host_pair.host) {
-        throw SyntaxErrorException();
-      }
-    }
-    if (result.server_map.insert(result_pair.server_node).second) {
-      result.host_vector.push_back(result_pair.host_pair);
-    }
+    PortServerPair port_server = ValidateServerBlock(result.port_set);
+    port_server_list.push_back(port_server);
     cursor_ =
         std::find_if(++cursor_, kConfig_.end(), IsCharSet(" \n\t", false));
   }
+  GeneratePortMap(result, port_server_list);
   return result;
 }
 
@@ -219,14 +213,16 @@ Validator::ConstIterator_ Validator::CheckEndOfParameter(ConstIterator_ delim) {
  *
  * @param delim 디렉티브 종료 위치 가리킬 레퍼런스, 파싱 후 개행 위치로
  * @param server_block 파싱한 파라미터 저장할 ServerBlock
- * @param host_pair 파싱한 파라미터 저장할 HostPair struct
- * @param key_map 서버 디렉티브 map
+ * @param port ServerBlock 의 port
+ * @param server_name ServerBlock 의 server_name
+ * @param key_map  서버 디렉티브 map
  * @return true  파싱 성공
  * @return false 서버 블록이 끝난 경우
  */
 bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
                                              ServerBlock& server_block,
-                                             HostPair& host_pair,
+                                             uint16_t& port,
+                                             std::string& server_name,
                                              ServerKeyMap_& key_map) {
   ServerKeyIt_ key_it = FindDirectiveKey(delim, key_map);
   if (key_it == key_map.end()) {
@@ -238,12 +234,12 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
       if (num == 0 || num > 65535) {
         throw SyntaxErrorException();
       }
-      host_pair.port = num;
+      port = num;
       key_map.erase(key_it->first);
       break;
     }
     case ServerDirective::kServerName:
-      host_pair.host = TokenizeSingleString(delim);
+      server_name = TokenizeSingleString(delim);
       key_map.erase(key_it->first);
       break;
     case ServerDirective::kError:
@@ -261,7 +257,6 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
     default:
       throw SyntaxErrorException();
   }
-
   return true;
 }
 
@@ -283,6 +278,7 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
   if (key_it == key_map.end()) {
     return false;
   }
+
   switch (key_it->second) {
     case RouteDirective::kAutoindex: {
       std::string autoindex = TokenizeSingleString(delim);
@@ -316,34 +312,33 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
 }
 
 /**
- * @brief loop 돌면서 ServerBlock 디렉티브 목록 검증
+ * @brief port와 serverNode<string, ServerBlock> 정보를 담은 PortServerPair
+ * 구조체 리턴
  *
- * @return Validator::ResultPair 완성된 ServerBlock, HostPair의 struct
+ * @param port_set port set
+ * @return Validator::PortServerPair
  */
-Validator::ResultPair Validator::ValidateServerBlock(void) {
+Validator::PortServerPair Validator::ValidateServerBlock(PortSet& port_set) {
   ServerBlock server_block;
-  HostPair host_pair;
+  uint16_t port;
+  std::string server_name;
   ServerKeyMap_ key_map;
   ConstIterator_ delim;
 
   InitializeKeyMap(key_map);
   for (; cursor_ != kConfig_.end(); ++cursor_) {
-    if (!SwitchDirectivesToParseParam(delim, server_block, host_pair,
+    if (!SwitchDirectivesToParseParam(delim, server_block, port, server_name,
                                       key_map)) {
       break;
     }
     cursor_ = delim;
   }
-
   // NOTE : listen 과 route block 은 필수값!
   if (key_map.count("listen") || server_block.route_map.empty()) {
     throw SyntaxErrorException();
   }
-  std::stringstream ss;
-  ss << host_pair.port;
-  std::string host =
-      (host_pair.port == 80) ? host_pair.host : host_pair.host + ":" + ss.str();
-  return ResultPair(ServerNode(host, server_block), host_pair);
+  port_set.insert(port);
+  return PortServerPair(port, ServerNode(server_name, server_block));
 }
 
 /**
@@ -369,15 +364,40 @@ RouteNode Validator::ValidateRouteBlock(ConstIterator_& delim,
     }
     cursor_ = delim;
   }
-
   if (key_map.count("param")) {
     throw SyntaxErrorException();
   }
-
   delim = std::find(delim, kConfig_.end(), '}');
   if (++delim == kConfig_.end()) {
     throw SyntaxErrorException();
   }
   delim = CheckEndOfParameter(delim);
   return RouteNode(path, route_block);
+}
+
+/**
+ * @brief PortMap 에 port 별 ServerMap 저장
+ *
+ * @param result <PortMap, Portset>
+ * @param port_server_list <port, ServerNode> 의 리스트
+ */
+void Validator::GeneratePortMap(Result& result,
+                                PortServerList_& port_server_list) const {
+  for (PortSet::const_iterator it = result.port_set.begin();
+       it != result.port_set.end(); ++it) {
+    ServerGate server_gate;
+    for (PortServerList_::const_iterator it2 = port_server_list.begin();
+         it2 != port_server_list.end(); ++it2) {
+      if (it2->port == *it) {
+        if (server_gate.server_map.size() == 0) {
+          server_gate.default_server = it2->server_node.second;
+        }
+        if (!server_gate.server_map.insert(it2->server_node).second) {
+          throw SyntaxErrorException();
+        }
+        port_server_list.erase(it2);
+      }
+    }
+    result.port_map.insert(PortNode(*it, server_gate));
+  }
 }
