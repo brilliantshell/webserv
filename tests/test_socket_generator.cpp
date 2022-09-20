@@ -7,7 +7,7 @@
 
 /**
  * Validator 에게 HostVector<port, host:port> 를 전달받아서
- * map<fd, host:port> 반환
+ * map<fd, port> 반환
  */
 
 std::string FileToString(const std::string& file_path);
@@ -21,14 +21,12 @@ Validator::Result TestHostVectors(const std::string& case_id) {
 TEST(SocketGeneratorTest, SingleServer) {
   {
     Validator::Result result = TestHostVectors("s_01");
-    SocketGenerator sg;
-    ListenerMap listeners = sg.Generate(result.host_vector);
+    ListenerMap listeners = socket_generator::GenerateSocket(result.port_set);
     ListenerMap::iterator it = listeners.begin();
     sockaddr_in addr;
-    socklen_t sock_len = it->second.size();
+    socklen_t len = it->second.size();
     memset(&addr, 0, sizeof(sockaddr_in));
-    getsockname(it->first, (sockaddr*)&addr, &sock_len);
-    EXPECT_EQ(it->second, std::string(inet_ntoa(addr.sin_addr)));
+    EXPECT_EQ(getsockname(it->first, (sockaddr*)&addr, &len), 0);
     close(it->first);
   }
 }
@@ -36,50 +34,29 @@ TEST(SocketGeneratorTest, SingleServer) {
 TEST(SocketGeneratorTest, MultipleServers) {
   {
     Validator::Result result = TestHostVectors("s_02");
-    SocketGenerator sg;
-    ListenerMap listeners = sg.Generate(result.host_vector);
+    ListenerMap listeners = socket_generator::GenerateSocket(result.port_set);
     EXPECT_EQ(2, listeners.size());
     sockaddr_in addr;
     for (ListenerMap::iterator it = listeners.begin(); it != listeners.end();
          ++it) {
-      socklen_t sock_len = it->second.size();
+      socklen_t len = it->second.size();
       memset(&addr, 0, sizeof(sockaddr_in));
-      getsockname(it->first, (sockaddr*)&addr, &sock_len);
-      EXPECT_EQ(it->second, std::string(inet_ntoa(addr.sin_addr)));
+      EXPECT_EQ(getsockname(it->first, (sockaddr*)&addr, &len), 0);
       close(it->first);
     }
   }
 
   {
     Validator::Result result = TestHostVectors("s_03");
-    SocketGenerator sg;
-    ListenerMap listeners = sg.Generate(result.host_vector);
+    ListenerMap listeners = socket_generator::GenerateSocket(result.port_set);
     EXPECT_EQ(8, listeners.size());
     sockaddr_in addr;
     for (ListenerMap::iterator it = listeners.begin(); it != listeners.end();
          ++it) {
-      socklen_t sock_len = it->second.size();
+      socklen_t len = it->second.size();
       memset(&addr, 0, sizeof(sockaddr_in));
-      getsockname(it->first, (sockaddr*)&addr, &sock_len);
-      EXPECT_EQ(it->second, std::string(inet_ntoa(addr.sin_addr)));
-      pause();
+      EXPECT_EQ(getsockname(it->first, (sockaddr*)&addr, &len), 0);
       close(it->first);
     }
   }
-
-  // {
-  //   Validator::Result result = TestHostVectors("s_04");
-  //   SocketGenerator sg;
-  //   ListenerMap listeners = sg.Generate(result.host_vector);
-  //   EXPECT_EQ(3, listeners.size());
-  //   sockaddr_in addr;
-  //   for (ListenerMap::iterator it = listeners.begin(); it != listeners.end();
-  //        ++it) {
-  //     socklen_t sock_len = it->second.size();
-  //     memset(&addr, 0, sizeof(sockaddr_in));
-  //     getsockname(it->first, (sockaddr*)&addr, &sock_len);
-  //     EXPECT_EQ(it->second, std::string(inet_ntoa(addr.sin_addr)));
-  //     close(it->first);
-  //   }
-  // }
 }

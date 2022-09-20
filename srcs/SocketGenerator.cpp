@@ -9,42 +9,35 @@
 
 #include "SocketGenerator.hpp"
 
-#include <netdb.h>
-
-void SocketGenerator::InitializeSockAddr(const HostPair& host_pair,
-                                         sockaddr_in* addr) const {
+static void InitializeSockAddr(const uint16_t port, sockaddr_in* addr) {
   memset(addr, 0, sizeof(sockaddr_in));
   addr->sin_family = AF_INET;
-  addr->sin_port = htons(host_pair.port);
-  struct hostent* ent = gethostbyname(host_pair.host.c_str());
-  memcpy(&(addr->sin_addr.s_addr), ent->h_addr_list[0], ent->h_length);
-  // addr->sin_addr.s_addr = inet_addr(host_pair.host.c_str());
+  addr->sin_port = htons(port);
+  addr->sin_addr.s_addr = INADDR_ANY;
 }
 
-ListenerMap SocketGenerator::Generate(const HostVector& host_vector) {
+ListenerMap socket_generator::GenerateSocket(const PortSet& port_set) {
   ListenerMap listeners;
   sockaddr_in addr;
   int fd;
 
-  for (HostVector::const_iterator it = host_vector.begin();
-       it != host_vector.end(); ++it) {
+  for (PortSet::const_iterator it = port_set.begin(); it != port_set.end();
+       ++it) {
     InitializeSockAddr(*it, &addr);
-    fd = socket(AF_INET, SOCK_STREAM, 0);
+    fd = socket(AF_INET, SOCK_STREAM, 0);  // NOTE : 0 맞나?
     if (fd < 0) {
-      std::cerr << strerror(errno) << '\n'
-                << "socket for " << it->host << ":" << it->port
-                << " cannot be opened" << '\n';
+      std::cerr << "webserv : " << strerror(errno) << '\n'
+                << "socket for " << *it << " cannot be opened" << '\n';
       continue;
     }
     if (bind(fd, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
-      std::cerr << strerror(errno) << '\n'
-                << "socket for " << it->host << ":" << it->port
-                << " cannot be bound" << '\n';
+      std::cerr << "webserv : " << strerror(errno) << " : "
+                << "socket for " << *it << " cannot be bound" << '\n';
       close(fd);
       continue;
     }
     listen(fd, 64);
-    listeners[fd] = it->host;
+    listeners[fd] = *it;
   }
   return listeners;
 }

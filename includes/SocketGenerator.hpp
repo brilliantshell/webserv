@@ -20,12 +20,10 @@
 
 #include "Types.hpp"
 
-class SocketGenerator {
- public:
-  ListenerMap Generate(const HostVector& host_vector);
+namespace socket_generator {
 
- private:
-  void InitializeSockAddr(const HostPair& host_pair, sockaddr_in* addr) const;
-};
+ListenerMap GenerateSocket(const PortSet& port_set);
+
+}  // namespace socket_generator
 
 #endif  // INCLUDES_SOCKET_GENERATOR_HPP_
