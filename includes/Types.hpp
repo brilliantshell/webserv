@@ -10,6 +10,11 @@
 #ifndef INCLUDES_TYPES_HPP_
 #define INCLUDES_TYPES_HPP_
 
+#include <map>
+#include <set>
+#include <string>
+#include <vector>
+
 #define GET 0b00000001
 #define POST 0b00000010
 #define DELETE 0b00000100
@@ -23,7 +28,7 @@ typedef unsigned char uint8_t;
 typedef unsigned short int uint16_t;
 typedef unsigned int uint32_t;
 
-// SECTION : RouteBlock
+// SECTION : Validator 파싱 구조체 typedef
 struct RouteBlock {
   bool autoindex;
   uint8_t methods;
@@ -57,11 +62,9 @@ struct RouteBlock {
   }
 };
 
-// SECTION : Validator 파싱 구조체 typedef
 typedef std::map<std::string, RouteBlock> RouteMap;
 typedef std::pair<std::string, RouteBlock> RouteNode;
 
-// SECTION : ServerBlock
 struct ServerBlock {
   std::string error;
   RouteMap route_map;
@@ -69,17 +72,16 @@ struct ServerBlock {
   ServerBlock(void) : error("error.html") {}
 };
 
-// SECTION : HostVector 의 element
-struct HostPair {
-  uint16_t port;
-  std::string host;
-
-  HostPair(void) : port(0), host("127.0.0.1") {}
-};
-
-// SECTION : Validator 파싱 구조체 typedef
 typedef std::map<std::string, ServerBlock> ServerMap;
 typedef std::pair<std::string, ServerBlock> ServerNode;
-typedef std::vector<HostPair> HostVector;
+
+struct ServerGate {
+  ServerBlock default_server;
+  ServerMap server_map;
+};
+
+typedef std::map<uint16_t, ServerGate> PortMap;
+typedef std::pair<uint16_t, ServerGate> PortNode;
+typedef std::set<uint16_t> PortSet;
 
 #endif  // INCLUDES_TYPES_HPP_
