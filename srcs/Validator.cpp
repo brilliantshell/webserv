@@ -387,15 +387,16 @@ void Validator::GeneratePortMap(Result& result,
        it != result.port_set.end(); ++it) {
     ServerGate server_gate;
     for (PortServerList_::const_iterator it2 = port_server_list.begin();
-         it2 != port_server_list.end(); ++it2) {
-      if (it2->port == *it) {
+         it2 != port_server_list.end();) {
+      PortServerList_::const_iterator it2_backup = it2++;
+      if (it2_backup->port == *it) {
         if (server_gate.server_map.size() == 0) {
-          server_gate.default_server = it2->server_node.second;
+          server_gate.default_server = it2_backup->server_node.second;
         }
-        if (!server_gate.server_map.insert(it2->server_node).second) {
+        if (!server_gate.server_map.insert(it2_backup->server_node).second) {
           throw SyntaxErrorException();
         }
-        port_server_list.erase(it2);
+        port_server_list.erase(it2_backup);
       }
     }
     result.port_map.insert(PortNode(*it, server_gate));
