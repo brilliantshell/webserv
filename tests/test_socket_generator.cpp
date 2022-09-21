@@ -24,7 +24,7 @@ TEST(SocketGeneratorTest, SingleServer) {
     ListenerMap listeners = socket_generator::GenerateSocket(result.port_set);
     ListenerMap::iterator it = listeners.begin();
     sockaddr_in addr;
-    socklen_t len = it->second.size();
+    socklen_t len = it->second;
     memset(&addr, 0, sizeof(sockaddr_in));
     EXPECT_EQ(getsockname(it->first, (sockaddr*)&addr, &len), 0);
     close(it->first);
@@ -39,7 +39,7 @@ TEST(SocketGeneratorTest, MultipleServers) {
     sockaddr_in addr;
     for (ListenerMap::iterator it = listeners.begin(); it != listeners.end();
          ++it) {
-      socklen_t len = it->second.size();
+      socklen_t len = it->second;
       memset(&addr, 0, sizeof(sockaddr_in));
       EXPECT_EQ(getsockname(it->first, (sockaddr*)&addr, &len), 0);
       close(it->first);
@@ -53,7 +53,7 @@ TEST(SocketGeneratorTest, MultipleServers) {
     sockaddr_in addr;
     for (ListenerMap::iterator it = listeners.begin(); it != listeners.end();
          ++it) {
-      socklen_t len = it->second.size();
+      socklen_t len = it->second;
       memset(&addr, 0, sizeof(sockaddr_in));
       EXPECT_EQ(getsockname(it->first, (sockaddr*)&addr, &len), 0);
       close(it->first);

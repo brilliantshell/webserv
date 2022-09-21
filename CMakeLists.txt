@@ -30,8 +30,32 @@ add_executable(
 	srcs/SocketGenerator.cpp
 )
 
+add_executable(
+	client
+	tests/test_client_io.cpp
+	srcs/Validator.cpp
+	srcs/ClientConnection.cpp
+)
+
+add_executable(
+	server
+	tests/test_server_io.cpp
+	srcs/Validator.cpp
+	srcs/SocketGenerator.cpp
+)
+
 target_include_directories(
 	test_webserv
+	PUBLIC ${CMAKE_SOURCE_DIR}/includes
+)
+
+target_include_directories(
+	client
+	PUBLIC ${CMAKE_SOURCE_DIR}/includes
+)
+
+target_include_directories(
+	server
 	PUBLIC ${CMAKE_SOURCE_DIR}/includes
 )
 

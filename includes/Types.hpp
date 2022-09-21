@@ -85,6 +85,6 @@ typedef std::pair<uint16_t, ServerGate> PortNode;
 typedef std::set<uint16_t> PortSet;
 
 // SECTION : GenerateSocket 파싱 구조체 typedef
-typedef std::map<int, std::string> ListenerMap;  // key: fd, value: host:port
+typedef std::map<int, uint16_t> ListenerMap;  // key: fd, value: host:port
 
 #endif  // INCLUDES_TYPES_HPP_
