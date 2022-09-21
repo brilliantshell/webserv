@@ -44,7 +44,7 @@ void ClientConnection::ReceiveMessage(void) {
 
   memset(buf, 0, sizeof(buf));
   if (::recv(socket_fd_, buf, sizeof(buf), 0) == -1) {
-    std::cerr << "recv() error" << strerror(errno) << std::endl;
+    std::cerr << "recv() error " << strerror(errno) << std::endl;
     exit(2);
   }
   exit(strcmp(buf, RANDOM_STR) ? 1 : 0);

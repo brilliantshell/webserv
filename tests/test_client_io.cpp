@@ -46,22 +46,24 @@ int main(int argc, char* argv[]) {
   Validator validator(FileToString(argv[1]));
   const PortSet& port_set = validator.Validate().port_set;
 
-  for (PortSet::const_iterator it = port_set.begin(); it != port_set.end();
-       ++it) {
-    pid_t pid = fork();
-    if (pid == 0) {
-      ClientConnection connection;
-      connection.Connect(*it);
-      connection.SendMessage();
-      connection.ReceiveMessage();
-      // sleep(1);
+  for (int i = 0; i < 10; ++i) {
+    for (PortSet::const_iterator it = port_set.begin(); it != port_set.end();
+         ++it) {
+      pid_t pid = fork();
+      if (pid == 0) {
+        ClientConnection connection;
+        connection.Connect(*it);
+        connection.SendMessage();
+        connection.ReceiveMessage();
+        // sleep(1);
 
-      // exit 해야함
-    } else if (pid < 0) {
-      std::cerr << "fork() failed" << std::endl;
-      // break;
+        // exit 해야함
+      } else if (pid < 0) {
+        std::cerr << "fork() failed" << std::endl;
+        // break;
+      }
+      pid_port_map[pid] = *it;
     }
-    pid_port_map[pid] = *it;
   }
   return WaitChildren(pid_port_map);
 }
