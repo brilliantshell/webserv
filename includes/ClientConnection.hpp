@@ -82,8 +82,8 @@ class ClientConnection {
   ~ClientConnection(void);
 
   void Connect(uint16_t port);
-  void SendMessage(void);
-  void ReceiveMessage(void);
+  void SendMessage(const std::string& message);
+  std::string ReceiveMessage(void);
 
  private:
   int socket_fd_;

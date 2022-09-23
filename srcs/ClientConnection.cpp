@@ -32,14 +32,14 @@ void ClientConnection::Connect(uint16_t port) {
   }
 }
 
-void ClientConnection::SendMessage(void) {
-  if (::send(socket_fd_, RANDOM_STR, sizeof(RANDOM_STR), 0) == -1) {
+void ClientConnection::SendMessage(const std::string& message) {
+  if (::send(socket_fd_, message.c_str(), message.size(), 0) == -1) {
     std::cerr << "send() error" << strerror(errno) << std::endl;
     exit(2);
   }
 }
 
-void ClientConnection::ReceiveMessage(void) {
+std::string ClientConnection::ReceiveMessage(void) {
   char buf[4097];
 
   memset(buf, 0, sizeof(buf));
@@ -47,5 +47,5 @@ void ClientConnection::ReceiveMessage(void) {
     std::cerr << "recv() error " << strerror(errno) << std::endl;
     exit(2);
   }
-  exit(strcmp(buf, RANDOM_STR) ? 1 : 0);
+  return buf;
 }
