@@ -11,9 +11,14 @@
 #define INCLUDES_HTTPSERVER_HPP_
 
 #include <fcntl.h>
+#include <sys/event.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
 
+#include <iostream>
+
+#include "PassiveSockets.hpp"
 #include "Types.hpp"
 
 #define BUFFER_SIZE 4097
@@ -21,13 +26,13 @@
 
 class HttpServer {
  public:
-  HttpServer(const ListenerMap& listener_map);
+  HttpServer(const PortSet& port_set);
   void Run(void);
   ~HttpServer(void);
 
  private:
   int kq_;
-  ListenerMap listener_map_;
+  PassiveSockets passive_sockets_;
 
   void InitKqueue(void);
   void UpdateKqueue(struct kevent* sock_ev, int socket_fd, int16_t ev_filt,

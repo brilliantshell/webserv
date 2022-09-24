@@ -9,13 +9,8 @@
 
 #include "HttpServer.hpp"
 
-#include <sys/event.h>
-#include <sys/types.h>
-
-#include <iostream>
-
-HttpServer::HttpServer(const ListenerMap& listener_map)
-    : listener_map_(listener_map) {}
+HttpServer::HttpServer(const PortSet& port_set)
+    : passive_sockets_(PassiveSockets(port_set)) {}
 
 HttpServer::~HttpServer() { close(kq_); }
 
@@ -25,13 +20,13 @@ void HttpServer::InitKqueue(void) {
     std::cerr << "HttpServer : kqueue failed : " << strerror(errno) << '\n';
   }
   try {
-    struct kevent* sock_ev = new struct kevent[listener_map_.size()];
+    struct kevent* sock_ev = new struct kevent[passive_sockets_.size()];
     int i = 0;
-    for (ListenerMap::const_iterator it = listener_map_.begin();
-         it != listener_map_.end(); ++it) {
+    for (ListenerMap::const_iterator it = passive_sockets_.begin();
+         it != passive_sockets_.end(); ++it) {
       EV_SET(&sock_ev[i++], it->first, EVFILT_READ, EV_ADD, 0, 0, NULL);
     }
-    if (kevent(kq_, sock_ev, listener_map_.size(), NULL, 0, NULL) == -1) {
+    if (kevent(kq_, sock_ev, passive_sockets_.size(), NULL, 0, NULL) == -1) {
       std::cerr << " HttpServer : InitKqueue failed : " << strerror(errno)
                 << '\n';
       return;  // error handling
@@ -50,7 +45,6 @@ void HttpServer::UpdateKqueue(struct kevent* sock_ev, int socket_fd,
     std::cerr << " HttpServer : UpdateKqueue failed : " << strerror(errno)
               << '\n';
     printf("socket_fd : %d\n", socket_fd);
-    pause();
     return;  // error handling
   }
 }
@@ -77,7 +71,7 @@ void HttpServer::Run(void) {
       return;
     }
     for (int i = 0; i < number_of_events; ++i) {
-      if (listener_map_.count(events[i].ident) == 1) {
+      if (passive_sockets_.count(events[i].ident) == 1) {
         AcceptConnection(&sock_ev, events[i].ident);
       } else if (events[i].flags & EV_EOF) {
         close(events[i].ident);
@@ -100,4 +94,3 @@ void HttpServer::Run(void) {
     }
   }
 }
-// close(fd);
