@@ -42,6 +42,7 @@ add_executable(
 	tests/test_server_io.cpp
 	srcs/Validator.cpp
 	srcs/SocketGenerator.cpp
+	srcs/HttpServer.cpp
 )
 
 target_include_directories(
