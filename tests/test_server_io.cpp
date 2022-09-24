@@ -14,7 +14,7 @@
 #include <string>
 
 #include "HttpServer.hpp"
-#include "SocketGenerator.hpp"
+#include "PassiveSockets.hpp"
 #include "Types.hpp"
 #include "Validator.hpp"
 
@@ -32,8 +32,7 @@ int main(int argc, char* argv[]) {
   Validator validator(FileToString(argv[1]));
   Validator::Result ret = validator.Validate();
 
-  ListenerMap listener_map = socket_generator::GenerateSocket(ret.port_set);
-  HttpServer server(listener_map);
+  HttpServer server(ret.port_set);
   server.Run();
   return EXIT_SUCCESS;
 }

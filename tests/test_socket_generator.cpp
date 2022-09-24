@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include "SocketGenerator.hpp"
+#include "PassiveSockets.hpp"
 #include "Validator.hpp"
 
 #define SOCKET_PATH_PREFIX "../configs/tests/SocketGenerator/"
@@ -21,8 +21,8 @@ Validator::Result TestHostVectors(const std::string& case_id) {
 TEST(SocketGeneratorTest, SingleServer) {
   {
     Validator::Result result = TestHostVectors("s_01");
-    ListenerMap listeners = socket_generator::GenerateSocket(result.port_set);
-    ListenerMap::iterator it = listeners.begin();
+    PassiveSockets passive_sockets(result.port_set);
+    ListenerMap::iterator it = passive_sockets.begin();
     sockaddr_in addr;
     socklen_t len = it->second;
     memset(&addr, 0, sizeof(sockaddr_in));
@@ -34,11 +34,11 @@ TEST(SocketGeneratorTest, SingleServer) {
 TEST(SocketGeneratorTest, MultipleServers) {
   {
     Validator::Result result = TestHostVectors("s_02");
-    ListenerMap listeners = socket_generator::GenerateSocket(result.port_set);
-    EXPECT_EQ(2, listeners.size());
+    PassiveSockets passive_sockets(result.port_set);
+    EXPECT_EQ(2, passive_sockets.size());
     sockaddr_in addr;
-    for (ListenerMap::iterator it = listeners.begin(); it != listeners.end();
-         ++it) {
+    for (ListenerMap::iterator it = passive_sockets.begin();
+         it != passive_sockets.end(); ++it) {
       socklen_t len = it->second;
       memset(&addr, 0, sizeof(sockaddr_in));
       EXPECT_EQ(getsockname(it->first, (sockaddr*)&addr, &len), 0);
@@ -48,11 +48,11 @@ TEST(SocketGeneratorTest, MultipleServers) {
 
   {
     Validator::Result result = TestHostVectors("s_03");
-    ListenerMap listeners = socket_generator::GenerateSocket(result.port_set);
-    EXPECT_EQ(8, listeners.size());
+    PassiveSockets passive_sockets(result.port_set);
+    EXPECT_EQ(8, passive_sockets.size());
     sockaddr_in addr;
-    for (ListenerMap::iterator it = listeners.begin(); it != listeners.end();
-         ++it) {
+    for (ListenerMap::iterator it = passive_sockets.begin();
+         it != passive_sockets.end(); ++it) {
       socklen_t len = it->second;
       memset(&addr, 0, sizeof(sockaddr_in));
       EXPECT_EQ(getsockname(it->first, (sockaddr*)&addr, &len), 0);
