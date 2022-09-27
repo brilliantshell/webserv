@@ -76,15 +76,22 @@ void HttpServer::Run(void) {
         AcceptConnection(&sock_ev, events[i].ident);
         UpdateKqueue(&sock_ev, events[i].ident, EVFILT_READ, EV_ADD);
       } else if (events[i].flags & EV_EOF) {
-        connections_[events[i].ident].Close();
+        close(events[i].ident);
+        connections_[events[i].ident].Reset();
       } else if (events[i].filter == EVFILT_READ) {
-        connections_[events[i].ident].Receive();
-        connections_[events[i].ident].Send();
+        connections_[events[i].ident].HandleRequest();
+        if (connections_[events[i].ident].get_status() != KEEP_ALIVE) {
+          shutdown(events[i].ident, SHUT_RD);
+        }
         UpdateKqueue(&sock_ev, events[i].ident, EVFILT_WRITE,
                      EV_ADD | EV_ONESHOT);
       } else if (events[i].filter == EVFILT_WRITE) {
-        UpdateKqueue(&sock_ev, events[i].ident, EVFILT_READ,
-                     EV_ADD | EV_ONESHOT);
+        if (connections_[events[i].ident].get_status() == KEEP_ALIVE) {
+          UpdateKqueue(&sock_ev, events[i].ident, EVFILT_READ,
+                       EV_ADD | EV_ONESHOT);
+        } else {
+          shutdown(events[i].ident, SHUT_WR);
+        }
       }
     }
   }
