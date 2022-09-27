@@ -26,9 +26,11 @@ add_executable(
 	tests/test.cpp
 	tests/test_validator.cpp
 	tests/test_socket_generator.cpp
+	tests/test_parser.cpp
 	srcs/Validator.cpp
 	srcs/PassiveSockets.cpp
 	srcs/Connection.cpp
+	srcs/HttpParser.cpp
 )
 
 add_executable(

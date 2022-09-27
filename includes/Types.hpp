@@ -10,6 +10,7 @@
 #ifndef INCLUDES_TYPES_HPP_
 #define INCLUDES_TYPES_HPP_
 
+#include <list>
 #include <map>
 #include <set>
 #include <string>
@@ -86,5 +87,25 @@ typedef std::set<uint16_t> PortSet;
 
 // SECTION : GenerateSocket 파싱 구조체 typedef
 typedef std::map<int, uint16_t> ListenerMap;  // key: fd, value: port
+
+// SECTION : Http request 파싱 구조체
+typedef std::map<std::string, std::list<std::string> > Fields;
+
+struct RequestLine {
+  uint8_t method;
+  uint8_t version;
+  std::string path;
+  std::string Host;
+
+  RequestLine(void)
+      : method(GET), version(HttpParser::kHttp1_1), path("/"), Host("") {}
+};
+
+struct Request {
+  RequestLine req;
+  Fields header;
+  Fields trailer;       // NULLABLE
+  std::string content;  // NULLABLE
+};
 
 #endif  // INCLUDES_TYPES_HPP_
