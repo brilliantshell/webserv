@@ -28,6 +28,7 @@ add_executable(
 	tests/test_socket_generator.cpp
 	srcs/Validator.cpp
 	srcs/PassiveSockets.cpp
+	srcs/Connection.cpp
 )
 
 add_executable(
@@ -43,6 +44,7 @@ add_executable(
 	srcs/Validator.cpp
 	srcs/HttpServer.cpp
 	srcs/PassiveSockets.cpp
+	srcs/Connection.cpp
 )
 
 target_include_directories(

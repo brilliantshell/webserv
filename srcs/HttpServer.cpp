@@ -10,7 +10,8 @@
 #include "HttpServer.hpp"
 
 HttpServer::HttpServer(const PortSet& port_set)
-    : passive_sockets_(PassiveSockets(port_set)) {}
+    : passive_sockets_(PassiveSockets(port_set)),
+      connections_(MAX_CONNECTIONS) {}
 
 HttpServer::~HttpServer() { close(kq_); }
 
@@ -44,7 +45,6 @@ void HttpServer::UpdateKqueue(struct kevent* sock_ev, int socket_fd,
   if (kevent(kq_, sock_ev, 1, NULL, 0, NULL) == -1) {
     std::cerr << " HttpServer : UpdateKqueue failed : " << strerror(errno)
               << '\n';
-    printf("socket_fd : %d\n", socket_fd);
     return;  // error handling
   }
 }
@@ -56,6 +56,7 @@ void HttpServer::AcceptConnection(struct kevent* sock_ev, int socket_fd) {
     return;
   }
   fcntl(fd, F_SETFL, O_NONBLOCK);
+  connections_[fd].set_fd(fd);
   UpdateKqueue(sock_ev, fd, EVFILT_READ, EV_ADD);
 }
 
@@ -73,18 +74,12 @@ void HttpServer::Run(void) {
     for (int i = 0; i < number_of_events; ++i) {
       if (passive_sockets_.count(events[i].ident) == 1) {
         AcceptConnection(&sock_ev, events[i].ident);
+        UpdateKqueue(&sock_ev, events[i].ident, EVFILT_READ, EV_ADD);
       } else if (events[i].flags & EV_EOF) {
-        close(events[i].ident);
+        connections_[events[i].ident].Close();
       } else if (events[i].filter == EVFILT_READ) {
-        char buf[BUFFER_SIZE];
-        if (recv(events[i].ident, buf, BUFFER_SIZE, 0) == -1) {
-          std::cerr << "HttpServer : recv failed : " << strerror(errno) << '\n';
-          return;
-        }
-        if (send(events[i].ident, buf, BUFFER_SIZE, 0) == -1) {
-          std::cerr << "HttpServer : send failed : " << strerror(errno) << '\n';
-          return;
-        }
+        connections_[events[i].ident].Receive();
+        connections_[events[i].ident].Send();
         UpdateKqueue(&sock_ev, events[i].ident, EVFILT_WRITE,
                      EV_ADD | EV_ONESHOT);
       } else if (events[i].filter == EVFILT_WRITE) {
