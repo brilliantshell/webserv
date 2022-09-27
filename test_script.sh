@@ -28,15 +28,15 @@ function TEST() {
 	echo "execute client..."
 	sleep .5
 	./build/client "${CONFIG_PATH}s_${2}.config" $3
-	
+
 	if [ $? -eq 0 ]; then
 		echo -e "\n${GREEN}TEST $1 PASSED${RESET}"
 	else
 		echo -e "\n${RED}TEST $1 FAILED${RESET}"
 	fi
-	
+
 	echo -e "==================================================\n"
-	
+
 	sleep 1
 
 	kill $!
