@@ -97,8 +97,7 @@ struct RequestLine {
   std::string path;
   std::string Host;
 
-  RequestLine(void)
-      : method(GET), version(HttpParser::kHttp1_1), path("/"), Host("") {}
+  RequestLine(void) : method(GET), version(1), path("/"), Host("") {}
 };
 
 struct Request {

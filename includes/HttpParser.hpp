@@ -12,6 +12,15 @@
 
 #include "Types.hpp"
 
+#define CRLF "\r\n"
+#define SP " "
+
+// HTTP request 길이 제한
+#define START_MAX 10000        // 10KB
+#define HEADER_MAX 16000       // 16KB
+#define BODY_MAX 128000000     // 128MB
+#define REQUEST_MAX 128026000  // 128MB + 16KB + 10KB
+
 class HttpParser {
  public:
   enum { kHttp1_0 = 0, kHttp1_1 };

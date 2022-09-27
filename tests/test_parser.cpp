@@ -38,6 +38,15 @@ HttpParser::Result {
 
 std::string FileToString(const std::string& file_path);
 
+int OpenFile(const std::string& file_path) {
+  int fd = open(file_path.c_str(), O_RDONLY);
+  if (fd == -1) {
+    std::cerr << "Failed to open file: " << file_path << std::endl;
+    exit(1);
+  }
+  return fd;
+}
+
 TEST(HttpParserTest, ParseRequestLine) {
   {
     HttpParser parser;
@@ -59,5 +68,35 @@ TEST(HttpParserTest, ParseRequestLine) {
     EXPECT_EQ(request.req.version, HttpParser::kHttp1_1);
     EXPECT_EQ(request.req.path, "/42");
     EXPECT_EQ(request.req.Host, "jiskim.com");
+  }
+
+  {
+    HttpParser parser;
+    HttpParser::Result result =
+        parser.Parse(FileToString(PARSER_PATH_PREFIX "s_02.txt"));
+    Request& request = result.request;
+    EXPECT_EQ(request.req.method, DELETE);
+    EXPECT_EQ(request.req.version, HttpParser::kHttp1_0);
+    EXPECT_EQ(request.req.path, "/24");
+    EXPECT_EQ(request.req.Host, "jiskim.com:4242");
+  }
+
+  // {
+  //   HttpParser parser;
+  //   HttpParser::Result result =
+  //       parser.Parse(FileToString(PARSER_PATH_PREFIX "s_03.txt"));
+  //   Request& request = result.request;
+  //   EXPECT_EQ(request.req.method, DELETE);
+  //   EXPECT_EQ(request.req.version, HttpParser::kHttp1_0);
+  //   EXPECT_EQ(request.req.path, "/24");
+  //   EXPECT_EQ(request.req.Host, "jiskim.com:4242");
+  // }
+}
+
+TEST(HttpParserTest, CheckRequestLength) {
+  {
+    Connection connection;
+    connection.set_fd(OpenFile("../../max.txt"));
+    connection.Receive();
   }
 }
