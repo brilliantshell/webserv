@@ -56,7 +56,7 @@ class Validator {
     const bool kIsTrue_;
   };
 
-  enum class ServerDirective {
+  enum ServerDirective {
     kListen = 0,
     kServerName,
     kError,
@@ -64,7 +64,7 @@ class Validator {
     kCgiRoute,
   };
 
-  enum class RouteDirective {
+  enum RouteDirective {
     kAutoindex = 0,
     kMethods,
     kBodyMax,

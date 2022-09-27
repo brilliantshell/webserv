@@ -12,17 +12,16 @@
 
 #include <fcntl.h>
 #include <sys/event.h>
-#include <sys/socket.h>
 #include <sys/types.h>
-#include <unistd.h>
 
 #include <iostream>
 
+#include "Connection.hpp"
 #include "PassiveSockets.hpp"
 #include "Types.hpp"
 
-#define BUFFER_SIZE 4097
 #define MAX_EVENTS 64
+#define MAX_CONNECTIONS 1024
 
 class HttpServer {
  public:
@@ -31,8 +30,10 @@ class HttpServer {
   ~HttpServer(void);
 
  private:
+  typedef std::vector<Connection> ConnectionVector;
   int kq_;
   PassiveSockets passive_sockets_;
+  ConnectionVector connections_;
 
   void InitKqueue(void);
   void UpdateKqueue(struct kevent* sock_ev, int socket_fd, int16_t ev_filt,
