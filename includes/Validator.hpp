@@ -17,6 +17,7 @@
 #include <sstream>
 #include <string>
 
+#include "ParseUtils.hpp"
 #include "Types.hpp"
 
 // SECTION : Validator
@@ -36,26 +37,6 @@ class Validator {
   };
 
  private:
-  class IsCharSet {
-   public:
-    /**
-     * @brief Construct a new Is Char Set object
-     *
-     * @param char_set : character set to find
-     * @param is_true : true면 char_set을 만나면 return, false면 char_set이
-     * 아닌 것을 만나면 return.
-     */
-    IsCharSet(const std::string char_set, const bool is_true)
-        : kCharSet_(char_set), kIsTrue_(is_true) {}
-    bool operator()(char c) const {
-      return !((kCharSet_.find(c) != std::string::npos) ^ kIsTrue_);
-    }
-
-   private:
-    const std::string kCharSet_;
-    const bool kIsTrue_;
-  };
-
   enum ServerDirective {
     kListen = 0,
     kServerName,
