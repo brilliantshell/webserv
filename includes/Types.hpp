@@ -95,9 +95,10 @@ struct RequestLine {
   uint8_t method;
   uint8_t version;
   std::string path;
-  std::string Host;
+  std::string query;
+  std::string host;
 
-  RequestLine(void) : method(GET), version(1), path("/"), Host("") {}
+  RequestLine(void) : method(GET), version(1), path("/"), query(""), host("") {}
 };
 
 struct Request {

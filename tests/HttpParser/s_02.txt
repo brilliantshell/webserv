@@ -1,7 +1,4 @@
 
-
-
-
-DELETE /24 HTTP/1.0
-Host: jiskim.com:4242
+GET http://naver.com:12321/himynameis?daniel HTTP/1.1
+Host: ghan
 

@@ -10,7 +10,11 @@
 #ifndef INCLUDES_HTTPPARSER_HPP_
 #define INCLUDES_HTTPPARSER_HPP_
 
+#include <iostream>
+
+#include "ParseUtils.hpp"
 #include "Types.hpp"
+#include "UriParser.hpp"
 
 #define CRLF "\r\n"
 #define SP " "
@@ -18,14 +22,17 @@
 #define BUFFER_SIZE 4097
 
 // HTTP request 길이 제한
-#define REQUEST_LINE_MAX 10000  // 10KB
-#define HEADER_MAX 16000        // 16KB
-#define BODY_MAX 128000000      // 128MB
-#define REQUEST_MAX 128026000   // 128MB + 16KB + 10KB
+#define METHOD_MAX 6
+#define REQUEST_PATH_MAX 8192
+#define HTTP_VERSION_MAX 8
+#define REQUEST_LINE_MAX 8208  // 8192 + 7(method max + 1) + 9(version max + 1)
+#define HEADER_MAX 16000       // 16KB
+#define BODY_MAX 128000000     // 128MB
+#define REQUEST_MAX 128026000  // 128MB + 16KB + 10KB
 
 // HTTP parser 상태값 (DEBUG)
-#define COMPLETE 0
-#define CONTINUE 1
+#define CONTINUE 0
+#define COMPLETE 1
 #define RL_LEN_ERR 2
 #define HD_LEN_ERR 3
 #define BD_LEN_ERR 4
@@ -44,7 +51,6 @@ class HttpParser {
   HttpParser(void);
 
   int Parse(const std::string& segment);
-  void ParseRequestLine(void);
 
   const Result& get_result(void) const;
 
@@ -60,6 +66,12 @@ class HttpParser {
 
   size_t SkipLeadingCRLF(const std::string& segment);
   void ReceiveRequestLine(size_t start, const std::string& segment);
+
+  // Parse request line
+  void ParseRequestLine(void);
+  void TokenizeMethod(size_t& pos);
+  void TokenizePath(size_t& pos);
+  void TokenizeVersion(size_t& pos);
 };
 
 #endif  // INCLUDES_HTTPPARSER_HPP_

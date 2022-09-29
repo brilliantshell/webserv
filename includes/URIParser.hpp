@@ -1,5 +1,5 @@
 /**
- * @file URIParser.hpp
+ * @file UriParser.hpp
  * @author ghan, jiskim, yongjule
  * @brief Validate URI according to RFC 3986
  * @date 2022-09-29
@@ -15,7 +15,7 @@
 
 #include "ParseUtils.hpp"
 
-class URIParser {
+class UriParser {
  public:
   struct Result {
     bool is_valid;

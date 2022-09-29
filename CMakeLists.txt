@@ -31,7 +31,7 @@ add_executable(
 	srcs/PassiveSockets.cpp
 	srcs/Connection.cpp
 	srcs/HttpParser.cpp
-	srcs/URIParser.cpp
+	srcs/UriParser.cpp
 )
 
 add_executable(
@@ -48,7 +48,7 @@ add_executable(
 	srcs/HttpServer.cpp
 	srcs/PassiveSockets.cpp
 	srcs/Connection.cpp
-	srcs/URIParser.cpp
+	srcs/UriParser.cpp
 )
 
 target_include_directories(

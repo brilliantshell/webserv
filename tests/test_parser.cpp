@@ -52,52 +52,6 @@ int OpenFile(const std::string& file_path) {
   return fd;
 }
 
-// TEST(HttpParserTest, ParseRequestLine) {
-// {
-//   HttpParser parser;
-//   HttpParser::Result result =
-//       parser.Parse(FileToString(PARSER_PATH_PREFIX "s_00.txt"));
-//   Request& request = result.request;
-//   EXPECT_EQ(request.req.method, GET);
-//   EXPECT_EQ(request.req.version, HttpParser::kHttp1_1);
-//   EXPECT_EQ(request.req.path, "/");
-//   EXPECT_EQ(request.req.Host, "localhost:8080");
-// }
-
-// {
-//   HttpParser parser;
-//   HttpParser::Result result =
-//       parser.Parse(FileToString(PARSER_PATH_PREFIX "s_01.txt"));
-//   Request& request = result.request;
-//   EXPECT_EQ(request.req.method, DELETE);
-//   EXPECT_EQ(request.req.version, HttpParser::kHttp1_1);
-//   EXPECT_EQ(request.req.path, "/42");
-//   EXPECT_EQ(request.req.Host, "jiskim.com");
-// }
-
-// {
-//   HttpParser parser;
-//   HttpParser::Result result =
-//       parser.Parse(FileToString(PARSER_PATH_PREFIX "s_02.txt"));
-//   Request& request = result.request;
-//   EXPECT_EQ(request.req.method, DELETE);
-//   EXPECT_EQ(request.req.version, HttpParser::kHttp1_0);
-//   EXPECT_EQ(request.req.path, "/24");
-//   EXPECT_EQ(request.req.Host, "jiskim.com:4242");
-// }
-
-// {
-//   HttpParser parser;
-//   HttpParser::Result result =
-//       parser.Parse(FileToString(PARSER_PATH_PREFIX "s_03.txt"));
-//   Request& request = result.request;
-//   EXPECT_EQ(request.req.method, DELETE);
-//   EXPECT_EQ(request.req.version, HttpParser::kHttp1_0);
-//   EXPECT_EQ(request.req.path, "/24");
-//   EXPECT_EQ(request.req.Host, "jiskim.com:4242");
-// }
-//}
-
 #include "test_parser.hpp"
 
 void TestParseError(const std::string& file_path, int parser_status,
@@ -122,33 +76,33 @@ void TestParseError(const std::string& file_path, int parser_status,
   close(fd);
 }
 
-TEST(URIParserTest, ValidateURI) {
+TEST(UriParserTest, ValidateURI) {
   // Origin Form URI
   {
-    URIParser uri_parser;
-    URIParser::Result result = uri_parser.Parse("/^");
+    UriParser uri_parser;
+    UriParser::Result result = uri_parser.Parse("/^");
     EXPECT_EQ(result.is_valid, false);
   }
 
   {
-    URIParser uri_parser;
-    URIParser::Result result = uri_parser.Parse("/ghan");
+    UriParser uri_parser;
+    UriParser::Result result = uri_parser.Parse("/ghan");
     EXPECT_EQ(result.is_valid, true);
     EXPECT_EQ(result.path, "/ghan");
     EXPECT_EQ(result.host.size(), 0);
   }
 
   {
-    URIParser uri_parser;
-    URIParser::Result result = uri_parser.Parse("//%5E");
+    UriParser uri_parser;
+    UriParser::Result result = uri_parser.Parse("//%5E");
     EXPECT_EQ(result.is_valid, true);
     EXPECT_EQ(result.path, "//^");
     EXPECT_EQ(result.host.size(), 0);
   }
 
   {
-    URIParser uri_parser;
-    URIParser::Result result = uri_parser.Parse(
+    UriParser uri_parser;
+    UriParser::Result result = uri_parser.Parse(
         "/search.naver?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=%EC%9D%B4%"
         "EA%B2%83%EC%9D%80+%EA%B2%80%EC%83%89+%EC%BF%BC%EB%A6%AC%EB%AC%B8+%EC%"
         "9E%85%EB%8B%88%EB%8B%A4");
@@ -162,8 +116,8 @@ TEST(URIParserTest, ValidateURI) {
 
   // Absolute Form URI
   {
-    URIParser uri_parser;
-    URIParser::Result result = uri_parser.Parse(
+    UriParser uri_parser;
+    UriParser::Result result = uri_parser.Parse(
         "http://naver.com/"
         "search.naver?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=%EC%9D%B4%"
         "EA%B2%83%EC%9D%80+%EA%B2%80%EC%83%89+%EC%BF%BC%EB%A6%AC%EB%AC%B8+%EC%"
@@ -177,8 +131,8 @@ TEST(URIParserTest, ValidateURI) {
   }
 
   {
-    URIParser uri_parser;
-    URIParser::Result result = uri_parser.Parse(
+    UriParser uri_parser;
+    UriParser::Result result = uri_parser.Parse(
         "http://naver.com:42424/"
         "search.naver?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=%EC%9D%B4%"
         "EA%B2%83%EC%9D%80+%EA%B2%80%EC%83%89+%EC%BF%BC%EB%A6%AC%EB%AC%B8+%EC%"
@@ -192,8 +146,8 @@ TEST(URIParserTest, ValidateURI) {
   }
 
   {
-    URIParser uri_parser;
-    URIParser::Result result = uri_parser.Parse(
+    UriParser uri_parser;
+    UriParser::Result result = uri_parser.Parse(
         "http://:42424/"
         "search.naver?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=%EC%9D%B4%"
         "EA%B2%83%EC%9D%80+%EA%B2%80%EC%83%89+%EC%BF%BC%EB%A6%AC%EB%AC%B8+%EC%"
@@ -202,22 +156,22 @@ TEST(URIParserTest, ValidateURI) {
   }
 
   {
-    URIParser uri_parser;
-    URIParser::Result result = uri_parser.Parse("foo://bar:42424");
+    UriParser uri_parser;
+    UriParser::Result result = uri_parser.Parse("foo://bar:42424");
     EXPECT_EQ(result.is_valid, true);
     EXPECT_EQ(result.host, "bar");
     EXPECT_EQ(result.path, "/");
   }
 
   {
-    URIParser uri_parser;
-    URIParser::Result result = uri_parser.Parse("foo://bar:42a");
+    UriParser uri_parser;
+    UriParser::Result result = uri_parser.Parse("foo://bar:42a");
     EXPECT_EQ(result.is_valid, false);
   }
 
   {
-    URIParser uri_parser;
-    URIParser::Result result = uri_parser.Parse("foo://ba:/abba?bba");
+    UriParser uri_parser;
+    UriParser::Result result = uri_parser.Parse("foo://ba:/abba?bba");
     EXPECT_EQ(result.is_valid, true);
     EXPECT_EQ(result.host, "ba");
     EXPECT_EQ(result.path, "/abba");
@@ -225,8 +179,8 @@ TEST(URIParserTest, ValidateURI) {
   }
 
   {
-    URIParser uri_parser;
-    URIParser::Result result = uri_parser.Parse("f^oo://ba:/abba?bba");
+    UriParser uri_parser;
+    UriParser::Result result = uri_parser.Parse("f^oo://ba:/abba?bba");
     EXPECT_EQ(result.is_valid, false);
   }
 }
@@ -272,5 +226,80 @@ TEST(HttpParserTest, ParseRequestLine) {
   TestParseError(PARSER_PATH_PREFIX "f_04.txt", COMPLETE, 400);
 
   // request target 에 유효하지 않은 문자 (400)
-  // TestParseError(PARSER_PATH_PREFIX "f_05.txt", COMPLETE, 400);
+  TestParseError(PARSER_PATH_PREFIX "f_05.txt", COMPLETE, 400);
+
+  // s 00 - valid HTTP/1.1 DELETE request
+  {
+    HttpParser parser;
+    int fd = open(PARSER_PATH_PREFIX "s_00.txt", O_RDONLY);
+
+    memset(buffer, 0, BUFFER_SIZE);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
+      status = parser.Parse(buffer);
+      if (status == COMPLETE) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE);
+    }
+    ASSERT_EQ(status, COMPLETE);
+    const HttpParser::Result& result = parser.get_result();
+    EXPECT_EQ(result.request.req.method, DELETE);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_1);
+    EXPECT_EQ(result.request.req.path, "/");
+    close(fd);
+  }
+
+  // s 01 - valid HTTP/1.1 DELETE request
+  {
+    HttpParser parser;
+    int fd = open(PARSER_PATH_PREFIX "s_01.txt", O_RDONLY);
+
+    memset(buffer, 0, BUFFER_SIZE);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
+      status = parser.Parse(buffer);
+      if (status == COMPLETE) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE);
+    }
+    ASSERT_EQ(status, COMPLETE);
+    const HttpParser::Result& result = parser.get_result();
+    EXPECT_EQ(result.request.req.method, DELETE);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_1);
+    EXPECT_EQ(result.request.req.path, "/42");
+    close(fd);
+  }
+
+  // f 06 & 07 - invalid HTTP/1.1 DELETE request
+  TestParseError(PARSER_PATH_PREFIX "f_06.txt", COMPLETE, 400);
+  TestParseError(PARSER_PATH_PREFIX "f_07.txt", COMPLETE, 400);
+
+  // s 02 - valid HTTP/1.1 GET request
+  {
+    HttpParser parser;
+    int fd = open(PARSER_PATH_PREFIX "s_02.txt", O_RDONLY);
+
+    memset(buffer, 0, BUFFER_SIZE);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
+      status = parser.Parse(buffer);
+      if (status == COMPLETE) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE);
+    }
+    ASSERT_EQ(status, COMPLETE);
+    const HttpParser::Result& result = parser.get_result();
+    EXPECT_EQ(result.request.req.method, GET);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_1);
+    EXPECT_EQ(result.request.req.host, "naver.com");
+    EXPECT_EQ(result.request.req.path, "/himynameis");
+    EXPECT_EQ(result.request.req.query, "?daniel");
+    close(fd);
+  }
+
+  // f 08 - invalid HTTP version request
+  TestParseError(PARSER_PATH_PREFIX "f_08.txt", COMPLETE, 505);
 }

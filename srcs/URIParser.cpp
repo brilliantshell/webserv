@@ -1,5 +1,5 @@
 /**
- * @file URIParser.cpp
+ * @file UriParser.cpp
  * @author ghan, jiskim, yongjule
  * @brief Validate URI according to RFC 3986
  * @date 2022-09-29
@@ -7,9 +7,9 @@
  * @copyright Copyright (c) 2022
  */
 
-#include "URIParser.hpp"
+#include "UriParser.hpp"
 
-URIParser::Result URIParser::Parse(std::string uri) {
+UriParser::Result UriParser::Parse(std::string uri) {
   size_t pos = 0;
   if (uri[0] == '/') {
     ValidatePath(uri, pos);
@@ -24,7 +24,7 @@ URIParser::Result URIParser::Parse(std::string uri) {
 }
 
 // SECTION : private
-bool URIParser::DecodeHexToAscii(std::string& uri, const size_t pos) {
+bool UriParser::DecodeHexToAscii(std::string& uri, const size_t pos) {
   IsCharSet is_hexdig(HEXDIG, true);
   if (pos + 2 < uri.size() && is_hexdig(uri[pos + 1]) &&
       is_hexdig(uri[pos + 2])) {
@@ -39,7 +39,7 @@ bool URIParser::DecodeHexToAscii(std::string& uri, const size_t pos) {
 }
 
 // Origin form 검증 및 파싱
-void URIParser::ValidatePath(std::string& uri, size_t& start) {
+void UriParser::ValidatePath(std::string& uri, size_t& start) {
   if (result_.is_valid == false) {
     return;
   }
@@ -56,7 +56,7 @@ void URIParser::ValidatePath(std::string& uri, size_t& start) {
   start = pos;
 }
 
-void URIParser::ValidateQuery(std::string& uri, size_t& start) {
+void UriParser::ValidateQuery(std::string& uri, size_t& start) {
   if (result_.is_valid == false) {
     return;
   }
@@ -73,7 +73,7 @@ void URIParser::ValidateQuery(std::string& uri, size_t& start) {
 }
 
 // Absolute form 검증 및 파싱
-void URIParser::ValidateScheme(std::string& uri, size_t& start) {
+void UriParser::ValidateScheme(std::string& uri, size_t& start) {
   while (start < uri.size() && uri[start] != ':' && result_.is_valid) {
     if (IsCharSet(ALPHA DIGIT "+-.", false)(uri[start])) {
       result_.is_valid = false;
@@ -82,7 +82,7 @@ void URIParser::ValidateScheme(std::string& uri, size_t& start) {
   }
 }
 
-void URIParser::ValidateHierPart(std::string& uri, size_t& start) {
+void UriParser::ValidateHierPart(std::string& uri, size_t& start) {
   if (result_.is_valid == false) {
     return;
   }
@@ -102,7 +102,7 @@ void URIParser::ValidateHierPart(std::string& uri, size_t& start) {
   }
 }
 
-void URIParser::ValidateAuthority(std::string& uri, size_t& start) {
+void UriParser::ValidateAuthority(std::string& uri, size_t& start) {
   if (result_.is_valid == false) {
     return;
   }
