@@ -12,6 +12,10 @@
 
 #include <string>
 
+#define CRLF "\r\n"
+#define SP " "
+#define HTAB "\t"
+
 #define UPPER_ALPHA "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 #define LOWER_ALPHA "abcdefghijklmnopqrstuvwxyz"
 #define ALPHA UPPER_ALPHA LOWER_ALPHA
@@ -20,6 +24,8 @@
 #define UNRESERVED ALPHA DIGIT "-._~"
 #define SUB_DELIMS "!$&'()*+,;="
 #define PCHAR UNRESERVED SUB_DELIMS ":@"
+#define TCHAR ALPHA DIGIT "!#$%&'*+-.^_`|~"
+#define VCHAR ALPHA DIGIT "!#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
 
 class IsCharSet {
  public:
