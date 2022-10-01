@@ -9,7 +9,7 @@
 
 #include "UriParser.hpp"
 
-UriParser::Result UriParser::Parse(std::string uri) {
+UriParser::Result UriParser::ParseTarget(std::string uri) {
   size_t pos = 0;
   if (uri[0] == '/') {
     ValidatePath(uri, pos);
@@ -21,6 +21,13 @@ UriParser::Result UriParser::Parse(std::string uri) {
     result_.is_valid = false;
   }
   return result_;
+}
+
+bool UriParser::ParseHost(std::string& uri) {
+  size_t pos = 0;
+  ValidateAuthority(uri, pos);
+  std::transform(uri.begin(), uri.end(), uri.begin(), ::tolower);
+  return result_.is_valid;
 }
 
 // SECTION : private
@@ -114,7 +121,7 @@ void UriParser::ValidateAuthority(std::string& uri, size_t& start) {
     }
     ++pos;
   }
-  result_.is_valid = (pos != start);
+  result_.is_valid = result_.is_valid ? (pos != start) : false;
   if (result_.is_valid == false) {
     return;
   }

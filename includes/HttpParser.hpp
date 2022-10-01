@@ -31,8 +31,8 @@
 #define FIELD_VALUE_MAX 8192
 #define HEADER_MAX 16384  // 16KB
 
-#define BODY_MAX 128000000     // 128MB
-#define REQUEST_MAX 128026000  // 128MB + 16KB + 10KB
+#define BODY_MAX 134217728     // 128MB
+#define REQUEST_MAX 134244368  // 128MB + 16KB + 10KB
 
 class HttpParser {
  public:
@@ -63,6 +63,7 @@ class HttpParser {
 
  private:
   int status_;
+  size_t body_length_;
   std::string request_line_buf_;
   std::string header_buf_;
   std::string body_buf_;
@@ -83,6 +84,11 @@ class HttpParser {
   std::string TokenizeFieldName(size_t& cursor);
   void TokenizeFieldValueList(size_t& cursor, std::string& name);
   void SkipWhiteSpace(size_t& cursor);
+
+  void ValidateHost(void);
+  void DetermineBodyLength(void);
+
+  void UpdateStatus(int http_status, int parser_status);
 };
 
 #endif  // INCLUDES_HTTPPARSER_HPP_

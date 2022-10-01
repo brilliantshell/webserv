@@ -26,7 +26,8 @@ class UriParser {
     Result(void) : is_valid(true), path("/") {}
   };
 
-  Result Parse(std::string uri);
+  Result ParseTarget(std::string uri);
+  bool ParseHost(std::string& uri);
 
  private:
   Result result_;
@@ -38,6 +39,7 @@ class UriParser {
 
   void ValidateScheme(std::string& uri, size_t& start);
   void ValidateHierPart(std::string& uri, size_t& start);
+
   void ValidateAuthority(std::string& uri, size_t& start);
 };
 

@@ -9,7 +9,8 @@
 
 #include "HttpParser.hpp"
 
-HttpParser::HttpParser(void) : status_(HttpParser::kLeadingCRLF) {}
+HttpParser::HttpParser(void)
+    : status_(HttpParser::kLeadingCRLF), body_length_(0) {}
 
 int HttpParser::Parse(const std::string& segment) {
   size_t start = 0;
@@ -41,8 +42,7 @@ void HttpParser::SkipLeadingCRLF(size_t& start, const std::string& segment) {
   }
   status_ = kRequestLine;
   if (!isupper(segment[start])) {
-    status_ = kComplete;
-    result_.status = 400;  // BAD REQUEST
+    UpdateStatus(400, kComplete);  // BAD REQUEST
   }
 }
 
@@ -53,8 +53,7 @@ void HttpParser::ReceiveRequestLine(size_t& start, const std::string& segment) {
   if (pos == std::string::npos) {
     request_line_buf_.append(segment.substr(start));
     if (request_line_buf_.size() > REQUEST_LINE_MAX) {
-      status_ = kRLLenErr;
-      result_.status = 400;  // BAD REQUEST
+      UpdateStatus(400, kRLLenErr);  // BAD REQUEST
       return;
     }
   } else {
@@ -79,13 +78,11 @@ void HttpParser::ParseRequestLine(void) {
 
 void HttpParser::TokenizeMethod(size_t& pos) {
   if (pos == std::string::npos) {
-    result_.status = 400;  // BAD REQUEST
-    status_ = kComplete;
+    UpdateStatus(400, kComplete);  // BAD REQUEST
     return;
   }
   if (pos > METHOD_MAX) {
-    result_.status = 501;  // NOT IMPLEMENTED
-    status_ = kComplete;
+    UpdateStatus(501, kComplete);  // NOT IMPLEMENTED
     return;
   }
   std::string token = request_line_buf_.substr(0, pos);
@@ -98,10 +95,10 @@ void HttpParser::TokenizeMethod(size_t& pos) {
   } else if (token == "DELETE") {
     result_.request.req.method = DELETE;
   } else {
-    status_ = kComplete;
-    result_.status = (token.find_first_not_of(UPPER_ALPHA) == std::string::npos)
-                         ? 501   // NOT IMPLEMENTED
-                         : 400;  // BAD REQUEST
+    UpdateStatus((token.find_first_not_of(UPPER_ALPHA) == std::string::npos)
+                     ? 501   // NOT IMPLEMENTED
+                     : 400,  // BAD REQUEST
+                 kComplete);
   }
 }
 
@@ -111,21 +108,18 @@ void HttpParser::TokenizePath(size_t& pos) {
   }
   size_t pos_back = request_line_buf_.find(SP, ++pos);
   if (pos_back == std::string::npos) {
-    result_.status = 400;  // BAD
-    status_ = kComplete;
+    UpdateStatus(400, kComplete);  // BAD REQUEST
     return;
   }
   if (pos_back - pos > REQUEST_PATH_MAX) {
-    result_.status = 414;  // URI TOO LONG
-    status_ = kComplete;
+    UpdateStatus(414, kComplete);  // URI TOO LONG
     return;
   }
   UriParser uri_parser;
   UriParser::Result uri_result =
-      uri_parser.Parse(request_line_buf_.substr(pos, pos_back - pos));
+      uri_parser.ParseTarget(request_line_buf_.substr(pos, pos_back - pos));
   if (uri_result.is_valid == false) {
-    result_.status = 400;  // BAD REQUEST
-    status_ = kComplete;
+    UpdateStatus(400, kComplete);  // BAD REQUEST
     return;
   }
   std::transform(uri_result.host.begin(), uri_result.host.end(),
@@ -141,8 +135,7 @@ void HttpParser::TokenizeVersion(size_t& pos) {
     return;
   }
   if (request_line_buf_.find(SP, pos) != std::string::npos) {
-    result_.status = 400;  // BAD REQUEST
-    status_ = kComplete;
+    UpdateStatus(400, kComplete);  // BAD REQUEST
     return;
   }
   std::string version = request_line_buf_.substr(pos);
@@ -151,8 +144,7 @@ void HttpParser::TokenizeVersion(size_t& pos) {
   } else if (version == "HTTP/1.0") {
     result_.request.req.version = kHttp1_0;
   } else {
-    result_.status = 505;  // HTTP VERSION NOT SUPPORTED
-    status_ = kComplete;
+    UpdateStatus(505, kComplete);  // HTTP VERSION NOT SUPPORTED
   }
 }
 
@@ -163,16 +155,14 @@ void HttpParser::ReceiveHeader(size_t& start, const std::string& segment) {
   if (pos == std::string::npos) {
     header_buf_.append(segment.substr(start));
     if (header_buf_.size() > HEADER_MAX) {
-      status_ = kHDLenErr;
-      result_.status = 400;  // BAD REQUEST
+      UpdateStatus(400, kHDLenErr);  // BAD REQUEST
       return;
     }
   } else {
     header_buf_.append(segment.substr(start, pos + 2 - start));
     ParseHeader();
     if (header_buf_.size() > HEADER_MAX) {
-      status_ = kHDLenErr;
-      result_.status = 400;  // BAD REQUEST
+      UpdateStatus(400, kHDLenErr);  // BAD REQUEST
       return;
     }
     status_ = kContent;
@@ -193,8 +183,7 @@ std::string HttpParser::TokenizeFieldName(size_t& cursor) {
     ++cursor;
   }
   if (header_buf_[cursor] != ':' || cursor > FIELD_NAME_MAX) {
-    result_.status = 400;  // BAD REQUEST
-    status_ = kComplete;
+    UpdateStatus(400, kComplete);  // BAD REQUEST
   }
   return header_buf_.substr(start, cursor++ - start);
 }
@@ -208,8 +197,7 @@ void HttpParser::SkipWhiteSpace(size_t& cursor) {
     ++cursor;
   }
   if (cursor == header_buf_.size()) {
-    result_.status = 400;  // BAD REQUEST
-    status_ = kComplete;
+    UpdateStatus(400, kComplete);  // BAD REQUEST
   }
 }
 
@@ -238,8 +226,46 @@ void HttpParser::TokenizeFieldValueList(size_t& cursor, std::string& name) {
   if (cursor + 1 >= header_buf_.size() ||
       header_buf_.compare(cursor, 2, CRLF) ||
       cursor - value_start > FIELD_VALUE_MAX) {
-    result_.status = 400;
-    status_ = kComplete;
+    UpdateStatus(400, kComplete);  // BAD REQUEST
+  }
+}
+
+void HttpParser::ValidateHost(void) {
+  Request& request = result_.request;
+  Fields::iterator it = request.header.find("host");
+  if (it != request.header.end()) {  // yes header
+    if (it->second.size() != 1) {
+      UpdateStatus(400, kComplete);  // BAD REQUEST
+    } else if (request.req.host.empty()) {
+      if (UriParser().ParseHost(it->second.front())) {
+        request.req.host = it->second.front();
+      } else {
+        UpdateStatus(400, kComplete);  // BAD REQUEST
+      }
+    }
+  } else if (request.req.version == kHttp1_1) {
+    UpdateStatus(400, kComplete);
+  }
+}
+
+// TODO : Content-Length, Transfer-Encoding
+void HttpParser::DetermineBodyLength(void) {
+  Request& request = result_.request;
+  Fields::iterator it = request.header.find("content-length");
+  if (it != request.header.end()) {  // yes header
+    if (it->second.size() != 1) {
+      UpdateStatus(400, kComplete);  // BAD REQUEST
+    } else {
+      if (it->second.front().find_first_not_of(DIGIT) == std::string::npos) {
+        std::stringstream ss(it->second.front());
+        ss >> body_length_;
+        if (body_length_ > BODY_MAX) {
+          UpdateStatus(413, kComplete);  // CONTENT LENGTH TOO LARGE
+        }
+      } else {
+        UpdateStatus(400, kComplete);  // BAD REQUEST
+      }
+    }
   }
 }
 
@@ -256,4 +282,13 @@ void HttpParser::ParseHeader(void) {
     }
     start = header_buf_.find(CRLF, start) + 2;
   }
+  if (status_ < kComplete) {
+    ValidateHost();
+    DetermineBodyLength();
+  }
+}
+
+void HttpParser::UpdateStatus(int http_status, int parser_status) {
+  result_.status = http_status;
+  status_ = parser_status;
 }
