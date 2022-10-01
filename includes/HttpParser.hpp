@@ -81,8 +81,7 @@ class HttpParser {
   void ReceiveHeader(size_t& start, const std::string& segment);
   void ParseHeader(void);
   std::string TokenizeFieldName(size_t& cursor);
-  void TokenizeFieldValueList(size_t& cursor,
-                              std::list<std::string>& value_list);
+  void TokenizeFieldValueList(size_t& cursor, std::string& name);
   void SkipWhiteSpace(size_t& cursor);
 };
 

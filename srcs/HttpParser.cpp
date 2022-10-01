@@ -213,29 +213,31 @@ void HttpParser::SkipWhiteSpace(size_t& cursor) {
   }
 }
 
-void HttpParser::TokenizeFieldValueList(size_t& cursor,
-                                        std::list<std::string>& value_list) {
+void HttpParser::TokenizeFieldValueList(size_t& cursor, std::string& name) {
   if (status_ >= kComplete) {
     return;
   }
 
-  size_t value_list_start = cursor;
-  // while (cursor < header_buf_.size()) {
+  size_t value_start = cursor;
   SkipWhiteSpace(cursor);
   size_t start = cursor;
   while (cursor < header_buf_.size() &&
-         (IsCharSet(VCHAR, true)(header_buf_[cursor]) ||
+         (IsCharSet(VCHAR SP HTAB, true)(header_buf_[cursor]) ||
           (static_cast<uint8_t>(header_buf_[cursor]) >= 0x80 &&
            static_cast<uint8_t>(header_buf_[cursor]) <= 0xFF))) {
     ++cursor;
   }
-  value_list.push_back(header_buf_.substr(start, cursor - start));
-  SkipWhiteSpace(cursor);
-  // }
+  size_t value_end = cursor;
+  while (value_end > start &&
+         IsCharSet(SP HTAB, true)(header_buf_[value_end - 1])) {
+    --value_end;
+  }
+  result_.request.header[name].push_back(
+      header_buf_.substr(start, value_end - start));
 
   if (cursor + 1 >= header_buf_.size() ||
       header_buf_.compare(cursor, 2, CRLF) ||
-      cursor - value_list_start > FIELD_VALUE_MAX) {
+      cursor - value_start > FIELD_VALUE_MAX) {
     result_.status = 400;
     status_ = kComplete;
   }
@@ -247,13 +249,11 @@ void HttpParser::ParseHeader(void) {
   }
   size_t start = 0;
   while (start < header_buf_.size()) {
-    std::list<std::string> value_list;
     std::string name = TokenizeFieldName(start);
-    TokenizeFieldValueList(start, value_list);
+    TokenizeFieldValueList(start, name);
     if (status_ >= kComplete) {
       break;
     }
-    result_.request.header[name] = value_list;
     start = header_buf_.find(CRLF, start) + 2;
   }
 }

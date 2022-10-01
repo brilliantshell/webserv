@@ -10,7 +10,7 @@
 #include "Validator.hpp"
 
 #define PARSER_PATH_PREFIX "../tests/HttpParser/"
-#define GOINFRE_PATH "/Users/jiskim/goinfre/"
+#define GOINFRE_PATH "/Users/ghan/goinfre/"
 
 /**
 
@@ -374,37 +374,96 @@ TEST(HttpParserTest, ParseHeaderFields) {
   TestParseError(PARSER_PATH_PREFIX "f_12.txt", HttpParser::kComplete, 400);
 
   // s 06 multiple header field
-  // {
-  //   HttpParser parser;
-  //   int fd = open(PARSER_PATH_PREFIX "s_06.txt", O_RDONLY);
+  {
+    HttpParser parser;
+    int fd = open(PARSER_PATH_PREFIX "s_06.txt", O_RDONLY);
 
-  //   memset(buffer, 0, BUFFER_SIZE);
-  //   int status;
-  //   while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
-  //     status = parser.Parse(buffer);
-  //     if (status >= HttpParser::kComplete) {
-  //       break;
-  //     }
-  //     memset(buffer, 0, BUFFER_SIZE);
-  //   }
+    memset(buffer, 0, BUFFER_SIZE);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
+      status = parser.Parse(buffer);
+      if (status >= HttpParser::kComplete) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE);
+    }
 
-  //   ASSERT_EQ(status, HttpParser::kComplete);
-  //   HttpParser::Result& result = parser.get_result();
-  //   EXPECT_EQ(result.status, 200);
-  //   EXPECT_EQ(result.request.req.method, GET);
-  //   EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_1);
-  //   EXPECT_EQ(result.request.req.path, "/");
+    ASSERT_EQ(status, HttpParser::kComplete);
+    HttpParser::Result& result = parser.get_result();
+    EXPECT_EQ(result.status, 200);
+    EXPECT_EQ(result.request.req.method, GET);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_1);
+    EXPECT_EQ(result.request.req.path, "/");
 
-  //   EXPECT_EQ(result.request.header.size(), 1);
-  //   EXPECT_EQ(result.request.header.count("accept-encoding"), 1);
-  //   std::list<std::string> field_values =
-  //       result.request.header["accept-encoding"];
-  //   std::string expected_values[] = {"gzip", "deflate", "br"};
-  //   int i = 0;
-  //   for (std::list<std::string>::const_iterator it = field_values.begin();
-  //        it != field_values.end(); ++it) {
-  //     EXPECT_EQ(*it, expected_values[i++]);
-  //   }
-  //   close(fd);
-  // }
+    EXPECT_EQ(result.request.header.size(), 2);
+    EXPECT_EQ(result.request.header.count("accept-encoding"), 1);
+    EXPECT_EQ(result.request.header["accept-encoding"].front(),
+              "gzip, deflate, br");
+
+    close(fd);
+  }
+
+  // s 07 so many SP / HTAB in header value
+  {
+    HttpParser parser;
+    int fd = open(PARSER_PATH_PREFIX "s_07.txt", O_RDONLY);
+
+    memset(buffer, 0, BUFFER_SIZE);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
+      status = parser.Parse(buffer);
+      if (status >= HttpParser::kComplete) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE);
+    }
+
+    ASSERT_EQ(status, HttpParser::kComplete);
+    HttpParser::Result& result = parser.get_result();
+    EXPECT_EQ(result.status, 200);
+    EXPECT_EQ(result.request.req.method, GET);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_1);
+    EXPECT_EQ(result.request.req.path, "/");
+
+    EXPECT_EQ(result.request.header.size(), 2);
+    EXPECT_EQ(result.request.header.count("accept-encoding"), 1);
+    EXPECT_EQ(result.request.header["accept-encoding"].front(),
+              "gzip, deflate,\t br");
+
+    close(fd);
+  }
+
+  // s 07 so many SP / HTAB in header value
+  {
+    HttpParser parser;
+    int fd = open(PARSER_PATH_PREFIX "s_08.txt", O_RDONLY);
+
+    memset(buffer, 0, BUFFER_SIZE);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
+      status = parser.Parse(buffer);
+      if (status >= HttpParser::kComplete) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE);
+    }
+
+    ASSERT_EQ(status, HttpParser::kComplete);
+    HttpParser::Result& result = parser.get_result();
+    EXPECT_EQ(result.status, 200);
+    EXPECT_EQ(result.request.req.method, GET);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_1);
+    EXPECT_EQ(result.request.req.path, "/");
+
+    EXPECT_EQ(result.request.header.size(), 2);
+    EXPECT_EQ(result.request.header.count("accept"), 1);
+    EXPECT_EQ(result.request.header["accept"].size(), 2);
+    EXPECT_EQ(result.request.header["accept"].front(), "ghan");
+    EXPECT_EQ(result.request.header["accept"].back(), "jiskim");
+
+    close(fd);
+  }
+
+  // f 13 - invalid character in header field value 400
+  TestParseError(PARSER_PATH_PREFIX "f_13.txt", HttpParser::kComplete, 400);
 }

@@ -25,7 +25,7 @@
 #define SUB_DELIMS "!$&'()*+,;="
 #define PCHAR UNRESERVED SUB_DELIMS ":@"
 #define TCHAR ALPHA DIGIT "!#$%&'*+-.^_`|~"
-#define VCHAR ALPHA DIGIT "!#$%&'()*+,-./:;<=>?@[\\]^_`{|}~"
+#define VCHAR ALPHA DIGIT "!#$%&'\"()*+,-./:;<=>?@[\\]^_`{|}~"
 
 class IsCharSet {
  public:
