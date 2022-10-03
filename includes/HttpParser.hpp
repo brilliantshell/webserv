@@ -34,6 +34,8 @@
 #define BODY_MAX 134217728     // 128MB
 #define REQUEST_MAX 134244368  // 128MB + 16KB + 10KB
 
+#define CHUNKED std::numeric_limits<size_t>::max() - 1
+
 class HttpParser {
  public:
   enum { kHttp1_0 = 0, kHttp1_1 };
@@ -44,9 +46,10 @@ class HttpParser {
     kContent,
     kTrailer,
     kComplete,
+    kClose,
     kRLLenErr,
     kHDLenErr,
-    kBDLenErr
+    kBDLenErr,
   };
 
   struct Result {
@@ -62,6 +65,7 @@ class HttpParser {
   Result& get_result(void);
 
  private:
+  bool keep_alive_;
   int status_;
   size_t body_length_;
   std::string request_line_buf_;
@@ -87,8 +91,21 @@ class HttpParser {
 
   void ValidateHost(void);
   void DetermineBodyLength(void);
+  void ParseContentLength(std::list<std::string>& content_length);
+  void ParseTransferEncoding(std::list<std::string>& encodings);
+  void ParseFieldValueList(std::list<std::string>& field_value_list,
+                           std::map<std::string, size_t>& valid_map,
+                           int no_match_status, char delim);
+  void ValidateConnection(void);
 
   void UpdateStatus(int http_status, int parser_status);
+
+  template <typename InputIterator>
+  std::map<std::string, size_t> GenerateValidValueMap(InputIterator first,
+                                                      InputIterator last);
+
+  // Reset
+  // void Clear(void);
 };
 
 #endif  // INCLUDES_HTTPPARSER_HPP_

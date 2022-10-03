@@ -10,7 +10,7 @@
 #include "Validator.hpp"
 
 #define PARSER_PATH_PREFIX "../tests/HttpParser/"
-#define GOINFRE_PATH "/Users/ghan/goinfre/"
+#define GOINFRE_PATH "/Users/yongjule/goinfre/"
 
 /**
 
@@ -52,7 +52,7 @@ int OpenFile(const std::string& file_path) {
   return fd;
 }
 
-#include "test_parser.hpp"
+// #include "test_parser.hpp"
 
 void TestParseError(const std::string& file_path, int parser_status,
                     int request_status) {
@@ -219,14 +219,14 @@ TEST(HttpParserTest, ParseRequestLine) {
   TestParseError(PARSER_PATH_PREFIX "f_01.txt", HttpParser::kComplete, 501);
 
   // f 02 소문자 method (400)
-  TestParseError(PARSER_PATH_PREFIX "f_02.txt", HttpParser::kComplete, 400);
+  TestParseError(PARSER_PATH_PREFIX "f_02.txt", HttpParser::kClose, 400);
 
   // f 03 & 04 유효하지 않은 토큰 개수 (400)
-  TestParseError(PARSER_PATH_PREFIX "f_03.txt", HttpParser::kComplete, 400);
-  TestParseError(PARSER_PATH_PREFIX "f_04.txt", HttpParser::kComplete, 400);
+  TestParseError(PARSER_PATH_PREFIX "f_03.txt", HttpParser::kClose, 400);
+  TestParseError(PARSER_PATH_PREFIX "f_04.txt", HttpParser::kClose, 400);
 
   // request target 에 유효하지 않은 문자 (400)
-  TestParseError(PARSER_PATH_PREFIX "f_05.txt", HttpParser::kComplete, 400);
+  TestParseError(PARSER_PATH_PREFIX "f_05.txt", HttpParser::kClose, 400);
 
   // s 00 - valid HTTP/1.1 DELETE request
   {
@@ -273,8 +273,8 @@ TEST(HttpParserTest, ParseRequestLine) {
   }
 
   // f 06 & 07 - invalid HTTP/1.1 DELETE request
-  TestParseError(PARSER_PATH_PREFIX "f_06.txt", HttpParser::kComplete, 400);
-  TestParseError(PARSER_PATH_PREFIX "f_07.txt", HttpParser::kComplete, 400);
+  TestParseError(PARSER_PATH_PREFIX "f_06.txt", HttpParser::kClose, 400);
+  TestParseError(PARSER_PATH_PREFIX "f_07.txt", HttpParser::kClose, 400);
 
   // s 02 - valid HTTP/1.1 GET request
   {
@@ -336,10 +336,10 @@ TEST(HttpParserTest, ParseHeaderFields) {
   // NOTE: socket timeout으로 해결할 문제로 나중에 처리.
 
   // f 10 - header name invalid character 400
-  TestParseError(PARSER_PATH_PREFIX "f_10.txt", HttpParser::kComplete, 400);
+  TestParseError(PARSER_PATH_PREFIX "f_10.txt", HttpParser::kClose, 400);
 
   // f 11 - header field name too long 400
-  TestParseError(PARSER_PATH_PREFIX "f_11.txt", HttpParser::kComplete, 400);
+  TestParseError(PARSER_PATH_PREFIX "f_11.txt", HttpParser::kClose, 400);
 
   char buffer[BUFFER_SIZE];
   // s 05 - singleton header field
@@ -357,7 +357,7 @@ TEST(HttpParserTest, ParseHeaderFields) {
       memset(buffer, 0, BUFFER_SIZE);
     }
 
-    ASSERT_EQ(status, HttpParser::kComplete);
+    ASSERT_EQ(status, HttpParser::kClose);
     HttpParser::Result& result = parser.get_result();
     EXPECT_EQ(result.status, 200);
     EXPECT_EQ(result.request.req.method, GET);
@@ -371,7 +371,7 @@ TEST(HttpParserTest, ParseHeaderFields) {
   }
 
   // f 12 - header field value list too long 400
-  TestParseError(PARSER_PATH_PREFIX "f_12.txt", HttpParser::kComplete, 400);
+  TestParseError(PARSER_PATH_PREFIX "f_12.txt", HttpParser::kClose, 400);
 
   // s 06 multiple header field
   {
@@ -465,7 +465,7 @@ TEST(HttpParserTest, ParseHeaderFields) {
   }
 
   // f 13 - invalid character in header field value 400
-  TestParseError(PARSER_PATH_PREFIX "f_13.txt", HttpParser::kComplete, 400);
+  TestParseError(PARSER_PATH_PREFIX "f_13.txt", HttpParser::kClose, 400);
 
   // s 09 valid Host header field
   {
@@ -498,7 +498,7 @@ TEST(HttpParserTest, ParseHeaderFields) {
   }
 
   // f 14 - invalid Host header field value 400
-  TestParseError(PARSER_PATH_PREFIX "f_14.txt", HttpParser::kComplete, 400);
+  TestParseError(PARSER_PATH_PREFIX "f_14.txt", HttpParser::kClose, 400);
 
   // s 10 valid Host header field hex decoding
   {
@@ -531,7 +531,7 @@ TEST(HttpParserTest, ParseHeaderFields) {
   }
 
   // f 15 content-length field value invalid
-  TestParseError(PARSER_PATH_PREFIX "f_15.txt", HttpParser::kComplete, 400);
+  TestParseError(PARSER_PATH_PREFIX "f_15.txt", HttpParser::kClose, 400);
 
   // s 11
   {
@@ -567,11 +567,147 @@ TEST(HttpParserTest, ParseHeaderFields) {
   }
 
   // f 16 content-length field value invalid
-  TestParseError(PARSER_PATH_PREFIX "f_16.txt", HttpParser::kComplete, 400);
+  TestParseError(PARSER_PATH_PREFIX "f_16.txt", HttpParser::kClose, 400);
 
   // f 17 content-length too large
   TestParseError(PARSER_PATH_PREFIX "f_17.txt", HttpParser::kComplete, 413);
 
-  // f 15 content-length overflow
+  // f 18 content-length overflow
   TestParseError(PARSER_PATH_PREFIX "f_18.txt", HttpParser::kComplete, 413);
+
+  // f 19 http 1.1 with no host field
+  TestParseError(PARSER_PATH_PREFIX "f_19.txt", HttpParser::kClose, 400);
+
+  // f 20 http 1.1 both Content-Length and Transfer-Encoding
+  TestParseError(PARSER_PATH_PREFIX "f_20.txt", HttpParser::kClose, 400);
+
+  // s 12 valid transfer-encoding
+  {
+    HttpParser parser;
+    int fd = open(PARSER_PATH_PREFIX "s_12.txt", O_RDONLY);
+
+    memset(buffer, 0, BUFFER_SIZE);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
+      status = parser.Parse(buffer);
+      if (status >= HttpParser::kComplete) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE);
+    }
+
+    ASSERT_EQ(status, HttpParser::kComplete);
+    HttpParser::Result& result = parser.get_result();
+    EXPECT_EQ(result.status, 200);
+    EXPECT_EQ(result.request.req.method, POST);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_1);
+    EXPECT_EQ(result.request.req.path, "/");
+    EXPECT_EQ(result.request.req.host, "ghan");
+
+    EXPECT_EQ(result.request.header.size(), 2);
+    EXPECT_EQ(result.request.header.count("host"), 1);
+    EXPECT_EQ(result.request.header["host"].front(), "ghan");
+
+    EXPECT_EQ(result.request.header.count("transfer-encoding"), 1);
+    EXPECT_EQ(result.request.header["transfer-encoding"].front(), "chunked");
+
+    close(fd);
+  }
+
+  // s 13 valid transfer-encoding, multiple encodings
+  {
+    HttpParser parser;
+    int fd = open(PARSER_PATH_PREFIX "s_13.txt", O_RDONLY);
+
+    memset(buffer, 0, BUFFER_SIZE);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
+      status = parser.Parse(buffer);
+      if (status >= HttpParser::kComplete) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE);
+    }
+
+    ASSERT_EQ(status, HttpParser::kComplete);
+    HttpParser::Result& result = parser.get_result();
+    EXPECT_EQ(result.status, 200);
+    EXPECT_EQ(result.request.req.method, POST);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_1);
+    EXPECT_EQ(result.request.req.path, "/");
+    EXPECT_EQ(result.request.req.host, "ghan");
+
+    EXPECT_EQ(result.request.header.size(), 2);
+    EXPECT_EQ(result.request.header.count("host"), 1);
+    EXPECT_EQ(result.request.header["host"].front(), "ghan");
+
+    EXPECT_EQ(result.request.header.count("transfer-encoding"), 1);
+    std::list<std::string> encodings =
+        result.request.header["transfer-encoding"];
+    EXPECT_EQ(encodings.size(), 3);
+    std::list<std::string>::iterator it = encodings.begin();
+    EXPECT_EQ(*it, "gzip");
+    EXPECT_EQ(*(++it), "compress");
+    EXPECT_EQ(*(++it), "chunked");
+
+    close(fd);
+  }
+
+  // f 21 invalid transfer-encoding
+  TestParseError(PARSER_PATH_PREFIX "f_21.txt", HttpParser::kClose, 400);
+
+  // f 22 invalid transfer-encoding ( quote so bad)
+  TestParseError(PARSER_PATH_PREFIX "f_22.txt", HttpParser::kClose, 400);
+
+  // f 23 invalid transfer-encoding ( not in transfer coding registry )
+  TestParseError(PARSER_PATH_PREFIX "f_23.txt", HttpParser::kClose, 501);
+
+  // f 24 invalid transfer-encoding ( repeated coding )
+  TestParseError(PARSER_PATH_PREFIX "f_24.txt", HttpParser::kClose, 400);
+
+  // f 25 invalid transfer-encoding ( empty transfer-encoding )
+  TestParseError(PARSER_PATH_PREFIX "f_25.txt", HttpParser::kClose, 400);
+
+  // f 26 invalid transfer-encoding ( with parameter )
+  TestParseError(PARSER_PATH_PREFIX "f_26.txt", HttpParser::kClose, 501);
+
+  // f 27 http1.0 with transfer-encoding (no content-length)
+  TestParseError(PARSER_PATH_PREFIX "f_27.txt", HttpParser::kComplete, 411);
+
+  // f 28 && 29 transfer-encoding (quotes)
+  TestParseError(PARSER_PATH_PREFIX "f_28.txt", HttpParser::kClose, 501);
+  TestParseError(PARSER_PATH_PREFIX "f_29.txt", HttpParser::kClose, 501);
+
+  // s 14 connection value case insensitive
+  {
+    HttpParser parser;
+    int fd = open(PARSER_PATH_PREFIX "s_14.txt", O_RDONLY);
+
+    memset(buffer, 0, BUFFER_SIZE);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
+      status = parser.Parse(buffer);
+      if (status >= HttpParser::kComplete) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE);
+    }
+
+    ASSERT_EQ(status, HttpParser::kComplete);
+    HttpParser::Result& result = parser.get_result();
+    EXPECT_EQ(result.status, 200);
+    EXPECT_EQ(result.request.req.method, GET);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_1);
+    EXPECT_EQ(result.request.header.size(), 2);
+
+    EXPECT_EQ(result.request.header.count("connection"), 1);
+    std::list<std::string> connections = result.request.header["connection"];
+    EXPECT_EQ(connections.size(), 1);
+    std::list<std::string>::iterator it = connections.begin();
+    EXPECT_EQ(*it, "keep-alive");
+
+    close(fd);
+  }
+
+  // TODO : s 15 해야함
 }
