@@ -1,0 +1,4 @@
+GET / HTTP/1.0
+Connection: keep-alive
+Keep-Alive: timeout=5, max=1000
+

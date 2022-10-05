@@ -10,7 +10,7 @@
 #include "Validator.hpp"
 
 #define PARSER_PATH_PREFIX "../tests/HttpParser/"
-#define GOINFRE_PATH "/Users/yongjule/goinfre/"
+#define GOINFRE_PATH "/Users/jisukim/goinfre/"
 
 /**
 
@@ -342,7 +342,7 @@ TEST(HttpParserTest, ParseHeaderFields) {
   TestParseError(PARSER_PATH_PREFIX "f_11.txt", HttpParser::kClose, 400);
 
   char buffer[BUFFER_SIZE];
-  // s 05 - singleton header field
+  // s 04 - singleton header field
   {
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_04.txt", O_RDONLY);
@@ -709,5 +709,144 @@ TEST(HttpParserTest, ParseHeaderFields) {
     close(fd);
   }
 
-  // TODO : s 15 해야함
+  // s 15 many connection field values
+  {
+    HttpParser parser;
+    int fd = open(PARSER_PATH_PREFIX "s_15.txt", O_RDONLY);
+
+    memset(buffer, 0, BUFFER_SIZE);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
+      status = parser.Parse(buffer);
+      if (status >= HttpParser::kComplete) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE);
+    }
+
+    ASSERT_EQ(status, HttpParser::kClose);
+    HttpParser::Result& result = parser.get_result();
+    EXPECT_EQ(result.status, 200);
+    EXPECT_EQ(result.request.req.method, GET);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_1);
+    EXPECT_EQ(result.request.header.size(), 2);
+
+    EXPECT_EQ(result.request.header.count("connection"), 1);
+    std::list<std::string> connections = result.request.header["connection"];
+    ASSERT_EQ(connections.size(), 3);
+    std::list<std::string>::iterator it = connections.begin();
+    EXPECT_EQ(*it, "keep-alive");
+    EXPECT_EQ(*(++it), "close");
+    EXPECT_EQ(*(++it), "host");
+
+    close(fd);
+  }
+
+  // f 30 repeated value in connection field
+  TestParseError(PARSER_PATH_PREFIX "f_30.txt", HttpParser::kClose, 400);
+
+  // f 31 invalid value in connection field
+  TestParseError(PARSER_PATH_PREFIX "f_31.txt", HttpParser::kClose, 400);
+
+  // s 16 is close? HTTP/1.1
+  {
+    HttpParser parser;
+    int fd = open(PARSER_PATH_PREFIX "s_16.txt", O_RDONLY);
+
+    memset(buffer, 0, BUFFER_SIZE);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
+      status = parser.Parse(buffer);
+      if (status >= HttpParser::kComplete) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE);
+    }
+
+    ASSERT_EQ(status, HttpParser::kClose);
+    HttpParser::Result& result = parser.get_result();
+    EXPECT_EQ(result.status, 200);
+    EXPECT_EQ(result.request.req.method, GET);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_1);
+    EXPECT_EQ(result.request.header.size(), 2);
+
+    EXPECT_EQ(result.request.header.count("connection"), 1);
+    std::list<std::string> connections = result.request.header["connection"];
+    ASSERT_EQ(connections.size(), 1);
+    std::list<std::string>::iterator it = connections.begin();
+    EXPECT_EQ(*it, "close");
+
+    close(fd);
+  }
+
+  // s 17 is keep-alive? HTTP/1.0
+  {
+    HttpParser parser;
+    int fd = open(PARSER_PATH_PREFIX "s_17.txt", O_RDONLY);
+
+    memset(buffer, 0, BUFFER_SIZE);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
+      status = parser.Parse(buffer);
+      if (status >= HttpParser::kComplete) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE);
+    }
+
+    ASSERT_EQ(status, HttpParser::kComplete);
+    HttpParser::Result& result = parser.get_result();
+    EXPECT_EQ(result.status, 200);
+    EXPECT_EQ(result.request.req.method, GET);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_0);
+    EXPECT_EQ(result.request.header.size(), 1);
+
+    EXPECT_EQ(result.request.header.count("connection"), 1);
+    std::list<std::string> connections = result.request.header["connection"];
+    ASSERT_EQ(connections.size(), 1);
+    std::list<std::string>::iterator it = connections.begin();
+    EXPECT_EQ(*it, "keep-alive");
+
+    close(fd);
+  }
+
+  // s 18 is keep-alive? HTTP/1.0
+  {
+    HttpParser parser;
+    int fd = open(PARSER_PATH_PREFIX "s_18.txt", O_RDONLY);
+
+    memset(buffer, 0, BUFFER_SIZE);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
+      status = parser.Parse(buffer);
+      if (status >= HttpParser::kComplete) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE);
+    }
+
+    ASSERT_EQ(status, HttpParser::kComplete);
+    HttpParser::Result& result = parser.get_result();
+    EXPECT_EQ(result.status, 200);
+    EXPECT_EQ(result.request.req.method, GET);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_0);
+    EXPECT_EQ(result.request.header.size(), 2);
+
+    EXPECT_EQ(result.request.header.count("connection"), 1);
+    std::list<std::string> connections = result.request.header["connection"];
+    ASSERT_EQ(connections.size(), 1);
+    std::list<std::string>::iterator it = connections.begin();
+    EXPECT_EQ(*it, "keep-alive");
+
+    EXPECT_EQ(result.request.header.count("keep-alive"), 1);
+    std::list<std::string> keep_alive = result.request.header["keep-alive"];
+    ASSERT_EQ(keep_alive.size(), 1);
+    it = keep_alive.begin();
+    EXPECT_EQ(*it, "timeout=5, max=1000");
+
+    close(fd);
+  }
+
+  // f 32 trailers (501)
+  TestParseError(PARSER_PATH_PREFIX "f_32.txt", HttpParser::kClose, 501);
 }

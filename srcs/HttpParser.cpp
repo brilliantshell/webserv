@@ -170,7 +170,7 @@ void HttpParser::ReceiveHeader(size_t& start, const std::string& segment) {
       UpdateStatus(400, kHDLenErr);  // BAD REQUEST
       return;
     }
-    if (status_ < kClose) {
+    if (status_ < kComplete) {
       status_ = kContent;
       start = pos + 4;
       status_ = kComplete;  // FIXME ㄱㅖㅅㄱ 내내려려야야함함
@@ -188,7 +188,7 @@ std::string HttpParser::TokenizeFieldName(size_t& cursor) {
     header_buf_[cursor] = ::tolower(header_buf_[cursor]);
     ++cursor;
   }
-  if (header_buf_[cursor] != ':' || cursor > FIELD_NAME_MAX) {
+  if (header_buf_[cursor] != ':' || cursor - start > FIELD_NAME_MAX) {
     UpdateStatus(400, kClose);  // BAD REQUEST
   }
   return header_buf_.substr(start, cursor++ - start);
@@ -287,19 +287,18 @@ void HttpParser::ParseFieldValueList(std::list<std::string>& values,
 
 void HttpParser::ParseTransferEncoding(std::list<std::string>& encodings) {
   size_t list_size = encodings.size();
-  std::pair<std::string, size_t> valid_codings[8] = {
-      std::make_pair("chunked", 0),    std::make_pair("compress", 0),
-      std::make_pair("deflate", 0),    std::make_pair("gzip", 0),
-      std::make_pair("identity", 0),   std::make_pair("x-gzip", 0),
-      std::make_pair("x-compress", 0), std::make_pair("trailers", 0),
-  };
+  std::pair<std::string, size_t> valid_codings[7] = {
+      std::make_pair("chunked", 0),   std::make_pair("compress", 0),
+      std::make_pair("deflate", 0),   std::make_pair("gzip", 0),
+      std::make_pair("identity", 0),  std::make_pair("x-gzip", 0),
+      std::make_pair("x-compress", 0)};
   std::map<std::string, size_t> valid_codings_map(valid_codings,
-                                                  valid_codings + 8);
+                                                  valid_codings + 7);
   ParseFieldValueList(encodings, valid_codings_map, 501, ',');
   if (status_ >= kComplete) {
     return;
   }
-  if (encodings.back() != "chunked") {
+  if (encodings.empty() || encodings.back() != "chunked") {
     UpdateStatus(400, kClose);  // BAD REQUEST
     return;
   }
@@ -360,26 +359,31 @@ std::map<std::string, size_t> HttpParser::GenerateValidValueMap(
   return valid_map;
 }
 
+// TODO
+// http 1.1 : close 있으면 close임 아니면 keep-alive
+// http 1.0 : keep-alive 없으면 close
+// connection 에는 header 에 있는 것만 들어갈 수 있다(keep-alive, close 제외)
+// 중복되면 400
 void HttpParser::ValidateConnection(void) {
   if (status_ >= kComplete) {
     return;
   }
-  // map ㅁㅏㄴㄷㄹ기
-
+  keep_alive_ = result_.request.req.version;
   Fields& header = result_.request.header;
   Fields::iterator it = header.find("connection");
-  keep_alive_ = result_.request.req.version;  // 1.0 close 1.1 keep-alive
   if (it != header.end()) {
     std::map<std::string, size_t> valid_value_map =
         GenerateValidValueMap(header.begin(), header.end());
     valid_value_map["keep-alive"] = 0;
     valid_value_map["close"] = 0;
     ParseFieldValueList(it->second, valid_value_map, 400, ',');
-    if (it->second.front() == "keep-alive") {
-      keep_alive_ = kHttp1_1;
+    if (status_ >= kComplete) {
+      return;
     }
-    // it->second.push_back();
-    // ParseFieldValueList(encodings, valid_codings_map, 501, ',');
+    keep_alive_ = result_.request.req.version == kHttp1_1
+                      ? (std::find(it->second.begin(), it->second.end(),
+                                   "close") == it->second.end())
+                      : (valid_value_map["keep-alive"] == 1);
   }
 }
 
@@ -394,7 +398,7 @@ void HttpParser::ParseHeader(void) {
     if (status_ >= kComplete) {
       break;
     }
-    start = header_buf_.find(CRLF, start) + 2;
+    start += 2;
   }
   if (status_ < kComplete) {
     ValidateHost();
