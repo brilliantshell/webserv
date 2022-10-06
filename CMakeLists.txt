@@ -32,6 +32,7 @@ add_executable(
 	srcs/Connection.cpp
 	srcs/HttpParser.cpp
 	srcs/UriParser.cpp
+	srcs/HeaderParser.cpp
 )
 
 add_executable(

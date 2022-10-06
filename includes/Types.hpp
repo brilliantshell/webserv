@@ -104,7 +104,6 @@ struct RequestLine {
 struct Request {
   RequestLine req;
   Fields header;
-  Fields trailer;       // NULLABLE
   std::string content;  // NULLABLE
 };
 

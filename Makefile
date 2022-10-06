@@ -313,6 +313,30 @@ srcs/Connection.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/server.dir/build.make CMakeFiles/server.dir/srcs/Connection.cpp.s
 .PHONY : srcs/Connection.cpp.s
 
+srcs/HeaderParser.o: srcs/HeaderParser.cpp.o
+.PHONY : srcs/HeaderParser.o
+
+# target to build an object file
+srcs/HeaderParser.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_webserv.dir/build.make CMakeFiles/test_webserv.dir/srcs/HeaderParser.cpp.o
+.PHONY : srcs/HeaderParser.cpp.o
+
+srcs/HeaderParser.i: srcs/HeaderParser.cpp.i
+.PHONY : srcs/HeaderParser.i
+
+# target to preprocess a source file
+srcs/HeaderParser.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_webserv.dir/build.make CMakeFiles/test_webserv.dir/srcs/HeaderParser.cpp.i
+.PHONY : srcs/HeaderParser.cpp.i
+
+srcs/HeaderParser.s: srcs/HeaderParser.cpp.s
+.PHONY : srcs/HeaderParser.s
+
+# target to generate assembly for a file
+srcs/HeaderParser.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_webserv.dir/build.make CMakeFiles/test_webserv.dir/srcs/HeaderParser.cpp.s
+.PHONY : srcs/HeaderParser.cpp.s
+
 srcs/HttpParser.o: srcs/HttpParser.cpp.o
 .PHONY : srcs/HttpParser.o
 
@@ -615,6 +639,9 @@ help:
 	@echo "... srcs/Connection.o"
 	@echo "... srcs/Connection.i"
 	@echo "... srcs/Connection.s"
+	@echo "... srcs/HeaderParser.o"
+	@echo "... srcs/HeaderParser.i"
+	@echo "... srcs/HeaderParser.s"
 	@echo "... srcs/HttpParser.o"
 	@echo "... srcs/HttpParser.i"
 	@echo "... srcs/HttpParser.s"

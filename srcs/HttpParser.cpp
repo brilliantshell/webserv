@@ -10,66 +10,79 @@
 #include "HttpParser.hpp"
 
 HttpParser::HttpParser(void)
-    : keep_alive_(true), status_(HttpParser::kLeadingCRLF), body_length_(0) {}
+    : keep_alive_(true),
+      is_data_(false),
+      status_(HttpParser::kLeadingCRLF),
+      body_length_(0),
+      chunk_size_(0) {}
 
-int HttpParser::Parse(const std::string& segment) {
-  size_t start = 0;
+int HttpParser::Parse(std::string& segment) {
   if (status_ == kLeadingCRLF) {
-    SkipLeadingCRLF(start, segment);
+    if (backup_buf_.size()) {
+      segment = backup_buf_ + segment;
+      backup_buf_.clear();
+    }
+    SkipLeadingCRLF(segment);
   }
   if (status_ == kRequestLine) {
-    ReceiveRequestLine(start, segment);
+    ReceiveRequestLine(segment);
   }
   if (status_ == kHeader) {
-    ReceiveHeader(start, segment);
+    ReceiveHeader(segment);
+  }
+  if (status_ == kContent) {
+    ReceiveContent(segment);
   }
   if (status_ == kComplete && keep_alive_ == false) {
-    return kClose;
+    status_ = kClose;
   }
-  // if (status_ == kHeader) {
-  //   result_.status = 400;  // BAD REQUEST
-  //   status_ = kHDLenErr;
-  // }
-
   return status_;
+}
+
+void HttpParser::Clear(void) {
+  keep_alive_ = true;
+  is_data_ = false;
+  status_ = kLeadingCRLF;
+  body_length_ = 0;
+  chunk_size_ = 0;
+  request_line_buf_.clear();
+  header_buf_.clear();
+  chunked_buf_.clear();
+  result_ = Result();
 }
 
 HttpParser::Result& HttpParser::get_result(void) { return result_; }
 
 // SECTION : private
 
-void HttpParser::SkipLeadingCRLF(size_t& start, const std::string& segment) {
-  if (!segment.compare(start, 2, CRLF)) {
-    start += 2;
+void HttpParser::SkipLeadingCRLF(std::string& segment) {
+  // TODO segment.size() < 2
+  if (!segment.compare(0, 2, CRLF)) {
+    segment = segment.substr(2);
   }
   status_ = kRequestLine;
-  if (!isupper(segment[start])) {
+  if (!isupper(segment[0])) {
     UpdateStatus(400, kClose);  // BAD REQUEST
   }
 }
 
 // Request line 파싱
 
-void HttpParser::ReceiveRequestLine(size_t& start, const std::string& segment) {
-  size_t pos = segment.find(CRLF, start);
+void HttpParser::ReceiveRequestLine(std::string& segment) {
+  size_t ex_size = request_line_buf_.size();
+  request_line_buf_.append(segment);
+  size_t pos = request_line_buf_.find(CRLF);
   if (pos == std::string::npos) {
-    request_line_buf_.append(segment.substr(start));
     if (request_line_buf_.size() > REQUEST_LINE_MAX) {
-      UpdateStatus(400, kRLLenErr);  // BAD REQUEST
-      return;
+      UpdateStatus(414, kRLLenErr);  // BAD REQUEST
     }
   } else {
-    request_line_buf_.append(segment.substr(start, pos));
+    request_line_buf_ = request_line_buf_.substr(0, pos);
     ParseRequestLine();
-    if (request_line_buf_.size() > REQUEST_LINE_MAX) {
-      status_ = kRLLenErr;
-      return;
+    if (status_ < kComplete) {
+      status_ = kHeader;
+      segment = segment.substr(pos - ex_size + 2);
     }
-    if (status_ >= kComplete) {
-      return;
-    }
-    status_ = kHeader;
-    start = pos + 2;
   }
 }
 
@@ -153,260 +166,102 @@ void HttpParser::TokenizeVersion(size_t& pos) {
   }
 }
 
-// Header 파싱
+// Content 파싱
 
-void HttpParser::ReceiveHeader(size_t& start, const std::string& segment) {
-  size_t pos = segment.find(CRLF CRLF, start);
-  if (pos == std::string::npos) {
-    header_buf_.append(segment.substr(start));
-    if (header_buf_.size() > HEADER_MAX) {
-      UpdateStatus(400, kHDLenErr);  // BAD REQUEST
-      return;
-    }
-  } else {
-    header_buf_.append(segment.substr(start, pos + 2 - start));
-    ParseHeader();
-    if (header_buf_.size() > HEADER_MAX) {
-      UpdateStatus(400, kHDLenErr);  // BAD REQUEST
-      return;
-    }
-    if (status_ < kComplete) {
-      status_ = kContent;
-      start = pos + 4;
-      status_ = kComplete;  // FIXME ㄱㅖㅅㄱ 내내려려야야함함
-    }
-  }
-}
+#define CHUNKED_SIZE_LINE_MAX 1024
+#define CHUNK_SIZE_MAX 8192
+void HttpParser::DecodeChunkedContent(std::string& segment) {
+  chunked_buf_.append(segment);  // segment가 \r에서 끊기면?
 
-std::string HttpParser::TokenizeFieldName(size_t& cursor) {
-  if (status_ >= kComplete) {
-    return "";
-  }
-  size_t start = cursor;
-  while (cursor < header_buf_.size() &&
-         IsCharSet(TCHAR, true)(header_buf_[cursor])) {
-    header_buf_[cursor] = ::tolower(header_buf_[cursor]);
-    ++cursor;
-  }
-  if (header_buf_[cursor] != ':' || cursor - start > FIELD_NAME_MAX) {
-    UpdateStatus(400, kClose);  // BAD REQUEST
-  }
-  return header_buf_.substr(start, cursor++ - start);
-}
-
-void HttpParser::SkipWhiteSpace(size_t& cursor) {
-  if (status_ >= kComplete) {
-    return;
-  }
-  while (cursor < header_buf_.size() &&
-         IsCharSet(SP HTAB, true)(header_buf_[cursor])) {
-    ++cursor;
-  }
-  if (cursor == header_buf_.size()) {
-    UpdateStatus(400, kClose);  // BAD REQUEST
-  }
-}
-
-void HttpParser::TokenizeFieldValueList(size_t& cursor, std::string& name) {
-  if (status_ >= kComplete) {
-    return;
-  }
-
-  size_t value_start = cursor;
-  SkipWhiteSpace(cursor);
-  size_t start = cursor;
-  while (cursor < header_buf_.size() &&
-         (IsCharSet(VCHAR SP HTAB, true)(header_buf_[cursor]) ||
-          (static_cast<uint8_t>(header_buf_[cursor]) >= 0x80 &&
-           static_cast<uint8_t>(header_buf_[cursor]) <= 0xFF))) {
-    ++cursor;
-  }
-  size_t value_end = cursor;
-  while (value_end > start &&
-         IsCharSet(SP HTAB, true)(header_buf_[value_end - 1])) {
-    --value_end;
-  }
-  result_.request.header[name].push_back(
-      header_buf_.substr(start, value_end - start));
-
-  if (cursor + 1 >= header_buf_.size() ||
-      header_buf_.compare(cursor, 2, CRLF) ||
-      cursor - value_start > FIELD_VALUE_MAX) {
-    UpdateStatus(400, kClose);  // BAD REQUEST
-  }
-}
-
-void HttpParser::ValidateHost(void) {
-  Request& request = result_.request;
-  Fields::iterator it = request.header.find("host");
-  if (it != request.header.end()) {  // yes header
-    if (it->second.size() != 1) {
-      UpdateStatus(400, kClose);  // BAD REQUEST
-    } else if (request.req.host.empty()) {
-      if (UriParser().ParseHost(it->second.front())) {
-        request.req.host = it->second.front();
-      } else {
-        UpdateStatus(400, kClose);  // BAD REQUEST
+  while (true) {  // FIXME
+    if (is_data_) {
+      if (chunked_buf_.size() < chunk_size_) {
+        break;
       }
-    }
-  } else if (request.req.version == kHttp1_1) {  // no host
-    UpdateStatus(400, kClose);
-  }
-}
-
-void HttpParser::ParseFieldValueList(std::list<std::string>& values,
-                                     std::map<std::string, size_t>& valid_map,
-                                     int no_match_status, char delim) {
-  size_t list_size = values.size();
-  for (size_t i = 0; i < list_size; ++i) {
-    std::istringstream ss(values.front());
-    values.pop_front();
-    std::string token;
-    while (std::getline(ss, token, delim)) {
-      std::string::iterator token_end =
-          std::remove_if(token.begin(), token.end(), IsCharSet(SP HTAB, true));
-      if (token_end == token.begin()) {
+      result_.request.content.append(chunked_buf_, 0, chunk_size_);
+      if (result_.request.content.size() > BODY_MAX) {
+        UpdateStatus(413, kClose);  // REQUEST ENTITY TOO LARGE
+        return;
+      }
+      if (chunked_buf_.compare(chunk_size_, 2, CRLF)) {
         UpdateStatus(400, kClose);  // BAD REQUEST
         return;
       }
-      token.erase(token_end, token.end());
-      std::transform(token.begin(), token.end(), token.begin(), ::tolower);
-      if (valid_map.count(token) == 0) {
-        UpdateStatus(no_match_status, kClose);
-        return;
-      }
-      if (valid_map[token] > 0) {
-        UpdateStatus(400, kClose);  // BAD REQUEST
-        return;
-      }
-      values.push_back(token);
-      ++valid_map[token];
-    }
-  }
-}
-
-void HttpParser::ParseTransferEncoding(std::list<std::string>& encodings) {
-  size_t list_size = encodings.size();
-  std::pair<std::string, size_t> valid_codings[7] = {
-      std::make_pair("chunked", 0),   std::make_pair("compress", 0),
-      std::make_pair("deflate", 0),   std::make_pair("gzip", 0),
-      std::make_pair("identity", 0),  std::make_pair("x-gzip", 0),
-      std::make_pair("x-compress", 0)};
-  std::map<std::string, size_t> valid_codings_map(valid_codings,
-                                                  valid_codings + 7);
-  ParseFieldValueList(encodings, valid_codings_map, 501, ',');
-  if (status_ >= kComplete) {
-    return;
-  }
-  if (encodings.empty() || encodings.back() != "chunked") {
-    UpdateStatus(400, kClose);  // BAD REQUEST
-    return;
-  }
-  body_length_ = CHUNKED;
-}
-
-void HttpParser::ParseContentLength(std::list<std::string>& content_length) {
-  if (content_length.size() != 1) {
-    UpdateStatus(400, kClose);  // BAD REQUEST
-  } else {
-    if (content_length.front().find_first_not_of(DIGIT) == std::string::npos) {
-      std::stringstream ss(content_length.front());
-      ss >> body_length_;
-      if (body_length_ > BODY_MAX) {
-        UpdateStatus(413, kComplete);  // CONTENT LENGTH TOO LARGE
-      }
+      chunked_buf_ = chunked_buf_.substr(chunk_size_ + 2);
+      is_data_ = false;
     } else {
-      UpdateStatus(400, kClose);  // BAD REQUEST
+      size_t pos = 0;
+      pos = chunked_buf_.find(CRLF);
+      if (pos == std::string::npos) {
+        if (chunked_buf_.size() > CHUNKED_SIZE_LINE_MAX) {
+          UpdateStatus(400, kClose);  // BAD REQUEST
+          return;
+        }
+        break;
+      } else {
+        std::string chunk_size_line = chunked_buf_.substr(0, pos);
+        chunked_buf_ = chunked_buf_.substr(pos + 2);
+        if (pos > CHUNKED_SIZE_LINE_MAX) {
+          UpdateStatus(400, kClose);  // BAD REQUEST
+          return;
+        }
+        pos = chunk_size_line.find(";");
+        if (pos == std::string::npos) {
+          pos = chunk_size_line.find_first_not_of(HEXDIG);
+          if (pos != std::string::npos) {
+            UpdateStatus(400, kClose);  // BAD REQUEST
+            return;
+          }
+        } else {
+          chunk_size_line = chunk_size_line.substr(0, pos);
+          pos = chunk_size_line.find_first_not_of(HEXDIG);
+          if (chunk_size_line.find_first_not_of(SP HTAB, pos) !=
+              std::string::npos) {
+            UpdateStatus(400, kClose);  // BAD REQUEST
+            return;
+          }
+        }
+        std::stringstream ss(chunk_size_line);
+        ss >> std::hex >> chunk_size_;
+        if (chunk_size_ > CHUNK_SIZE_MAX) {
+          UpdateStatus(400, kClose);  // BAD REQUEST
+          return;
+        }
+        if (chunk_size_ == 0) {
+          UpdateStatus(200, kComplete);
+          return;
+        }
+        is_data_ = true;
+      }
     }
   }
 }
 
-// TE & CL : error (400) - kClose
-// TE :
-//  if chunked is not the last token, 400
-//  else, chunked parsing
-// CL : if not valid number 400
-// !TE || !CL : body length == 0
-//
-void HttpParser::DetermineBodyLength(void) {
-  if (status_ >= kComplete) {
+void HttpParser::ReceiveContent(std::string& segment) {
+  if (body_length_ == 0) {
+    status_ = kComplete;
     return;
   }
-  Fields& header = result_.request.header;
-  Fields::iterator cl_it = header.find("content-length");
-  Fields::iterator te_it = header.find("transfer-encoding");
-  if (te_it != header.end() && cl_it != header.end()) {
-    UpdateStatus(400, kClose);  // BAD REQUEST
+  if (body_length_ == CHUNKED) {
+    DecodeChunkedContent(segment);
+    // status_ = kComplete;  // FIXME
     return;
   }
-  if (te_it != header.end() && result_.request.req.version == kHttp1_1) {
-    ParseTransferEncoding(te_it->second);
-  } else if (cl_it != header.end()) {
-    ParseContentLength(cl_it->second);
-  } else if (result_.request.req.method == POST) {
-    UpdateStatus(411, kComplete);  // LENGTH REQUIRED
-    return;
-  }
-}
 
-template <typename InputIterator>
-std::map<std::string, size_t> HttpParser::GenerateValidValueMap(
-    InputIterator first, InputIterator last) {
-  std::map<std::string, size_t> valid_map;
-  for (; first != last; ++first) {
-    valid_map[(*first).first] = 0;
-  }
-  return valid_map;
-}
-
-// TODO
-// http 1.1 : close 있으면 close임 아니면 keep-alive
-// http 1.0 : keep-alive 없으면 close
-// connection 에는 header 에 있는 것만 들어갈 수 있다(keep-alive, close 제외)
-// 중복되면 400
-void HttpParser::ValidateConnection(void) {
-  if (status_ >= kComplete) {
-    return;
-  }
-  keep_alive_ = result_.request.req.version;
-  Fields& header = result_.request.header;
-  Fields::iterator it = header.find("connection");
-  if (it != header.end()) {
-    std::map<std::string, size_t> valid_value_map =
-        GenerateValidValueMap(header.begin(), header.end());
-    valid_value_map["keep-alive"] = 0;
-    valid_value_map["close"] = 0;
-    ParseFieldValueList(it->second, valid_value_map, 400, ',');
-    if (status_ >= kComplete) {
-      return;
+  size_t remaining_bytes = body_length_ - result_.request.content.size();
+  if (segment.size() >= remaining_bytes) {
+    if (segment.size() > remaining_bytes) {
+      backup_buf_ = segment.substr(remaining_bytes);
     }
-    keep_alive_ = result_.request.req.version == kHttp1_1
-                      ? (std::find(it->second.begin(), it->second.end(),
-                                   "close") == it->second.end())
-                      : (valid_value_map["keep-alive"] == 1);
-  }
-}
-
-void HttpParser::ParseHeader(void) {
-  if (result_.status != 200) {  // FIXME
+    result_.request.content.append(segment, 0, remaining_bytes);
+    status_ = kComplete;
     return;
-  }
-  size_t start = 0;
-  while (start < header_buf_.size()) {
-    std::string name = TokenizeFieldName(start);
-    TokenizeFieldValueList(start, name);
-    if (status_ >= kComplete) {
-      break;
-    }
-    start += 2;
-  }
-  if (status_ < kComplete) {
-    ValidateHost();
-    DetermineBodyLength();
-    ValidateConnection();
+  } else if (segment.size() < remaining_bytes) {
+    result_.request.content.append(segment);
   }
 }
 
+// Update status
 void HttpParser::UpdateStatus(int http_status, int parser_status) {
   result_.status = http_status;
   status_ = parser_status;

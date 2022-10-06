@@ -10,7 +10,7 @@
 #include "Validator.hpp"
 
 #define PARSER_PATH_PREFIX "../tests/HttpParser/"
-#define GOINFRE_PATH "/Users/jisukim/goinfre/"
+#define GOINFRE_PATH "/Users/ghan/goinfre/"
 
 /**
 
@@ -57,18 +57,19 @@ int OpenFile(const std::string& file_path) {
 void TestParseError(const std::string& file_path, int parser_status,
                     int request_status) {
   HttpParser parser;
-  char buffer[BUFFER_SIZE];
+  char buffer[BUFFER_SIZE + 1];
 
   int fd = open(file_path.c_str(), O_RDONLY);
 
-  memset(buffer, 0, BUFFER_SIZE);
+  memset(buffer, 0, BUFFER_SIZE + 1);
   int status;
-  while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
-    status = parser.Parse(buffer);
+  while (read(fd, buffer, BUFFER_SIZE) > 0) {
+    std::string buf_str(buffer);
+    status = parser.Parse(buf_str);
     if (status >= HttpParser::kComplete) {
       break;
     }
-    memset(buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE + 1);
   }
   ASSERT_EQ(status, parser_status) << file_path << "\n";
   HttpParser::Result& result = parser.get_result();
@@ -186,20 +187,21 @@ TEST(UriParserTest, ValidateURI) {
 }
 
 TEST(HttpParserTest, ParseRequestLine) {
-  char buffer[BUFFER_SIZE];
+  char buffer[BUFFER_SIZE + 1];
   {
     // valid HTTP/1.1 DELETE request
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_00.txt", O_RDONLY);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE + 1);
     int status;
-    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
-      status = parser.Parse(buffer);
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
       if (status >= HttpParser::kComplete) {
         break;
       }
-      memset(buffer, 0, BUFFER_SIZE);
+      memset(buffer, 0, BUFFER_SIZE + 1);
     }
     ASSERT_EQ(status, HttpParser::kComplete);
     HttpParser::Result& result = parser.get_result();
@@ -229,18 +231,20 @@ TEST(HttpParserTest, ParseRequestLine) {
   TestParseError(PARSER_PATH_PREFIX "f_05.txt", HttpParser::kClose, 400);
 
   // s 00 - valid HTTP/1.1 DELETE request
+  std::cout << "s 00 - valid HTTP/1.1 DELETE request\n";
   {
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_00.txt", O_RDONLY);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE + 1);
     int status;
-    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
-      status = parser.Parse(buffer);
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
       if (status >= HttpParser::kComplete) {
         break;
       }
-      memset(buffer, 0, BUFFER_SIZE);
+      memset(buffer, 0, BUFFER_SIZE + 1);
     }
     ASSERT_EQ(status, HttpParser::kComplete);
     HttpParser::Result& result = parser.get_result();
@@ -251,18 +255,20 @@ TEST(HttpParserTest, ParseRequestLine) {
   }
 
   // s 01 - valid HTTP/1.1 DELETE request
+  std::cout << "s 01 - valid HTTP/1.1 DELETE request\n";
   {
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_01.txt", O_RDONLY);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE + 1);
     int status;
-    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
-      status = parser.Parse(buffer);
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
       if (status == HttpParser::kComplete) {
         break;
       }
-      memset(buffer, 0, BUFFER_SIZE);
+      memset(buffer, 0, BUFFER_SIZE + 1);
     }
     ASSERT_EQ(status, HttpParser::kComplete);
     HttpParser::Result& result = parser.get_result();
@@ -277,18 +283,20 @@ TEST(HttpParserTest, ParseRequestLine) {
   TestParseError(PARSER_PATH_PREFIX "f_07.txt", HttpParser::kClose, 400);
 
   // s 02 - valid HTTP/1.1 GET request
+  std::cout << "s 02 - valid HTTP/1.1 GET request\n";
   {
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_02.txt", O_RDONLY);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE + 1);
     int status;
-    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
-      status = parser.Parse(buffer);
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
       if (status >= HttpParser::kComplete) {
         break;
       }
-      memset(buffer, 0, BUFFER_SIZE);
+      memset(buffer, 0, BUFFER_SIZE + 1);
     }
     ASSERT_EQ(status, HttpParser::kComplete);
     HttpParser::Result& result = parser.get_result();
@@ -304,18 +312,20 @@ TEST(HttpParserTest, ParseRequestLine) {
   TestParseError(PARSER_PATH_PREFIX "f_08.txt", HttpParser::kComplete, 505);
 
   // s 03 - case insensitive host
+  std::cout << "s 03 - case insensitive host\n";
   {
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_03.txt", O_RDONLY);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE + 1);
     int status;
-    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
-      status = parser.Parse(buffer);
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
       if (status >= HttpParser::kComplete) {
         break;
       }
-      memset(buffer, 0, BUFFER_SIZE);
+      memset(buffer, 0, BUFFER_SIZE + 1);
     }
     ASSERT_EQ(status, HttpParser::kComplete);
     HttpParser::Result& result = parser.get_result();
@@ -341,20 +351,22 @@ TEST(HttpParserTest, ParseHeaderFields) {
   // f 11 - header field name too long 400
   TestParseError(PARSER_PATH_PREFIX "f_11.txt", HttpParser::kClose, 400);
 
-  char buffer[BUFFER_SIZE];
+  char buffer[BUFFER_SIZE + 1];
   // s 04 - singleton header field
+  std::cout << "s 04 - singleton header field\n";
   {
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_04.txt", O_RDONLY);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE + 1);
     int status;
-    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
-      status = parser.Parse(buffer);
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
       if (status >= HttpParser::kComplete) {
         break;
       }
-      memset(buffer, 0, BUFFER_SIZE);
+      memset(buffer, 0, BUFFER_SIZE + 1);
     }
 
     ASSERT_EQ(status, HttpParser::kClose);
@@ -374,18 +386,20 @@ TEST(HttpParserTest, ParseHeaderFields) {
   TestParseError(PARSER_PATH_PREFIX "f_12.txt", HttpParser::kClose, 400);
 
   // s 06 multiple header field
+  std::cout << "s 06 multiple header field\n";
   {
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_06.txt", O_RDONLY);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE + 1);
     int status;
-    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
-      status = parser.Parse(buffer);
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
       if (status >= HttpParser::kComplete) {
         break;
       }
-      memset(buffer, 0, BUFFER_SIZE);
+      memset(buffer, 0, BUFFER_SIZE + 1);
     }
 
     ASSERT_EQ(status, HttpParser::kComplete);
@@ -404,18 +418,20 @@ TEST(HttpParserTest, ParseHeaderFields) {
   }
 
   // s 07 so many SP / HTAB in header value
+  std::cout << "s 07 so many SP / HTAB in header value\n";
   {
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_07.txt", O_RDONLY);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE + 1);
     int status;
-    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
-      status = parser.Parse(buffer);
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
       if (status >= HttpParser::kComplete) {
         break;
       }
-      memset(buffer, 0, BUFFER_SIZE);
+      memset(buffer, 0, BUFFER_SIZE + 1);
     }
 
     ASSERT_EQ(status, HttpParser::kComplete);
@@ -434,18 +450,20 @@ TEST(HttpParserTest, ParseHeaderFields) {
   }
 
   // s 08 duplicated field-name
+  std::cout << "s 08 duplicated field-name\n";
   {
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_08.txt", O_RDONLY);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE + 1);
     int status;
-    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
-      status = parser.Parse(buffer);
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
       if (status >= HttpParser::kComplete) {
         break;
       }
-      memset(buffer, 0, BUFFER_SIZE);
+      memset(buffer, 0, BUFFER_SIZE + 1);
     }
 
     ASSERT_EQ(status, HttpParser::kComplete);
@@ -468,18 +486,20 @@ TEST(HttpParserTest, ParseHeaderFields) {
   TestParseError(PARSER_PATH_PREFIX "f_13.txt", HttpParser::kClose, 400);
 
   // s 09 valid Host header field
+  std::cout << "s 09 valid Host header field\n";
   {
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_09.txt", O_RDONLY);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE + 1);
     int status;
-    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
-      status = parser.Parse(buffer);
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
       if (status >= HttpParser::kComplete) {
         break;
       }
-      memset(buffer, 0, BUFFER_SIZE);
+      memset(buffer, 0, BUFFER_SIZE + 1);
     }
 
     ASSERT_EQ(status, HttpParser::kComplete);
@@ -501,18 +521,20 @@ TEST(HttpParserTest, ParseHeaderFields) {
   TestParseError(PARSER_PATH_PREFIX "f_14.txt", HttpParser::kClose, 400);
 
   // s 10 valid Host header field hex decoding
+  std::cout << "s 10 valid Host header field hex decoding\n";
   {
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_10.txt", O_RDONLY);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE + 1);
     int status;
-    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
-      status = parser.Parse(buffer);
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
       if (status >= HttpParser::kComplete) {
         break;
       }
-      memset(buffer, 0, BUFFER_SIZE);
+      memset(buffer, 0, BUFFER_SIZE + 1);
     }
 
     ASSERT_EQ(status, HttpParser::kComplete);
@@ -533,19 +555,21 @@ TEST(HttpParserTest, ParseHeaderFields) {
   // f 15 content-length field value invalid
   TestParseError(PARSER_PATH_PREFIX "f_15.txt", HttpParser::kClose, 400);
 
-  // s 11
+  // s 11 body length = content-length
+  std::cout << "s 11 body length = content-length\n";
   {
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_11.txt", O_RDONLY);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE + 1);
     int status;
-    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
-      status = parser.Parse(buffer);
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
       if (status >= HttpParser::kComplete) {
         break;
       }
-      memset(buffer, 0, BUFFER_SIZE);
+      memset(buffer, 0, BUFFER_SIZE + 1);
     }
 
     ASSERT_EQ(status, HttpParser::kComplete);
@@ -582,18 +606,20 @@ TEST(HttpParserTest, ParseHeaderFields) {
   TestParseError(PARSER_PATH_PREFIX "f_20.txt", HttpParser::kClose, 400);
 
   // s 12 valid transfer-encoding
+  std::cout << "s 12 valid transfer-encoding\n";
   {
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_12.txt", O_RDONLY);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE + 1);
     int status;
-    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
-      status = parser.Parse(buffer);
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
       if (status >= HttpParser::kComplete) {
         break;
       }
-      memset(buffer, 0, BUFFER_SIZE);
+      memset(buffer, 0, BUFFER_SIZE + 1);
     }
 
     ASSERT_EQ(status, HttpParser::kComplete);
@@ -615,18 +641,20 @@ TEST(HttpParserTest, ParseHeaderFields) {
   }
 
   // s 13 valid transfer-encoding, multiple encodings
+  std::cout << "s 13 valid transfer-encoding, multiple encodings\n";
   {
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_13.txt", O_RDONLY);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE + 1);
     int status;
-    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
-      status = parser.Parse(buffer);
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
       if (status >= HttpParser::kComplete) {
         break;
       }
-      memset(buffer, 0, BUFFER_SIZE);
+      memset(buffer, 0, BUFFER_SIZE + 1);
     }
 
     ASSERT_EQ(status, HttpParser::kComplete);
@@ -679,18 +707,20 @@ TEST(HttpParserTest, ParseHeaderFields) {
   TestParseError(PARSER_PATH_PREFIX "f_29.txt", HttpParser::kClose, 501);
 
   // s 14 connection value case insensitive
+  std::cout << "s 14 connection value case insensitive\n";
   {
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_14.txt", O_RDONLY);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE + 1);
     int status;
-    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
-      status = parser.Parse(buffer);
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
       if (status >= HttpParser::kComplete) {
         break;
       }
-      memset(buffer, 0, BUFFER_SIZE);
+      memset(buffer, 0, BUFFER_SIZE + 1);
     }
 
     ASSERT_EQ(status, HttpParser::kComplete);
@@ -710,18 +740,20 @@ TEST(HttpParserTest, ParseHeaderFields) {
   }
 
   // s 15 many connection field values
+  std::cout << "s 15 many connection field values\n";
   {
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_15.txt", O_RDONLY);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE + 1);
     int status;
-    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
-      status = parser.Parse(buffer);
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
       if (status >= HttpParser::kComplete) {
         break;
       }
-      memset(buffer, 0, BUFFER_SIZE);
+      memset(buffer, 0, BUFFER_SIZE + 1);
     }
 
     ASSERT_EQ(status, HttpParser::kClose);
@@ -749,18 +781,20 @@ TEST(HttpParserTest, ParseHeaderFields) {
   TestParseError(PARSER_PATH_PREFIX "f_31.txt", HttpParser::kClose, 400);
 
   // s 16 is close? HTTP/1.1
+  std::cout << "s 16 is close? HTTP/1.1\n";
   {
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_16.txt", O_RDONLY);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE + 1);
     int status;
-    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
-      status = parser.Parse(buffer);
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
       if (status >= HttpParser::kComplete) {
         break;
       }
-      memset(buffer, 0, BUFFER_SIZE);
+      memset(buffer, 0, BUFFER_SIZE + 1);
     }
 
     ASSERT_EQ(status, HttpParser::kClose);
@@ -780,18 +814,20 @@ TEST(HttpParserTest, ParseHeaderFields) {
   }
 
   // s 17 is keep-alive? HTTP/1.0
+  std::cout << "s 17 is keep-alive? HTTP/1.0\n";
   {
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_17.txt", O_RDONLY);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE + 1);
     int status;
-    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
-      status = parser.Parse(buffer);
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
       if (status >= HttpParser::kComplete) {
         break;
       }
-      memset(buffer, 0, BUFFER_SIZE);
+      memset(buffer, 0, BUFFER_SIZE + 1);
     }
 
     ASSERT_EQ(status, HttpParser::kComplete);
@@ -811,18 +847,20 @@ TEST(HttpParserTest, ParseHeaderFields) {
   }
 
   // s 18 is keep-alive? HTTP/1.0
+  std::cout << "s 18 is keep-alive? HTTP/1.0\n";
   {
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_18.txt", O_RDONLY);
 
-    memset(buffer, 0, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE + 1);
     int status;
-    while (read(fd, buffer, BUFFER_SIZE - 1) > 0) {
-      status = parser.Parse(buffer);
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
       if (status >= HttpParser::kComplete) {
         break;
       }
-      memset(buffer, 0, BUFFER_SIZE);
+      memset(buffer, 0, BUFFER_SIZE + 1);
     }
 
     ASSERT_EQ(status, HttpParser::kComplete);
@@ -849,4 +887,385 @@ TEST(HttpParserTest, ParseHeaderFields) {
 
   // f 32 trailers (501)
   TestParseError(PARSER_PATH_PREFIX "f_32.txt", HttpParser::kClose, 501);
+
+  // f 33 Http 1.1 with no header
+  TestParseError(PARSER_PATH_PREFIX "f_33.txt", HttpParser::kClose, 400);
+}
+
+TEST(HttpParserTest, ParseBody) {
+  char buffer[BUFFER_SIZE + 1];
+  // max_bd content exactly as long as BODY_MAX
+  std::cout << "max_bd content exactly as long as BODY_MAX\n";
+  {
+    HttpParser parser;
+    int fd = open(GOINFRE_PATH "max_bd.txt", O_RDONLY);
+
+    memset(buffer, 0, BUFFER_SIZE + 1);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
+      if (status >= HttpParser::kComplete) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE + 1);
+    }
+
+    ASSERT_EQ(status, HttpParser::kComplete);
+    HttpParser::Result& result = parser.get_result();
+    EXPECT_EQ(result.status, 200);
+    EXPECT_EQ(result.request.req.method, POST);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_1);
+    EXPECT_EQ(result.request.header.size(), 2);
+
+    EXPECT_EQ(result.request.header.count("content-length"), 1);
+    std::list<std::string> content_length =
+        result.request.header["content-length"];
+    ASSERT_EQ(content_length.size(), 1);
+    std::list<std::string>::iterator it = content_length.begin();
+    EXPECT_EQ(*it, "134217728");
+
+    lseek(fd, 0, SEEK_SET);
+    char* body = (char*)calloc(1, 134217787);
+    size_t read_size = 134217786;
+    if (!body || read_size != read(fd, body, 134227787)) {
+      std::cerr << "read byte does not match" << std::endl;
+      exit(1);
+    }
+    EXPECT_EQ(result.request.content.size(), 134217728);
+    EXPECT_EQ(std::equal(result.request.content.begin(),
+                         result.request.content.end(), body + 58),
+              true);
+    close(fd);
+  }
+
+  // s 19
+  std::cout << "s 19\n";
+  {
+    HttpParser parser;
+    int fd = open(PARSER_PATH_PREFIX "s_19.txt", O_RDONLY);
+
+    memset(buffer, 0, BUFFER_SIZE + 1);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
+      if (status >= HttpParser::kComplete) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE + 1);
+    }
+
+    ASSERT_EQ(status, HttpParser::kComplete);
+    HttpParser::Result& result = parser.get_result();
+    EXPECT_EQ(result.status, 200);
+    EXPECT_EQ(result.request.req.method, POST);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_1);
+    EXPECT_EQ(result.request.header.size(), 2);
+
+    EXPECT_EQ(result.request.header.count("content-length"), 1);
+    std::list<std::string> content_length =
+        result.request.header["content-length"];
+    ASSERT_EQ(content_length.size(), 1);
+    std::list<std::string>::iterator it = content_length.begin();
+    EXPECT_EQ(*it, "10000");
+
+    lseek(fd, 0, SEEK_SET);
+    char* body = (char*)calloc(1, 10055);
+    size_t read_size = 10054;
+    if (!body || read_size != read(fd, body, 10054)) {
+      std::cerr << "read byte does not match" << std::endl;
+      exit(1);
+    }
+    size_t crlfcrlf = std::string(body).find(CRLF CRLF);
+    EXPECT_EQ(result.request.content.size(), 10000);
+    EXPECT_EQ(result.request.content, std::string(body).substr(crlfcrlf + 4));
+    close(fd);
+  }
+
+  // s 20 two requests in a row
+  std::cout << "s 20 two requests in a row\n";
+  {
+    HttpParser parser;
+    int fd = open(PARSER_PATH_PREFIX "s_20.txt", O_RDONLY);
+
+    memset(buffer, 0, BUFFER_SIZE + 1);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
+      if (status >= HttpParser::kComplete) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE + 1);
+    }
+    off_t cursor = lseek(fd, 0, SEEK_CUR);
+
+    ASSERT_EQ(status, HttpParser::kComplete);
+    HttpParser::Result result = parser.get_result();
+    EXPECT_EQ(result.status, 200);
+    EXPECT_EQ(result.request.req.method, POST);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_1);
+    EXPECT_EQ(result.request.header.size(), 2);
+
+    EXPECT_EQ(result.request.header.count("content-length"), 1);
+    std::list<std::string> content_length =
+        result.request.header["content-length"];
+    ASSERT_EQ(content_length.size(), 1);
+    std::list<std::string>::iterator it = content_length.begin();
+    EXPECT_EQ(*it, "6");
+
+    EXPECT_EQ(result.request.content.size(), 6);
+    EXPECT_EQ(result.request.content, "jiskim");
+
+    // second request
+    parser.Clear();
+    memset(buffer, 0, BUFFER_SIZE + 1);
+    if (cursor == lseek(fd, 0, SEEK_END)) {
+      std::string buf_str;
+      status = parser.Parse(buf_str);
+    } else {
+      lseek(fd, cursor, SEEK_SET);
+      while (read(fd, buffer, BUFFER_SIZE) > 0) {
+        std::string buf_str(buffer);
+        status = parser.Parse(buf_str);
+        if (status >= HttpParser::kComplete) {
+          break;
+        }
+        memset(buffer, 0, BUFFER_SIZE + 1);
+      }
+    }
+
+    EXPECT_EQ(status, HttpParser::kClose);
+    result = parser.get_result();
+    EXPECT_EQ(result.status, 200);
+    EXPECT_EQ(result.request.req.method, GET);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_0);
+    EXPECT_EQ(result.request.header.size(), 0);
+
+    close(fd);
+  }
+
+  // s 21 zero content-length
+  std::cout << "s 21 zero content-length\n";
+  {
+    HttpParser parser;
+    int fd = open(PARSER_PATH_PREFIX "s_21.txt", O_RDONLY);
+
+    memset(buffer, 0, BUFFER_SIZE + 1);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
+      if (status >= HttpParser::kComplete) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE + 1);
+    }
+
+    ASSERT_EQ(status, HttpParser::kClose);
+    HttpParser::Result result = parser.get_result();
+    EXPECT_EQ(result.status, 200);
+    EXPECT_EQ(result.request.req.method, GET);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_0);
+    EXPECT_EQ(result.request.header.size(), 1);
+
+    EXPECT_EQ(result.request.header.count("content-length"), 1);
+    std::list<std::string> content_length =
+        result.request.header["content-length"];
+    ASSERT_EQ(content_length.size(), 1);
+    std::list<std::string>::iterator it = content_length.begin();
+    EXPECT_EQ(*it, "0");
+    EXPECT_EQ(result.request.content.size(), 0);
+    close(fd);
+  }
+
+  // s 22 4096 world
+  std::cout << "s 22 4096 world\n";
+  {
+    HttpParser parser;
+    int fd = open(PARSER_PATH_PREFIX "s_22.txt", O_RDONLY);
+
+    memset(buffer, 0, BUFFER_SIZE + 1);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
+      if (status >= HttpParser::kComplete) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE + 1);
+    }
+
+    ASSERT_EQ(status, HttpParser::kComplete);
+    HttpParser::Result result = parser.get_result();
+    EXPECT_EQ(result.status, 200);
+    EXPECT_EQ(result.request.req.method, POST);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_1);
+    EXPECT_EQ(result.request.header.size(), 2);
+
+    EXPECT_EQ(result.request.header.count("content-length"), 1);
+    std::list<std::string> content_length =
+        result.request.header["content-length"];
+    ASSERT_EQ(content_length.size(), 1);
+    std::list<std::string>::iterator it = content_length.begin();
+    EXPECT_EQ(*it, "4096");
+    EXPECT_EQ(result.request.content.size(), 4096);
+
+    lseek(fd, 0, SEEK_SET);
+    char* body = (char*)calloc(1, 8193);
+    size_t read_size = 8192;
+    if (!body || read_size != read(fd, body, 8192)) {
+      std::cerr << "read byte does not match🧐🧐🧐🧐🧐" << std::endl;
+      exit(1);
+    }
+    size_t crlfcrlf = std::string(body).find(CRLF CRLF);
+    EXPECT_EQ(result.request.content.size(), 4096);
+    EXPECT_EQ(std::equal(result.request.content.begin(),
+                         result.request.content.end(), body + crlfcrlf + 4),
+              true);
+    close(fd);
+  }
+
+  // f 34 looks like ok but...
+  std::cout << "f 34 looks like ok but...\n";
+  {
+    HttpParser parser;
+    int fd = open(PARSER_PATH_PREFIX "f_34.txt", O_RDONLY);
+
+    memset(buffer, 0, BUFFER_SIZE + 1);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
+      if (status >= HttpParser::kComplete) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE + 1);
+    }
+    off_t cursor = lseek(fd, 0, SEEK_CUR);
+
+    ASSERT_EQ(status, HttpParser::kComplete);
+    HttpParser::Result result = parser.get_result();
+    EXPECT_EQ(result.status, 200);
+    EXPECT_EQ(result.request.req.method, POST);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_1);
+    EXPECT_EQ(result.request.header.size(), 2);
+
+    EXPECT_EQ(result.request.header.count("content-length"), 1);
+    std::list<std::string> content_length =
+        result.request.header["content-length"];
+    ASSERT_EQ(content_length.size(), 1);
+    std::list<std::string>::iterator it = content_length.begin();
+    EXPECT_EQ(*it, "4096");
+    EXPECT_EQ(result.request.content.size(), 4096);
+
+    lseek(fd, 0, SEEK_SET);
+    char* body = (char*)calloc(1, 8193);
+    size_t read_size = 8192;
+    if (!body || read_size != read(fd, body, 8192)) {
+      std::cerr << "read byte does not match🧐🧐🧐🧐🧐" << std::endl;
+      exit(1);
+    }
+    size_t crlfcrlf = std::string(body).find(CRLF CRLF);
+    EXPECT_EQ(result.request.content.size(), 4096);
+    EXPECT_EQ(std::equal(result.request.content.begin(),
+                         result.request.content.end(), body + crlfcrlf + 4),
+              true);
+
+    parser.Clear();
+    memset(buffer, 0, BUFFER_SIZE + 1);
+    if (cursor == lseek(fd, 0, SEEK_END)) {
+      std::string buf_str;
+      status = parser.Parse(buf_str);
+    } else {
+      lseek(fd, cursor, SEEK_SET);
+      while (read(fd, buffer, BUFFER_SIZE) > 0) {
+        std::string buf_str(buffer);
+        status = parser.Parse(buf_str);
+        if (status >= HttpParser::kComplete) {
+          break;
+        }
+        memset(buffer, 0, BUFFER_SIZE + 1);
+      }
+    }
+    result = parser.get_result();
+
+    EXPECT_EQ(status, HttpParser::kClose);
+    EXPECT_EQ(result.status, 400);
+    close(fd);
+  }
+
+  // s 24 transfer-encoding
+  std::cout << "s 24 transfer-encoding\n";
+  {
+    HttpParser parser;
+    int fd = open(PARSER_PATH_PREFIX "s_24.txt", O_RDONLY);
+
+    memset(buffer, 0, BUFFER_SIZE + 1);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
+      if (status >= HttpParser::kComplete) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE + 1);
+    }
+
+    EXPECT_EQ(status, HttpParser::kComplete);
+    HttpParser::Result result = parser.get_result();
+    EXPECT_EQ(result.status, 200);
+    EXPECT_EQ(result.request.req.method, POST);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_1);
+    EXPECT_EQ(result.request.header.size(), 2);
+
+    EXPECT_EQ(result.request.header.count("transfer-encoding"), 1);
+    std::list<std::string> transfer_encoding =
+        result.request.header["transfer-encoding"];
+    EXPECT_EQ(transfer_encoding.size(), 1);
+    std::list<std::string>::iterator it = transfer_encoding.begin();
+    EXPECT_EQ(*it, "chunked");
+    EXPECT_EQ(result.request.content.size(), 11);
+    EXPECT_EQ(result.request.content, "ohioajiskim");
+
+    close(fd);
+  }
+
+  // s 25 transfer-encoding : long
+  std::cout << "s 25 transfer-encoding : long\n";
+  {
+    HttpParser parser;
+    int fd = open(PARSER_PATH_PREFIX "s_25.txt", O_RDONLY);
+
+    memset(buffer, 0, BUFFER_SIZE + 1);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
+      if (status >= HttpParser::kComplete) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE + 1);
+    }
+
+    EXPECT_EQ(status, HttpParser::kComplete);
+    HttpParser::Result result = parser.get_result();
+    EXPECT_EQ(result.status, 200);
+    EXPECT_EQ(result.request.req.method, POST);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_1);
+    EXPECT_EQ(result.request.header.size(), 2);
+
+    EXPECT_EQ(result.request.header.count("transfer-encoding"), 1);
+    std::list<std::string> transfer_encoding =
+        result.request.header["transfer-encoding"];
+    EXPECT_EQ(transfer_encoding.size(), 1);
+    std::list<std::string>::iterator it = transfer_encoding.begin();
+    EXPECT_EQ(*it, "chunked");
+
+    EXPECT_EQ(result.request.content.size(), 12288);
+    // EXPECT_EQ(result.request.content, );
+
+    close(fd);
+  }
 }

@@ -19,7 +19,7 @@
 #define CRLF "\r\n"
 #define SP " "
 
-#define BUFFER_SIZE 4097
+#define BUFFER_SIZE 4096
 
 // HTTP request 길이 제한
 #define METHOD_MAX 6
@@ -44,7 +44,6 @@ class HttpParser {
     kRequestLine,
     kHeader,
     kContent,
-    kTrailer,
     kComplete,
     kClose,
     kRLLenErr,
@@ -61,29 +60,33 @@ class HttpParser {
 
   HttpParser(void);
 
-  int Parse(const std::string& segment);
+  int Parse(std::string& segment);
+  void Clear(void);
   Result& get_result(void);
 
  private:
   bool keep_alive_;
+  bool is_data_;
   int status_;
   size_t body_length_;
+  size_t chunk_size_;
   std::string request_line_buf_;
   std::string header_buf_;
-  std::string body_buf_;
+  std::string chunked_buf_;
+  std::string backup_buf_;
   Result result_;
 
-  void SkipLeadingCRLF(size_t& start, const std::string& segment);
+  void SkipLeadingCRLF(std::string& segment);
 
   // Parse request line
-  void ReceiveRequestLine(size_t& start, const std::string& segment);
+  void ReceiveRequestLine(std::string& segment);
   void ParseRequestLine(void);
   void TokenizeMethod(size_t& pos);
   void TokenizePath(size_t& pos);
   void TokenizeVersion(size_t& pos);
 
   // Parse header
-  void ReceiveHeader(size_t& start, const std::string& segment);
+  void ReceiveHeader(std::string& segment);
   void ParseHeader(void);
   std::string TokenizeFieldName(size_t& cursor);
   void TokenizeFieldValueList(size_t& cursor, std::string& name);
@@ -104,8 +107,9 @@ class HttpParser {
   std::map<std::string, size_t> GenerateValidValueMap(InputIterator first,
                                                       InputIterator last);
 
-  // Reset
-  // void Clear(void);
+  // parse body
+  void ReceiveContent(std::string& segment);
+  void DecodeChunkedContent(std::string& segment);
 };
 
 #endif  // INCLUDES_HTTPPARSER_HPP_
