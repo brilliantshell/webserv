@@ -27,18 +27,21 @@ add_executable(
 	tests/test_validator.cpp
 	tests/test_socket_generator.cpp
 	tests/test_parser.cpp
+	tests/test_router.cpp
 	srcs/Validator.cpp
 	srcs/PassiveSockets.cpp
 	srcs/Connection.cpp
 	srcs/HttpParser.cpp
 	srcs/UriParser.cpp
 	srcs/HeaderParser.cpp
+	srcs/ServerRouter.cpp
 )
 
 add_executable(
 	client
 	tests/test_client_io.cpp
 	srcs/Validator.cpp
+	srcs/ServerRouter.cpp
 	srcs/ClientConnection.cpp
 )
 
@@ -49,6 +52,9 @@ add_executable(
 	srcs/HttpServer.cpp
 	srcs/PassiveSockets.cpp
 	srcs/Connection.cpp
+	srcs/HttpParser.cpp
+	srcs/HeaderParser.cpp
+	srcs/ServerRouter.cpp
 	srcs/UriParser.cpp
 )
 

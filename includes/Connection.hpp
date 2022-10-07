@@ -41,7 +41,7 @@ class Connection {
   HttpParser parser_;
 
   void Receive(void);
-  void Send(std::string response);
+  void Send(void);
 };
 
 #endif  // INCLUDES_CONNECTION_HPP_
