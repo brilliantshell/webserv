@@ -1,17 +1,32 @@
 {
-  "configurations": [
-    {
-      "name": "(lldb) Launch",
-      "type": "cppdbg",
-      "request": "launch",
-      "program": "${workspaceFolder}/debug/test_webserv",
-      "args": [],
-      "stopAtEntry": false,
-      "cwd": "${fileDirname}",
-      "environment": [],
-      "externalConsole": false,
-      "MIMode": "lldb",
-      "preLaunchTask": "Generate test_webserv"
-    },
-  ]
+	"configurations": [
+		{
+			"name": "(lldb) Launch",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "${workspaceFolder}/debug/test_webserv",
+			"args": [],
+			"stopAtEntry": false,
+			"cwd": "${fileDirname}",
+			"environment": [],
+			"externalConsole": false,
+			"MIMode": "lldb",
+			"preLaunchTask": "Generate test_webserv"
+		},
+		{
+			"name": "(lldb) Launch server",
+			"type": "cppdbg",
+			"request": "launch",
+			"program": "${workspaceFolder}/debug/server",
+			"args": [
+				"${workspaceFolder}/configs/tests/IOMultiplexing/s_00.config"
+			],
+			"stopAtEntry": false,
+			"cwd": "${fileDirname}",
+			"environment": [],
+			"externalConsole": false,
+			"MIMode": "lldb",
+			"preLaunchTask": "Generate test_webserv"
+		},
+	]
 }
