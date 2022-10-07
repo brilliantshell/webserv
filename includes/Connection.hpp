@@ -11,14 +11,7 @@
 #define INCLUDES_CONNECTION_HPP_
 
 #define KEEP_ALIVE 0
-#define CLOSE_1_0 1
-#define CLOSE_LENGTH 2
-#define CLOSE_RECV 3
-#define CLOSE_PARSE 4
-#define CLOSE_ROUTE 5
-#define CLOSE_RESOURCE 6
-#define CLOSE_RESPONSE 7
-#define CLOSE_SEND 8
+#define CLOSE 1
 
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -44,10 +37,11 @@ class Connection {
  private:
   int fd_;
   int status_;
-  char buffer_[BUFFER_SIZE];
+  std::string buffer_;
+  HttpParser parser_;
 
   void Receive(void);
-  void Send(void);
+  void Send(std::string response);
 };
 
 #endif  // INCLUDES_CONNECTION_HPP_

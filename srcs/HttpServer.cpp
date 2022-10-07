@@ -81,7 +81,7 @@ void HttpServer::Run(void) {
       } else if (events[i].filter == EVFILT_READ) {
         connections_[events[i].ident].HandleRequest();
         if (connections_[events[i].ident].get_status() != KEEP_ALIVE) {
-          shutdown(events[i].ident, SHUT_RD);
+          // shutdown(events[i].ident, SHUT_RD);
         }
         UpdateKqueue(&sock_ev, events[i].ident, EVFILT_WRITE,
                      EV_ADD | EV_ONESHOT);
@@ -90,7 +90,9 @@ void HttpServer::Run(void) {
           UpdateKqueue(&sock_ev, events[i].ident, EVFILT_READ,
                        EV_ADD | EV_ONESHOT);
         } else {
-          shutdown(events[i].ident, SHUT_WR);
+          // shutdown(events[i].ident, SHUT_WR);
+          close(events[i].ident);
+          connections_[events[i].ident].Reset();
         }
       }
     }

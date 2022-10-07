@@ -19,7 +19,7 @@
 #define CRLF "\r\n"
 #define SP " "
 
-#define BUFFER_SIZE 1234
+#define BUFFER_SIZE 4096
 
 // HTTP request 길이 제한
 #define METHOD_MAX 6
