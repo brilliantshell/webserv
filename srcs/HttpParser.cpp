@@ -11,7 +11,7 @@
 
 HttpParser::HttpParser(void)
     : keep_alive_(true),
-      is_data_(false),
+      is_data_(kChunkSize),
       status_(HttpParser::kLeadingCRLF),
       body_length_(0),
       chunk_size_(0) {}
@@ -167,76 +167,6 @@ void HttpParser::TokenizeVersion(size_t& pos) {
 }
 
 // Content 파싱
-
-#define CHUNKED_SIZE_LINE_MAX 1024
-#define CHUNK_SIZE_MAX 8192
-void HttpParser::DecodeChunkedContent(std::string& segment) {
-  chunked_buf_.append(segment);  // segment가 \r에서 끊기면?
-
-  while (true) {  // FIXME
-    if (is_data_) {
-      if (chunked_buf_.size() < chunk_size_) {
-        break;
-      }
-      result_.request.content.append(chunked_buf_, 0, chunk_size_);
-      if (result_.request.content.size() > BODY_MAX) {
-        UpdateStatus(413, kClose);  // REQUEST ENTITY TOO LARGE
-        return;
-      }
-      if (chunked_buf_.compare(chunk_size_, 2, CRLF)) {
-        UpdateStatus(400, kClose);  // BAD REQUEST
-        return;
-      }
-      chunked_buf_ = chunked_buf_.substr(chunk_size_ + 2);
-      is_data_ = false;
-    } else {
-      size_t pos = 0;
-      pos = chunked_buf_.find(CRLF);
-      if (pos == std::string::npos) {
-        if (chunked_buf_.size() > CHUNKED_SIZE_LINE_MAX) {
-          UpdateStatus(400, kClose);  // BAD REQUEST
-          return;
-        }
-        break;
-      } else {
-        std::string chunk_size_line = chunked_buf_.substr(0, pos);
-        chunked_buf_ = chunked_buf_.substr(pos + 2);
-        if (pos > CHUNKED_SIZE_LINE_MAX) {
-          UpdateStatus(400, kClose);  // BAD REQUEST
-          return;
-        }
-        pos = chunk_size_line.find(";");
-        if (pos == std::string::npos) {
-          pos = chunk_size_line.find_first_not_of(HEXDIG);
-          if (pos != std::string::npos) {
-            UpdateStatus(400, kClose);  // BAD REQUEST
-            return;
-          }
-        } else {
-          chunk_size_line = chunk_size_line.substr(0, pos);
-          pos = chunk_size_line.find_first_not_of(HEXDIG);
-          if (chunk_size_line.find_first_not_of(SP HTAB, pos) !=
-              std::string::npos) {
-            UpdateStatus(400, kClose);  // BAD REQUEST
-            return;
-          }
-        }
-        std::stringstream ss(chunk_size_line);
-        ss >> std::hex >> chunk_size_;
-        if (chunk_size_ > CHUNK_SIZE_MAX) {
-          UpdateStatus(400, kClose);  // BAD REQUEST
-          return;
-        }
-        if (chunk_size_ == 0) {
-          UpdateStatus(200, kComplete);
-          return;
-        }
-        is_data_ = true;
-      }
-    }
-  }
-}
-
 void HttpParser::ReceiveContent(std::string& segment) {
   if (body_length_ == 0) {
     status_ = kComplete;
@@ -259,6 +189,103 @@ void HttpParser::ReceiveContent(std::string& segment) {
   } else if (segment.size() < remaining_bytes) {
     result_.request.content.append(segment);
   }
+}
+
+void HttpParser::DecodeChunkedContent(std::string& segment) {
+  chunked_buf_.append(segment);  // segment가 \r에서 끊기면?
+
+  while (true) {  // FIXME
+    if (is_data_ == kChunkData) {
+      if (ParseChunkData() == false) {
+        return;
+      }
+    } else if (is_data_ == kChunkSize) {
+      if (ParseChunkSize() == false) {
+        return;
+      }
+    } else if (is_data_ == kChunkEnd) {
+      ParseChunkEnd();
+      return;
+    }
+    if (status_ >= kComplete) {
+      return;
+    }
+  }
+}
+
+bool HttpParser::ParseChunkData() {
+  if (chunked_buf_.size() < chunk_size_ + 2) {
+    return false;
+  }
+  result_.request.content.append(chunked_buf_, 0, chunk_size_);
+  if (result_.request.content.size() > BODY_MAX) {
+    UpdateStatus(413, kClose);  // REQUEST ENTITY TOO LARGE
+    return false;
+  }
+  if (chunked_buf_.compare(chunk_size_, 2, CRLF)) {
+    UpdateStatus(400, kClose);  // BAD REQUEST
+    return false;
+  }
+  chunked_buf_ = chunked_buf_.substr(chunk_size_ + 2);
+  is_data_ = kChunkSize;
+  return true;
+}
+
+bool HttpParser::ParseChunkSize(void) {
+  size_t pos = chunked_buf_.find(CRLF);
+  if (pos == std::string::npos) {
+    if (chunked_buf_.size() > CHUNKED_SIZE_LINE_MAX) {
+      UpdateStatus(400, kClose);  // BAD REQUEST
+    }
+    return false;
+  } else {
+    if (pos > CHUNKED_SIZE_LINE_MAX) {
+      UpdateStatus(400, kClose);  // BAD REQUEST
+      return false;
+    }
+    std::string chunk_size_line = chunked_buf_.substr(0, pos);
+    chunked_buf_ = chunked_buf_.substr(pos + 2);
+    if (IgnoreChunkExtension(chunk_size_line) == false) {
+      return false;
+    }
+    std::stringstream ss(chunk_size_line);
+    ss >> std::hex >> chunk_size_;
+    if (chunk_size_ > CHUNK_SIZE_MAX) {
+      UpdateStatus(400, kClose);  // BAD REQUEST
+      return false;
+    }
+    is_data_ = (chunk_size_ == 0) ? kChunkEnd : kChunkData;
+  }
+  return true;
+}
+
+void HttpParser::ParseChunkEnd(void) {
+  if (chunked_buf_.size() >= 2) {
+    if (chunked_buf_.compare(0, 2, CRLF)) {
+      UpdateStatus(400, kClose);  // BAD REQUEST
+      return;
+    }
+    status_ = kComplete;
+    backup_buf_ = chunked_buf_.substr(2);
+  }
+}
+
+bool HttpParser::IgnoreChunkExtension(std::string& chunk_size_line) {
+  size_t pos = chunk_size_line.find(";");
+  if (pos == std::string::npos) {
+    if (chunk_size_line.find_first_not_of(HEXDIG) != std::string::npos) {
+      UpdateStatus(400, kClose);  // BAD REQUEST
+      return false;
+    }
+  } else {
+    chunk_size_line = chunk_size_line.substr(0, pos);
+    pos = chunk_size_line.find_first_not_of(HEXDIG);
+    if (chunk_size_line.find_first_not_of(SP HTAB, pos) != std::string::npos) {
+      UpdateStatus(400, kClose);  // BAD REQUEST
+      return false;
+    }
+  }
+  return true;
 }
 
 // Update status

@@ -19,7 +19,7 @@
 #define CRLF "\r\n"
 #define SP " "
 
-#define BUFFER_SIZE 4096
+#define BUFFER_SIZE 1234
 
 // HTTP request 길이 제한
 #define METHOD_MAX 6
@@ -35,6 +35,9 @@
 #define REQUEST_MAX 134244368  // 128MB + 16KB + 10KB
 
 #define CHUNKED std::numeric_limits<size_t>::max() - 1
+
+#define CHUNKED_SIZE_LINE_MAX 1024
+#define CHUNK_SIZE_MAX 8192
 
 class HttpParser {
  public:
@@ -65,8 +68,14 @@ class HttpParser {
   Result& get_result(void);
 
  private:
+  enum {
+    kChunkSize = 0,
+    kChunkData,
+    kChunkEnd,
+  };
+
   bool keep_alive_;
-  bool is_data_;
+  uint8_t is_data_;
   int status_;
   size_t body_length_;
   size_t chunk_size_;
@@ -110,6 +119,10 @@ class HttpParser {
   // parse body
   void ReceiveContent(std::string& segment);
   void DecodeChunkedContent(std::string& segment);
+  bool ParseChunkData(void);
+  bool ParseChunkSize(void);
+  void ParseChunkEnd(void);
+  bool IgnoreChunkExtension(std::string& chunk_size_line);
 };
 
 #endif  // INCLUDES_HTTPPARSER_HPP_

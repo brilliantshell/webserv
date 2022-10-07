@@ -10,7 +10,7 @@
 #include "Validator.hpp"
 
 #define PARSER_PATH_PREFIX "../tests/HttpParser/"
-#define GOINFRE_PATH "/Users/ghan/goinfre/"
+#define GOINFRE_PATH "/Users/yongjule/goinfre/"
 
 /**
 
@@ -71,7 +71,7 @@ void TestParseError(const std::string& file_path, int parser_status,
     }
     memset(buffer, 0, BUFFER_SIZE + 1);
   }
-  ASSERT_EQ(status, parser_status) << file_path << "\n";
+  EXPECT_EQ(status, parser_status) << file_path << "\n";
   HttpParser::Result& result = parser.get_result();
   EXPECT_EQ(result.status, request_status);
   close(fd);
@@ -606,7 +606,7 @@ TEST(HttpParserTest, ParseHeaderFields) {
   TestParseError(PARSER_PATH_PREFIX "f_20.txt", HttpParser::kClose, 400);
 
   // s 12 valid transfer-encoding
-  std::cout << "s 12 valid transfer-encoding\n";
+  std::cout << "s 12 valid transfer-encoding 여기서 멈추면 무한루프일걸?\n";
   {
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_12.txt", O_RDONLY);
@@ -700,7 +700,7 @@ TEST(HttpParserTest, ParseHeaderFields) {
   TestParseError(PARSER_PATH_PREFIX "f_26.txt", HttpParser::kClose, 501);
 
   // f 27 http1.0 with transfer-encoding (no content-length)
-  TestParseError(PARSER_PATH_PREFIX "f_27.txt", HttpParser::kComplete, 411);
+  TestParseError(PARSER_PATH_PREFIX "f_27.txt", HttpParser::kClose, 411);
 
   // f 28 && 29 transfer-encoding (quotes)
   TestParseError(PARSER_PATH_PREFIX "f_28.txt", HttpParser::kClose, 501);
@@ -895,6 +895,7 @@ TEST(HttpParserTest, ParseHeaderFields) {
 TEST(HttpParserTest, ParseBody) {
   char buffer[BUFFER_SIZE + 1];
   // max_bd content exactly as long as BODY_MAX
+
   std::cout << "max_bd content exactly as long as BODY_MAX\n";
   {
     HttpParser parser;
@@ -1268,4 +1269,92 @@ TEST(HttpParserTest, ParseBody) {
 
     close(fd);
   }
+
+  // f 35 missing a CRLF at the end => timeout!
+  // NOTE : timeout으로 해결할 문제
+  // TestParseError(PARSER_PATH_PREFIX "f_35.txt", HttpParser::kClose, 400);
+
+  // f 36 invalid character after chunk size == 0
+  TestParseError(PARSER_PATH_PREFIX "f_36.txt", HttpParser::kClose, 400);
+
+  // f 37 invalid character before CRLF
+  TestParseError(PARSER_PATH_PREFIX "f_37.txt", HttpParser::kClose, 400);
+
+  // f 38 transfer-encoding with http 1.0
+  TestParseError(PARSER_PATH_PREFIX "f_38.txt", HttpParser::kClose, 411);
+
+  // s 26 double transfer-encoding request
+  std::cout << "s 26 double transfer-encoding request\n";
+  {
+    HttpParser parser;
+    int fd = open(PARSER_PATH_PREFIX "s_26.txt", O_RDONLY);
+
+    memset(buffer, 0, BUFFER_SIZE + 1);
+    int status;
+    while (read(fd, buffer, BUFFER_SIZE) > 0) {
+      std::string buf_str(buffer);
+      status = parser.Parse(buf_str);
+      if (status >= HttpParser::kComplete) {
+        break;
+      }
+      memset(buffer, 0, BUFFER_SIZE + 1);
+    }
+    off_t cursor = lseek(fd, 0, SEEK_CUR);
+
+    EXPECT_EQ(status, HttpParser::kComplete);
+    HttpParser::Result result = parser.get_result();
+    EXPECT_EQ(result.status, 200);
+    EXPECT_EQ(result.request.req.method, POST);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_1);
+    EXPECT_EQ(result.request.header.size(), 2);
+
+    EXPECT_EQ(result.request.header.count("transfer-encoding"), 1);
+    std::list<std::string> transfer_encoding =
+        result.request.header["transfer-encoding"];
+    EXPECT_EQ(transfer_encoding.size(), 1);
+    std::list<std::string>::iterator it = transfer_encoding.begin();
+    EXPECT_EQ(*it, "chunked");
+
+    EXPECT_EQ(result.request.content.size(), 9);
+    EXPECT_EQ(result.request.content, "ghanghang");
+
+    parser.Clear();
+    memset(buffer, 0, BUFFER_SIZE + 1);
+    if (cursor == lseek(fd, 0, SEEK_END)) {
+      std::string buf_str;
+      status = parser.Parse(buf_str);
+    } else {
+      lseek(fd, cursor, SEEK_SET);
+      while (read(fd, buffer, BUFFER_SIZE) > 0) {
+        std::string buf_str(buffer);
+        status = parser.Parse(buf_str);
+        if (status >= HttpParser::kComplete) {
+          break;
+        }
+        memset(buffer, 0, BUFFER_SIZE + 1);
+      }
+    }
+    result = parser.get_result();
+
+    EXPECT_EQ(status, HttpParser::kComplete);
+    EXPECT_EQ(result.status, 200);
+    EXPECT_EQ(result.request.req.method, POST);
+    EXPECT_EQ(result.request.req.version, HttpParser::kHttp1_1);
+    EXPECT_EQ(result.request.header.size(), 2);
+
+    EXPECT_EQ(result.request.header.count("transfer-encoding"), 1);
+    transfer_encoding = result.request.header["transfer-encoding"];
+    EXPECT_EQ(transfer_encoding.size(), 1);
+    EXPECT_EQ(transfer_encoding.front(), "chunked");
+    EXPECT_EQ(result.request.content.size(), 9);
+    EXPECT_EQ(result.request.content, "jiskimjis");
+
+    close(fd);
+  }
+
+  // f 39 transfer-encoding data no CRLF
+  TestParseError(PARSER_PATH_PREFIX "f_39.txt", HttpParser::kClose, 400);
+
+  // f 40 transfer-encoding data no CRLF => NOTE : 나중에 다시 테스트 해야함
+  // TestParseError(PARSER_PATH_PREFIX "f_40.txt", HttpParser::kClose, 400);
 }

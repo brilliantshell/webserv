@@ -207,7 +207,9 @@ void HttpParser::DetermineBodyLength(void) {
   } else if (cl_it != header.end()) {
     ParseContentLength(cl_it->second);
   } else if (result_.request.req.method == POST) {
-    UpdateStatus(411, kComplete);  // LENGTH REQUIRED
+    UpdateStatus(411, (result_.request.req.version == kHttp1_1)
+                          ? kComplete
+                          : kClose);  // LENGTH REQUIRED
     return;
   }
 }
