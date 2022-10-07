@@ -1,12 +1,3 @@
-/**
- * @file test_server_io.cpp
- * @author ghan, jiskim, yongjule
- * @brief
- * @date 2022-09-21
- *
- * @copyright Copyright (c) 2022
- */
-
 #include <fcntl.h>
 
 #include <fstream>

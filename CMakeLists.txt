@@ -26,9 +26,13 @@ add_executable(
 	tests/test.cpp
 	tests/test_validator.cpp
 	tests/test_socket_generator.cpp
+	tests/test_parser.cpp
 	srcs/Validator.cpp
 	srcs/PassiveSockets.cpp
 	srcs/Connection.cpp
+	srcs/HttpParser.cpp
+	srcs/UriParser.cpp
+	srcs/HeaderParser.cpp
 )
 
 add_executable(
@@ -45,6 +49,7 @@ add_executable(
 	srcs/HttpServer.cpp
 	srcs/PassiveSockets.cpp
 	srcs/Connection.cpp
+	srcs/UriParser.cpp
 )
 
 target_include_directories(

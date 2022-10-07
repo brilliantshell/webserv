@@ -10,8 +10,6 @@
 #ifndef INCLUDES_CONNECTION_HPP_
 #define INCLUDES_CONNECTION_HPP_
 
-#define BUFFER_SIZE 4097
-
 #define KEEP_ALIVE 0
 #define CLOSE_1_0 1
 #define CLOSE_LENGTH 2
@@ -29,6 +27,8 @@
 #include <cstring>
 #include <iostream>
 #include <string>
+
+#include "HttpParser.hpp"
 
 class Connection {
  public:

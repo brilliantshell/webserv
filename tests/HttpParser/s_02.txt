@@ -1,0 +1,4 @@
+
+GET http://naver.com:12321/himynameis?daniel HTTP/1.1
+Host: ghan
+

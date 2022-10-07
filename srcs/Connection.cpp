@@ -32,7 +32,7 @@ const int Connection::get_status(void) const { return status_; }
 
 // SECTION : private
 void Connection::Receive(void) {
-  if (recv(fd_, buffer_, BUFFER_SIZE, 0) == -1) {
+  if (recv(fd_, buffer_, BUFFER_SIZE - 1, 0) == -1) {
     std::cerr << "Connection : recv failed for fd " << fd_ << " : "
               << strerror(errno) << '\n';
     status_ = CLOSE_RECV;
@@ -40,9 +40,11 @@ void Connection::Receive(void) {
 }
 
 void Connection::Send(void) {
-  if (send(fd_, buffer_, BUFFER_SIZE, 0) == -1) {
+  if (send(fd_, buffer_, BUFFER_SIZE - 1, 0) == -1) {
     std::cerr << "Connection : send failed for fd " << fd_ << " : "
               << strerror(errno) << '\n';
-    status_ = CLOSE_SEND;
+    if (status_ == KEEP_ALIVE) {
+      status_ = CLOSE_SEND;
+    }
   }
 }

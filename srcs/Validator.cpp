@@ -240,6 +240,8 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
     }
     case ServerDirective::kServerName:
       server_name = TokenizeSingleString(delim);
+      std::transform(server_name.begin(), server_name.end(),
+                     server_name.begin(), ::tolower);
       key_map.erase(key_it->first);
       break;
     case ServerDirective::kError:

@@ -13,18 +13,5 @@
       "MIMode": "lldb",
       "preLaunchTask": "Generate test_webserv"
     },
-    {
-      "name": "lldb server",
-      "type": "cppdbg",
-      "request": "launch",
-      "program": "${workspaceFolder}/debug/server",
-      "args": ["${workspaceFolder}/configs/tests/IOMultiplexing/s_00.config"],
-      "stopAtEntry": false,
-      "cwd": "${fileDirname}",
-      "environment": [],
-      "externalConsole": false,
-      "MIMode": "lldb",
-      "preLaunchTask": "Generate test_webserv"
-    }
   ]
 }
