@@ -45,6 +45,7 @@ add_executable(
 	srcs/Validator.cpp
 	srcs/ServerRouter.cpp
 	srcs/ClientConnection.cpp
+	srcs/PathResolver.cpp
 )
 
 add_executable(

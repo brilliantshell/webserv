@@ -162,9 +162,7 @@ const std::string Validator::TokenizeRoutePath(ConstIterator_& delim,
        ((delim - cursor_) == 1 || std::find(cursor_, delim, '/') != delim))) {
     throw SyntaxErrorException();
   }
-  return (is_cgi == kRoute && *(delim - 1) != '/')
-             ? std::string(cursor_, delim) + "/"
-             : std::string(cursor_, delim);
+  return std::string(cursor_, delim);
 }
 
 /**
@@ -360,13 +358,8 @@ LocationNode Validator::ValidateLocation(ConstIterator_& delim,
   Location location;
   RouteKeyMap_ key_map;
   std::string path = TokenizeRoutePath(delim, is_cgi);
-  // if (is_cgi == kRoute) {
-  //   PathResolver resolver;
-  //   if (resolver.Resolve(path) == false) {
-  //     throw SyntaxErrorException();
-  //   }
-  // }
-  if (*(++delim) != '{') {
+  if (*(++delim) != '{' ||
+      (is_cgi == kRoute && PathResolver().Resolve(path) == false)) {
     throw SyntaxErrorException();
   }
   InitializeKeyMap(key_map, is_cgi);
