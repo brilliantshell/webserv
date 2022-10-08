@@ -246,10 +246,15 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
                      server_name.begin(), ::tolower);
       key_map.erase(key_it->first);
       break;
-    case ServerDirective::kError:
-      location_router.error = Location(true, TokenizeSingleString(delim));
+    case ServerDirective::kError: {
+      std::string err_page = TokenizeSingleString(delim);
+      if (path_resolver_.Resolve(err_page, PathResolver::kErrorPage) == false) {
+        throw SyntaxErrorException();
+      }
+      location_router.error = Location(true, err_page);
       key_map.erase(key_it->first);
       break;
+    }
     case ServerDirective::kRoute:
     case ServerDirective::kCgiRoute:
       if (!location_router.location_map

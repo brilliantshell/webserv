@@ -26,9 +26,12 @@ bool PathResolver::Resolve(std::string &path, int purpose) {
 }
 
 bool PathResolver::ReserveFileName(std::string &path, int purpose) {
+  if (purpose == kErrorPage && path[0] != '/') {
+    path.insert(0, "/");
+  }
   if (path[path.size() - 1] != '/') {
     size_t not_dot = path.find_last_not_of(".");
-    if (purpose == kConfigValidator || not_dot == path.size() - 2 ||
+    if (purpose == kConfigPath || not_dot == path.size() - 2 ||
         not_dot == path.size() - 3) {
       path += '/';
     } else {
@@ -40,7 +43,7 @@ bool PathResolver::ReserveFileName(std::string &path, int purpose) {
       path.erase(last_slash_pos + 1);
     }
   }
-  return true;
+  return !(purpose == kErrorPage && file_name_.size() == 0);
 }
 
 bool PathResolver::NormalizeDirPath(std::string &path) {

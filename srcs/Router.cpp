@@ -16,7 +16,7 @@ Router::Router(ServerRouter& server_router) : server_router_(server_router) {}
 Router::Result Router::Route(int status, const Request& request) {
   Result result(status);
   LocationRouter& location_router = server_router_[request.req.host];
-  result.error_path = location_router.error.index;
+  result.error_path = "." + location_router.error.index;
   Location& location = location_router[request.req.path];
   result.method = location.methods;
 
@@ -34,7 +34,7 @@ Router::Result Router::Route(int status, const Request& request) {
            : location.index);
 
   // TODO : cgi 판별 필요
-  if (PathResolver().Resolve(path, PathResolver::kRouter) == false) {
+  if (path_resolver_.Resolve(path, PathResolver::kRouter) == false) {
     return result;
   }
   result.success_path = "." + path;
@@ -58,7 +58,7 @@ Location::Location(bool is_error, std::string error_path)
     : error(is_error), index(error_path) {}
 
 // SECTION : LocationRouter
-LocationRouter::LocationRouter(void) : error(true, "./error.html") {}
+LocationRouter::LocationRouter(void) : error(true, "/error.html") {}
 
 Location& LocationRouter::operator[](const std::string& path) {
   return (location_map.count(path) == 1) ? location_map[path] : error;

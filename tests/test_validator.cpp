@@ -44,7 +44,7 @@ TEST(ValidatorTest, ServerBlock) {
     ASSERT_EQ(location_router_map.size(), 1);
     ASSERT_EQ(location_router_map.count(""), 1);
     LocationRouter location_router = location_router_map[""];
-    EXPECT_EQ(location_router.error.index, "./error.html")
+    EXPECT_EQ(location_router.error.index, "/error.html")
         << "ServerBlock/CASE_01";
   }
 
@@ -145,7 +145,7 @@ TEST(ValidatorTest, ServerBlock) {
     ASSERT_EQ(location_router_map.size(), 1);
     ASSERT_EQ(location_router_map.count("google.com"), 1);
     LocationRouter location_router = location_router_map["google.com"];
-    EXPECT_EQ(location_router.error.index, "404.html");
+    EXPECT_EQ(location_router.error.index, "/404.html");
     LocationMap location_map = location_router.location_map;
     EXPECT_EQ(location_map.count("/"), 1) << "ServerBlock/CASE_12";
   }
@@ -169,7 +169,7 @@ TEST(ValidatorTest, ServerBlock) {
     ASSERT_EQ(location_router_map.size(), 1);
     ASSERT_EQ(location_router_map.count(""), 1);
     LocationRouter location_router = location_router_map[""];
-    EXPECT_EQ(location_router.error.index, "./error.html");
+    EXPECT_EQ(location_router.error.index, "/error.html");
 
     LocationMap location_map = location_router.location_map;
     EXPECT_EQ(location_map.count("/default/"), 1) << "ServerBlock/CASE_18";
@@ -190,7 +190,7 @@ TEST(ValidatorTest, ServerBlock) {
     ASSERT_EQ(location_router_map.size(), 1);
     ASSERT_EQ(location_router_map.count(""), 1);
     LocationRouter location_router = location_router_map[""];
-    EXPECT_EQ(location_router.error.index, "./error.html");
+    EXPECT_EQ(location_router.error.index, "/error.html");
 
     EXPECT_EQ(result.port_map.count(4242), 1);
     server_router = result.port_map[4242];
@@ -199,7 +199,7 @@ TEST(ValidatorTest, ServerBlock) {
     ASSERT_EQ(location_router_map.size(), 1);
     ASSERT_EQ(location_router_map.count(""), 1);
     location_router = location_router_map[""];
-    EXPECT_EQ(location_router.error.index, "./error.html");
+    EXPECT_EQ(location_router.error.index, "/error.html");
 
     PortSet& port_set = result.port_set;
     ASSERT_EQ(port_set.size(), 2);
@@ -222,7 +222,7 @@ TEST(ValidatorTest, ServerBlock) {
     ASSERT_EQ(location_router_map.size(), 1);
     ASSERT_EQ(location_router_map.count("blahblah"), 1);
     LocationRouter location_router = location_router_map["blahblah"];
-    EXPECT_EQ(location_router.error.index, "please.html");
+    EXPECT_EQ(location_router.error.index, "/please.html");
 
     PortSet& port_set = result.port_set;
     ASSERT_EQ(port_set.size(), 1);
@@ -243,11 +243,11 @@ TEST(ValidatorTest, ServerBlock) {
     ASSERT_EQ(location_router_map.size(), 2);
     ASSERT_EQ(location_router_map.count(""), 1);
     LocationRouter location_router = location_router_map[""];
-    EXPECT_EQ(location_router.error.index, "./error.html");
+    EXPECT_EQ(location_router.error.index, "/error.html");
 
     ASSERT_EQ(location_router_map.count("you_are_pro"), 1);
     location_router = location_router_map["you_are_pro"];
-    EXPECT_EQ(location_router.error.index, "./error.html");
+    EXPECT_EQ(location_router.error.index, "/error.html");
 
     PortSet& port_set = result.port_set;
     ASSERT_EQ(port_set.size(), 1);
@@ -269,12 +269,12 @@ TEST(ValidatorTest, ServerBlock) {
     ASSERT_EQ(location_router_map.size(), 2);
     ASSERT_EQ(location_router_map.count(""), 1);
     LocationRouter location_router = location_router_map[""];
-    EXPECT_EQ(location_router.error.index, "energetic.html");
+    EXPECT_EQ(location_router.error.index, "/energetic.html");
 
     ASSERT_EQ(location_router_map.count("ghan"), 1);
     location_router = location_router_map["ghan"];
-    EXPECT_EQ(location_router.error.index, "./error.html");
-    EXPECT_EQ(server_router.default_server.error.index, "energetic.html");
+    EXPECT_EQ(location_router.error.index, "/error.html");
+    EXPECT_EQ(server_router.default_server.error.index, "/energetic.html");
 
     ASSERT_EQ(result.port_map.count(8081), 1);
     server_router = result.port_map[8081];
@@ -282,14 +282,14 @@ TEST(ValidatorTest, ServerBlock) {
 
     ASSERT_EQ(location_router_map.count("jiskim"), 1);
     location_router = location_router_map["jiskim"];
-    EXPECT_EQ(location_router.error.index, "./error.html");
+    EXPECT_EQ(location_router.error.index, "/error.html");
 
     PortSet& port_set = result.port_set;
 
     ASSERT_EQ(port_set.size(), 2);
     EXPECT_EQ(port_set.count(8080), 1);
     EXPECT_EQ(port_set.count(8081), 1);
-    EXPECT_EQ(server_router.default_server.error.index, "./error.html");
+    EXPECT_EQ(server_router.default_server.error.index, "/error.html");
   }
 
   {
@@ -306,8 +306,10 @@ TEST(ValidatorTest, ServerBlock) {
     ASSERT_EQ(location_router_map.count("a"), 1);
     ASSERT_EQ(location_router_map.count("b"), 1);
     ASSERT_EQ(location_router_map.count("z"), 1);
-    EXPECT_EQ(server_router.default_server.error.index, "go.html");
+    EXPECT_EQ(server_router.default_server.error.index, "/go.html");
   }
+
+  TestSyntaxException("ServerBlock/CASE_31");
 }
 
 TEST(ValidatorTest, RouteBlock) {
@@ -325,7 +327,7 @@ TEST(ValidatorTest, RouteBlock) {
     ASSERT_EQ(location_router_map.count(""), 1);
     LocationRouter location_router = location_router_map[""];
 
-    EXPECT_EQ(location_router.error.index, "./error.html");
+    EXPECT_EQ(location_router.error.index, "/error.html");
     LocationMap location_map = location_router.location_map;
 
     EXPECT_EQ(location_map.count("/normal/"), 1) << "RouteBlock/CASE_00";

@@ -85,6 +85,7 @@ class Router {
 
  private:
   ServerRouter& server_router_;
+  PathResolver path_resolver_;
 };
 
 typedef std::map<uint16_t, ServerRouter> PortMap;
