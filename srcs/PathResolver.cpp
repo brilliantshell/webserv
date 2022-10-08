@@ -20,11 +20,11 @@ bool PathResolver::Resolve(std::string &path, int purpose) {
   }
   if (file_name_.size() > 0) {
     path += file_name_;
+    file_name_.clear();
   }
   return true;
 }
 
-// private
 bool PathResolver::ReserveFileName(std::string &path, int purpose) {
   if (path[path.size() - 1] != '/') {
     size_t not_dot = path.find_last_not_of(".");

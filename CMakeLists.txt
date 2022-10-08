@@ -35,7 +35,7 @@ add_executable(
 	srcs/HttpParser.cpp
 	srcs/UriParser.cpp
 	srcs/HeaderParser.cpp
-	srcs/ServerRouter.cpp
+	srcs/Router.cpp
 	srcs/PathResolver.cpp
 )
 
@@ -43,7 +43,7 @@ add_executable(
 	client
 	tests/test_client_io.cpp
 	srcs/Validator.cpp
-	srcs/ServerRouter.cpp
+	srcs/Router.cpp
 	srcs/ClientConnection.cpp
 	srcs/PathResolver.cpp
 )
@@ -57,7 +57,7 @@ add_executable(
 	srcs/Connection.cpp
 	srcs/HttpParser.cpp
 	srcs/HeaderParser.cpp
-	srcs/ServerRouter.cpp
+	srcs/Router.cpp
 	srcs/UriParser.cpp
 	srcs/PathResolver.cpp
 )

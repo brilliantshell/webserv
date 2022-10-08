@@ -10,6 +10,7 @@
 #ifndef INCLUDES_SERVER_ROUTER_HPP_
 #define INCLUDES_SERVER_ROUTER_HPP_
 
+#include "PathResolver.hpp"
 #include "Types.hpp"
 
 struct Location {
@@ -58,28 +59,11 @@ struct ServerRouter {
   LocationRouterMap location_router_map;
   LocationRouter default_server;
 
-  struct Result {
-    int status;
-    uint8_t method;
-    std::string success_path;
-    std::string error_path;
-    std::string param;
-
-    Result(int parse_status)
-        : status(parse_status),
-          method(GET),
-          success_path(""),
-          error_path(""),
-          param("") {}
-  };
-
-  Result Route(int status, const Request& request);
   LocationRouter& operator[](const std::string& server_name);
 };
 
-/*
 class Router {
-  public:
+ public:
   struct Result {
     int status;
     uint8_t method;
@@ -94,14 +78,14 @@ class Router {
           error_path(""),
           param("") {}
   };
+
+  Router(ServerRouter& server_router);
+
   Result Route(int status, const Request& request);
 
-  ServerRouter &server_router;
-
-  ...
-
-}
-*/
+ private:
+  ServerRouter& server_router_;
+};
 
 typedef std::map<uint16_t, ServerRouter> PortMap;
 typedef std::pair<uint16_t, ServerRouter> PortNode;

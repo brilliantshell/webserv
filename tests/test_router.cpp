@@ -15,7 +15,7 @@
 
 #include "Connection.hpp"
 #include "HttpParser.hpp"
-#include "ServerRouter.hpp"
+#include "Router.hpp"
 #include "Types.hpp"
 #include "Validator.hpp"
 
@@ -52,13 +52,13 @@ TEST(RouteTest, ServerRouter) {
     EXPECT_EQ(status, HttpParser::kComplete);
     HttpParser::Result parse_result = parser.get_result();
 
-    ServerRouter router = port_map[4242];
-    ServerRouter::Result route_result =
+    Router router(port_map[4242]);
+    Router::Result route_result =
         router.Route(parse_result.status, parse_result.request);
 
     EXPECT_EQ(route_result.status, 200);
     EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, ".//normal/index.html");
+    EXPECT_EQ(route_result.success_path, "./normal/index.html");
     EXPECT_EQ(route_result.error_path, "./error.html");
     EXPECT_EQ(route_result.param, "");
   }

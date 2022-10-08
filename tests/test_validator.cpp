@@ -403,9 +403,9 @@ TEST(ValidatorTest, RouteBlock) {
     ASSERT_EQ(location_map.count("/everything/"), 1) << "RouteBlock/CASE_06";
 
     Location location = location_map["/everything/"];
-    EXPECT_EQ(location.root, "/root");
+    EXPECT_EQ(location.root, "/root/");
     EXPECT_EQ(location.index, "your_fault.html");
-    EXPECT_EQ(location.upload_path, "/upload");
+    EXPECT_EQ(location.upload_path, "/upload/");
   }
 
   {
@@ -554,7 +554,7 @@ TEST(ValidatorTest, RouteBlock) {
 
     Location location = location_map[".php"];
     EXPECT_EQ(location.methods, GET | POST);
-    EXPECT_EQ(location.root, "/oh_no");
+    EXPECT_EQ(location.root, "/oh_no/");
     EXPECT_EQ(location.param, "param_param");
     EXPECT_EQ(location.body_max, 1234);
   }

@@ -19,7 +19,7 @@
 
 #include "ParseUtils.hpp"
 #include "PathResolver.hpp"
-#include "ServerRouter.hpp"
+#include "Router.hpp"
 #include "Types.hpp"
 
 // SECTION : Validator
@@ -75,6 +75,7 @@ class Validator {
 
   const std::string kConfig_;
   ConstIterator_ cursor_;
+  PathResolver path_resolver_;
 
   // 디렉티브 키맵 초기화
   void InitializeKeyMap(ServerKeyMap_& key_map) const;
