@@ -9,6 +9,8 @@
 
 #include "Validator.hpp"
 
+#include "PathResolver.hpp"
+
 // SECTION : public
 Validator::Validator(const std::string& config) : kConfig_(config) {}
 
@@ -155,8 +157,8 @@ const std::string Validator::TokenizeSingleString(ConstIterator_& delim) {
 const std::string Validator::TokenizeRoutePath(ConstIterator_& delim,
                                                ServerDirective is_cgi) {
   delim = std::find(cursor_, kConfig_.end(), ' ');
-  if (delim == kConfig_.end() ||
-      (*cursor_ == '.' &&
+  if (delim == kConfig_.end() || (is_cgi == kRoute && *cursor_ != '/') ||
+      (is_cgi == kCgiRoute && *cursor_ == '.' &&
        ((delim - cursor_) == 1 || std::find(cursor_, delim, '/') != delim))) {
     throw SyntaxErrorException();
   }
@@ -358,6 +360,12 @@ LocationNode Validator::ValidateLocation(ConstIterator_& delim,
   Location location;
   RouteKeyMap_ key_map;
   std::string path = TokenizeRoutePath(delim, is_cgi);
+  // if (is_cgi == kRoute) {
+  //   PathResolver resolver;
+  //   if (resolver.Resolve(path) == false) {
+  //     throw SyntaxErrorException();
+  //   }
+  // }
   if (*(++delim) != '{') {
     throw SyntaxErrorException();
   }

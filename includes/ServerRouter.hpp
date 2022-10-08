@@ -12,10 +12,18 @@
 
 #include "Types.hpp"
 
-class Location {
- public:
-  Location(void);
+struct Location {
+  bool error;
+  bool autoindex;
+  uint8_t methods;
+  int32_t body_max;
+  std::string root;
+  std::string index;
+  std::string upload_path;
+  std::string redirect_to;
+  std::string param;
 
+  Location(void);
   Location(bool is_error, std::string error_path);
 
   std::string& operator[](const std::string& key) {
@@ -30,35 +38,26 @@ class Location {
     }
     return param;
   }
-
-  bool error;
-  bool autoindex;
-  uint8_t methods;
-  int32_t body_max;
-  std::string root;
-  std::string index;
-  std::string upload_path;
-  std::string redirect_to;
-  std::string param;
 };
 
 typedef std::map<std::string, Location> LocationMap;
 typedef std::pair<std::string, Location> LocationNode;
 
-class LocationRouter {
- public:
-  LocationRouter(void);
-  Location& operator[](const std::string& path);
-  // private:
+struct LocationRouter {
   Location error;
   LocationMap location_map;
+
+  LocationRouter(void);
+  Location& operator[](const std::string& path);
 };
 
 typedef std::map<std::string, LocationRouter> LocationRouterMap;
 typedef std::pair<std::string, LocationRouter> LocationRouterNode;
 
-class ServerRouter {
- public:
+struct ServerRouter {
+  LocationRouterMap location_router_map;
+  LocationRouter default_server;
+
   struct Result {
     int status;
     uint8_t method;
@@ -75,12 +74,34 @@ class ServerRouter {
   };
 
   Result Route(int status, const Request& request);
-  LocationRouterMap location_router_map;
-  LocationRouter default_server;
-
- private:
   LocationRouter& operator[](const std::string& server_name);
 };
+
+/*
+class Router {
+  public:
+  struct Result {
+    int status;
+    uint8_t method;
+    std::string success_path;
+    std::string error_path;
+    std::string param;
+
+    Result(int parse_status)
+        : status(parse_status),
+          method(GET),
+          success_path(""),
+          error_path(""),
+          param("") {}
+  };
+  Result Route(int status, const Request& request);
+
+  ServerRouter &server_router;
+
+  ...
+
+}
+*/
 
 typedef std::map<uint16_t, ServerRouter> PortMap;
 typedef std::pair<uint16_t, ServerRouter> PortNode;

@@ -18,6 +18,7 @@
 #include <string>
 
 #include "ParseUtils.hpp"
+#include "PathResolver.hpp"
 #include "ServerRouter.hpp"
 #include "Types.hpp"
 
