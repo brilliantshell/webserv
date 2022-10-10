@@ -45,7 +45,10 @@ typedef std::map<std::string, Location> LocationMap;
 typedef std::pair<std::string, Location> LocationNode;
 
 struct LocationRouter {
+  typedef std::vector<LocationNode> CgiVector;
+
   Location error;
+  CgiVector cgi_vector;
   LocationMap location_map;
 
   LocationRouter(void);

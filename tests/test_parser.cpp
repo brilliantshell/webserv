@@ -10,7 +10,7 @@
 #include "Validator.hpp"
 
 #define PARSER_PATH_PREFIX "../tests/HttpParser/"
-#define GOINFRE_PATH "/Users/jisukim/goinfre/"
+#define GOINFRE_PATH "/Users/ghan/goinfre/"
 
 /**
 

@@ -29,7 +29,8 @@
       "command": "cmake",
       "args": [
 				"--build",
-				"debug"
+				"debug",
+        "-j",
       ],
       "options": {
         "cwd": "${workspaceFolder}"

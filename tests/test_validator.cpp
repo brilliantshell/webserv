@@ -331,7 +331,9 @@ TEST(ValidatorTest, RouteBlock) {
     LocationMap location_map = location_router.location_map;
 
     EXPECT_EQ(location_map.count("/normal/"), 1) << "RouteBlock/CASE_00";
-    EXPECT_EQ(location_map.count(".php"), 1) << "RouteBlock/CASE_00";
+    LocationRouter::CgiVector cgi_vector = location_router.cgi_vector;
+    EXPECT_EQ(cgi_vector.size(), 1);
+    EXPECT_EQ(cgi_vector[0].first, ".php") << "RouteBlock/CASE_00";
   }
 
   TestSyntaxException("RouteBlock/CASE_01");
@@ -376,10 +378,13 @@ TEST(ValidatorTest, RouteBlock) {
     ASSERT_EQ(location_router_map.size(), 1);
     ASSERT_EQ(location_router_map.count(""), 1);
     LocationRouter location_router = location_router_map[""];
-    LocationMap location_map = location_router.location_map;
-    ASSERT_EQ(location_map.count(".js"), 1) << "RouteBlock/CASE_04";
 
-    Location location = location_map[".js"];
+    LocationRouter::CgiVector cgi_vector = location_router.cgi_vector;
+    ASSERT_EQ(cgi_vector.size(), 1) << "RouteBlock/CASE_04";
+
+    LocationNode location_node = cgi_vector[0];
+    EXPECT_EQ(location_node.first, ".js");
+    Location& location = location_node.second;
     EXPECT_EQ(location.root, "/");
     EXPECT_EQ(location.methods, GET);
     EXPECT_EQ(location.body_max, INT_MAX);
@@ -447,10 +452,12 @@ TEST(ValidatorTest, RouteBlock) {
     ASSERT_EQ(location_router_map.size(), 1);
     ASSERT_EQ(location_router_map.count(""), 1);
     LocationRouter location_router = location_router_map[""];
-    LocationMap location_map = location_router.location_map;
-    ASSERT_EQ(location_map.count(".php"), 1) << "RouteBlock/CASE_11";
+    LocationRouter::CgiVector cgi_vector = location_router.cgi_vector;
+    ASSERT_EQ(cgi_vector.size(), 1) << "RouteBlock/CASE_11";
 
-    Location location = location_map[".php"];
+    LocationNode location_node = cgi_vector[0];
+    EXPECT_EQ(location_node.first, ".php");
+    Location& location = location_node.second;
     EXPECT_EQ(location.methods, GET | POST);
   }
 
@@ -516,7 +523,7 @@ TEST(ValidatorTest, RouteBlock) {
     ASSERT_EQ(location_router_map.count(""), 1);
     LocationRouter location_router = location_router_map[""];
     LocationMap location_map = location_router.location_map;
-    ASSERT_EQ(location_map.size(), 4);
+    ASSERT_EQ(location_map.size(), 3);
 
     ASSERT_EQ(location_map.count("/first/"), 1);
     Location location = location_map["/first/"];
@@ -526,8 +533,11 @@ TEST(ValidatorTest, RouteBlock) {
     location = location_map["/second/"];
     EXPECT_EQ(location.methods, POST);
 
-    ASSERT_EQ(location_map.count(".rb"), 1);
-    location = location_map[".rb"];
+    LocationRouter::CgiVector cgi_vector = location_router.cgi_vector;
+    ASSERT_EQ(cgi_vector.size(), 1);
+    LocationNode location_node = cgi_vector[0];
+    EXPECT_EQ(location_node.first, ".rb");
+    location = location_node.second;
     EXPECT_EQ(location.param, "rb_param");
 
     ASSERT_EQ(location_map.count("/third/"), 1);
@@ -550,11 +560,12 @@ TEST(ValidatorTest, RouteBlock) {
     ASSERT_EQ(location_router_map.size(), 1);
     ASSERT_EQ(location_router_map.count(""), 1);
     LocationRouter location_router = location_router_map[""];
-    LocationMap location_map = location_router.location_map;
-    ASSERT_EQ(location_map.size(), 1);
-    ASSERT_EQ(location_map.count(".php"), 1) << "RouteBlock/CASE_20";
+    LocationRouter::CgiVector cgi_vector = location_router.cgi_vector;
+    ASSERT_EQ(cgi_vector.size(), 1) << "RouteBlock/CASE_20";
 
-    Location location = location_map[".php"];
+    LocationNode location_node = cgi_vector[0];
+    EXPECT_EQ(location_node.first, ".php");
+    Location& location = location_node.second;
     EXPECT_EQ(location.methods, GET | POST);
     EXPECT_EQ(location.root, "/oh_no/");
     EXPECT_EQ(location.param, "param_param");

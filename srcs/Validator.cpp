@@ -49,8 +49,8 @@ void Validator::InitializeKeyMap(ServerKeyMap_& key_map) const {
   key_map["listen"] = ServerDirective::kListen;
   key_map["server_name"] = ServerDirective::kServerName;
   key_map["error"] = ServerDirective::kError;
-  key_map["route"] = ServerDirective::kRoute;
-  key_map["cgi_route"] = ServerDirective::kCgiRoute;
+  key_map["location"] = ServerDirective::kRoute;
+  key_map["cgi"] = ServerDirective::kCgiRoute;
 }
 
 /**
@@ -75,8 +75,8 @@ void Validator::InitializeKeyMap(RouteKeyMap_& key_map,
 }
 
 /**
- * @brief config 읽는 중 발견한 LocationRouter 디렉티브 판별, 유효하지 않은
- 디렉티브면 throw
+ * @brief config 읽는 중 발견한 LocationRouter (server) 디렉티브 판별, 유효하지
+ 않은 디렉티브면 throw
  *
  * @param delim LocationRouter 디렉티브 종료 위치 레퍼런스
  * @param key_map 유효한 LocationRouter 디렉티브 키맵
@@ -158,8 +158,8 @@ const std::string Validator::TokenizeRoutePath(ConstIterator_& delim,
                                                ServerDirective is_cgi) {
   delim = std::find(cursor_, kConfig_.end(), ' ');
   if (delim == kConfig_.end() || (is_cgi == kRoute && *cursor_ != '/') ||
-      (is_cgi == kCgiRoute && *cursor_ == '.' &&
-       ((delim - cursor_) == 1 || std::find(cursor_, delim, '/') != delim))) {
+      (is_cgi == kCgiRoute && (*cursor_ != '.' || (delim - cursor_) == 1 ||
+                               std::find(cursor_, delim, '/') != delim))) {
     throw SyntaxErrorException();
   }
   return std::string(cursor_, delim);
@@ -256,13 +256,22 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
       break;
     }
     case ServerDirective::kRoute:
-    case ServerDirective::kCgiRoute:
       if (!location_router.location_map
                .insert(ValidateLocation(delim, key_it->second))
                .second) {
         throw SyntaxErrorException();
       }
       break;
+    case ServerDirective::kCgiRoute: {
+      LocationNode location_node = ValidateLocation(delim, key_it->second);
+      for (size_t i = 0; i < location_router.cgi_vector.size(); ++i) {
+        if (location_router.cgi_vector[i].first == location_node.first) {
+          throw SyntaxErrorException();
+        }
+      }
+      location_router.cgi_vector.push_back(location_node);
+      break;
+    }
     default:
       throw SyntaxErrorException();
   }
@@ -348,7 +357,8 @@ Validator::PortServerPair Validator::ValidateLocationRouter(PortSet& port_set) {
     cursor_ = delim;
   }
   // NOTE : listen 과 route block 은 필수값!
-  if (key_map.count("listen") || location_router.location_map.empty()) {
+  if (key_map.count("listen") || (location_router.location_map.empty() &&
+                                  location_router.cgi_vector.empty())) {
     throw SyntaxErrorException();
   }
   port_set.insert(port);
@@ -369,7 +379,7 @@ LocationNode Validator::ValidateLocation(ConstIterator_& delim,
   RouteKeyMap_ key_map;
   std::string path = TokenizeRoutePath(delim, is_cgi);
   if (*(++delim) != '{' ||
-      (is_cgi == kRoute && path_resolver_.Resolve(path) == false)) {
+      is_cgi == kRoute && path_resolver_.Resolve(path) == false) {
     throw SyntaxErrorException();
   }
   InitializeKeyMap(key_map, is_cgi);

@@ -16,14 +16,14 @@
 class PathResolver {
  public:
   enum {
-    kConfigPath = 0,
+    kLocation = 0,
     kErrorPage,
     kRouter,
   };
 
   PathResolver(void);
 
-  bool Resolve(std::string &path, int purpose = PathResolver::kConfigPath);
+  bool Resolve(std::string &path, int purpose = PathResolver::kLocation);
 
  private:
   std::string file_name_;

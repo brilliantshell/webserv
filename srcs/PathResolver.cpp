@@ -31,7 +31,7 @@ bool PathResolver::ReserveFileName(std::string &path, int purpose) {
   }
   if (path[path.size() - 1] != '/') {
     size_t not_dot = path.find_last_not_of(".");
-    if (purpose == kConfigPath || not_dot == path.size() - 2 ||
+    if (purpose == kLocation || not_dot == path.size() - 2 ||
         not_dot == path.size() - 3) {
       path += '/';
     } else {
@@ -52,16 +52,14 @@ bool PathResolver::NormalizeDirPath(std::string &path) {
 
   for (size_t i = 0; i < path.size();) {
     if (path[i] == '/') {
-      size_t k = 1;
-      for (; i + k < path.size(); ++k) {
-        if (path[i + k] == '/') {
-          valid_chars[i + k] = '\0';
-        } else if (i + k + 1 < path.size() &&
-                   path.compare(i + k, 2, "./") == 0) {
-          std::fill_n(first_idx + i + k, 2, '\0');
+      size_t k = i + 1;
+      for (; k < path.size(); ++k) {
+        if (path[k] == '/') {
+          valid_chars[k] = '\0';
+        } else if (k + 1 < path.size() && path.compare(k, 2, "./") == 0) {
+          std::fill_n(first_idx + k, 2, '\0');
           ++k;
-        } else if (i + k + 2 < path.size() &&
-                   path.compare(i + k, 3, "../") == 0) {
+        } else if (k + 2 < path.size() && path.compare(k, 3, "../") == 0) {
           if (i == 0) {
             return false;
           }
@@ -69,13 +67,13 @@ bool PathResolver::NormalizeDirPath(std::string &path) {
           if (erase_start == std::string::npos) {
             return false;
           }
-          std::fill_n(first_idx + erase_start, i + k + 2 - erase_start, '\0');
+          std::fill_n(first_idx + erase_start, k + 2 - erase_start, '\0');
           k += 2;
         } else {
           break;
         }
       }
-      i += k;
+      i = k;
     } else {
       ++i;
     }
