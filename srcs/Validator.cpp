@@ -62,16 +62,16 @@ void Validator::InitializeKeyMap(ServerKeyMap_& key_map) const {
 void Validator::InitializeKeyMap(RouteKeyMap_& key_map,
                                  ServerDirective is_cgi) const {
   if (is_cgi == ServerDirective::kRoute) {
-    key_map["autoindex"] = RouteDirective::kAutoindex;
-    key_map["redirect_to"] = RouteDirective::kRedirectTo;
+    key_map["autoindex"] = LocationDirective::kAutoindex;
+    key_map["redirect_to"] = LocationDirective::kRedirectTo;
   } else {
-    key_map["param"] = RouteDirective::kParam;
+    key_map["param"] = LocationDirective::kParam;
   }
-  key_map["methods"] = RouteDirective::kMethods;
-  key_map["body_max"] = RouteDirective::kBodyMax;
-  key_map["root"] = RouteDirective::kRoot;
-  key_map["index"] = RouteDirective::kIndex;
-  key_map["upload_path"] = RouteDirective::kUploadPath;
+  key_map["methods"] = LocationDirective::kMethods;
+  key_map["body_max"] = LocationDirective::kBodyMax;
+  key_map["root"] = LocationDirective::kRoot;
+  key_map["index"] = LocationDirective::kIndex;
+  key_map["upload_path"] = LocationDirective::kUploadPath;
 }
 
 /**
@@ -298,13 +298,13 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
   }
 
   switch (key_it->second) {
-    case RouteDirective::kAutoindex: {
+    case LocationDirective::kAutoindex: {
       std::string autoindex = TokenizeSingleString(delim);
       if (autoindex != "on" && autoindex != "off") throw SyntaxErrorException();
       location.autoindex = (autoindex == "on");
       break;
     }
-    case RouteDirective::kBodyMax: {
+    case LocationDirective::kBodyMax: {
       uint32_t num = TokenizeNumber(delim);
       if (num > INT_MAX) {
         throw SyntaxErrorException();
@@ -312,19 +312,19 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
       location.body_max = num;
       break;
     }
-    case RouteDirective::kParam:
-    case RouteDirective::kIndex:
-    case RouteDirective::kRoot:
-    case RouteDirective::kUploadPath:
-    case RouteDirective::kRedirectTo:
+    case LocationDirective::kParam:
+    case LocationDirective::kIndex:
+    case LocationDirective::kRoot:
+    case LocationDirective::kUploadPath:
+    case LocationDirective::kRedirectTo:
       location[key_it->first] = TokenizeSingleString(delim);
-      if ((key_it->second == RouteDirective::kRoot ||
-           key_it->second == RouteDirective::kUploadPath) &&
+      if ((key_it->second == LocationDirective::kRoot ||
+           key_it->second == LocationDirective::kUploadPath) &&
           path_resolver_.Resolve(location[key_it->first]) == false) {
         throw SyntaxErrorException();
       }
       break;
-    case RouteDirective::kMethods:
+    case LocationDirective::kMethods:
       location.methods = TokenizeMethods(delim, is_cgi);
       break;
     default:

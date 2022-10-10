@@ -47,7 +47,7 @@ class Validator {
     kCgiRoute,
   };
 
-  enum RouteDirective {
+  enum LocationDirective {
     kAutoindex = 0,
     kMethods,
     kBodyMax,
@@ -70,8 +70,8 @@ class Validator {
   typedef std::string::const_iterator ConstIterator_;
   typedef std::map<std::string, ServerDirective> ServerKeyMap_;
   typedef std::map<std::string, ServerDirective>::iterator ServerKeyIt_;
-  typedef std::map<std::string, RouteDirective> RouteKeyMap_;
-  typedef std::map<std::string, RouteDirective>::iterator RouteKeyIt_;
+  typedef std::map<std::string, LocationDirective> RouteKeyMap_;
+  typedef std::map<std::string, LocationDirective>::iterator RouteKeyIt_;
 
   const std::string kConfig_;
   ConstIterator_ cursor_;

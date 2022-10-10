@@ -37,7 +37,7 @@ bool PathResolver::ReserveFileName(std::string &path, int purpose) {
     } else {
       size_t last_slash_pos = path.rfind('/');
       if (last_slash_pos == std::string::npos) {
-        return false;  // NOTE : cgi 일 수 있는데 판별 어떻게?
+        return false;
       }
       file_name_ = path.substr(last_slash_pos + 1);
       path.erase(last_slash_pos + 1);

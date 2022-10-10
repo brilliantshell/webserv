@@ -107,7 +107,9 @@ void HttpParser::ValidateHost(void) {
       UpdateStatus(400, kClose);  // BAD REQUEST
     } else if (request.req.host.empty()) {
       if (UriParser().ParseHost(it->second.front())) {
-        request.req.host = it->second.front();
+        if (request.req.version == kHttp1_1) {
+          request.req.host = it->second.front();
+        }
       } else {
         UpdateStatus(400, kClose);  // BAD REQUEST
       }

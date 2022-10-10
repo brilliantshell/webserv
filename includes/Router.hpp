@@ -89,6 +89,13 @@ class Router {
  private:
   ServerRouter& server_router_;
   PathResolver path_resolver_;
+
+  std::pair<LocationNode, size_t> GetCgiLocation(
+      LocationRouter::CgiVector& cgi_vector, const std::string& path);
+  void RouteToLocation(Result& result, LocationRouter& location_router,
+                       const RequestLine& req);
+  void RouteToCgi(Result& result, LocationNode& cgi_location_node,
+                  std::string& cgi_extenstion, const RequestLine& req);
 };
 
 typedef std::map<uint16_t, ServerRouter> PortMap;
