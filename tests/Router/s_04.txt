@@ -1,0 +1,3 @@
+DELETE / HTTP/1.0
+Host: ghan
+

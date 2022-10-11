@@ -606,7 +606,7 @@ TEST(HttpParserTest, ParseHeaderFields) {
   TestParseError(PARSER_PATH_PREFIX "f_20.txt", HttpParser::kClose, 400);
 
   // s 12 valid transfer-encoding
-  std::cout << "s 12 valid transfer-encoding 여기서 멈추면 무한루프일걸?\n";
+  std::cout << "s 12 valid transfer-encoding\n";
   {
     HttpParser parser;
     int fd = open(PARSER_PATH_PREFIX "s_12.txt", O_RDONLY);

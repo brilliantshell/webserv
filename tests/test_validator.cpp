@@ -18,14 +18,14 @@ std::string FileToString(const std::string& file_path) {
 }
 
 void TestSyntaxException(const std::string& case_id) {
-  std::cout << case_id << std::endl;
+  std::cout << "\033[1;32m" << case_id << "\033[0m" << std::endl;
   Validator validator(FileToString(PATH_PREFIX + case_id + ".config"));
   EXPECT_THROW(validator.Validate(), Validator::SyntaxErrorException);
 }
 
 Validator::Result TestValidatorSuccess(const std::string& case_id) {
-  std::cout << case_id << std::endl;
-  Validator validator(FileToString(PATH_PREFIX + case_id + ".config"));
+  std::cout << "\033[1;32m" << case_id << "\033[0m" << std::endl;
+  Validator validator(FileToString(case_id + ".config"));
   return validator.Validate();
 }
 
@@ -33,92 +33,99 @@ TEST(ValidatorTest, ServerBlock) {
   TestSyntaxException("ServerBlock/CASE_00");
 
   {
-    Validator::Result result = TestValidatorSuccess("ServerBlock/CASE_01");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_01");
     EXPECT_EQ(result.port_set.size(), 1);
 
     ASSERT_EQ(result.port_set.count(80), 1);
-    ServerGate server_gate = result.port_map[80];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[80];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count(""), 1);
-    ServerBlock server_block = server_map[""];
-    EXPECT_EQ(server_block.error, "error.html") << "ServerBlock/CASE_01";
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
+    EXPECT_EQ(location_router.error.index, "/error.html")
+        << "ServerBlock/CASE_01";
   }
 
   {
-    Validator::Result result = TestValidatorSuccess("ServerBlock/CASE_02");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_02");
     EXPECT_EQ(result.port_set.size(), 1);
 
     ASSERT_EQ(result.port_set.count(8080), 1);
-    ServerGate server_gate = result.port_map[8080];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[8080];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count(""), 1);
-    ServerBlock server_block = server_map[""];
-    RouteMap route_map = server_block.route_map;
-    EXPECT_EQ(route_map.count("./trash"), 1) << "ServerBlock/CASE_02";
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
+    LocationMap location_map = location_router.location_map;
+    EXPECT_EQ(location_map.count("/trash/"), 1) << "ServerBlock/CASE_02";
   }
 
   {
-    Validator::Result result = TestValidatorSuccess("ServerBlock/CASE_03");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_03");
     EXPECT_EQ(result.port_set.size(), 1);
     ASSERT_EQ(result.port_set.count(4242), 1);
-    ServerGate server_gate = result.port_map[4242];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[4242];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count(""), 1);
-    ServerBlock server_block = server_map[""];
-    RouteMap route_map = server_block.route_map;
-    EXPECT_EQ(route_map.count("./hi"), 1) << "ServerBlock/CASE_03";
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
+    LocationMap location_map = location_router.location_map;
+    EXPECT_EQ(location_map.count("/hi/"), 1) << "ServerBlock/CASE_03";
   }
 
   {
-    Validator::Result result = TestValidatorSuccess("ServerBlock/CASE_04");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_04");
     EXPECT_EQ(result.port_set.size(), 1);
 
     ASSERT_EQ(result.port_set.count(4242), 1);
-    ServerGate server_gate = result.port_map[4242];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[4242];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count(""), 1);
-    ServerBlock server_block = server_map[""];
-    RouteMap route_map = server_block.route_map;
-    EXPECT_EQ(route_map.count("./return/42"), 1) << "ServerBlock/CASE_04";
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
+    LocationMap location_map = location_router.location_map;
+    EXPECT_EQ(location_map.count("/return/42/"), 1) << "ServerBlock/CASE_04";
   }
 
   TestSyntaxException("ServerBlock/CASE_05");
   {
-    Validator::Result result = TestValidatorSuccess("ServerBlock/CASE_06");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_06");
     EXPECT_EQ(result.port_set.size(), 1);
 
     ASSERT_EQ(result.port_set.count(80), 1);
-    ServerGate server_gate = result.port_map[80];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[80];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count(""), 1);
-    ServerBlock server_block = server_map[""];
-    RouteMap route_map = server_block.route_map;
-    EXPECT_EQ(route_map.count("./"), 1) << "ServerBlock/CASE_06";
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
+    LocationMap location_map = location_router.location_map;
+    EXPECT_EQ(location_map.count("/"), 1) << "ServerBlock/CASE_06";
   }
 
   {
-    Validator::Result result = TestValidatorSuccess("ServerBlock/CASE_07");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_07");
     EXPECT_EQ(result.port_set.size(), 1);
 
     ASSERT_EQ(result.port_set.count(80), 1);
-    ServerGate server_gate = result.port_map[80];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[80];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count(""), 1);
-    ServerBlock server_block = server_map[""];
-    RouteMap route_map = server_block.route_map;
-    EXPECT_EQ(route_map.count("./"), 1) << "ServerBlock/CASE_07";
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
+    LocationMap location_map = location_router.location_map;
+    EXPECT_EQ(location_map.count("/"), 1) << "ServerBlock/CASE_07";
   }
 
   TestSyntaxException("ServerBlock/CASE_08");
@@ -127,19 +134,20 @@ TEST(ValidatorTest, ServerBlock) {
   TestSyntaxException("ServerBlock/CASE_11");
 
   {
-    Validator::Result result = TestValidatorSuccess("ServerBlock/CASE_12");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_12");
     EXPECT_EQ(result.port_set.size(), 1);
 
     ASSERT_EQ(result.port_set.count(80), 1);
-    ServerGate server_gate = result.port_map[80];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[80];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count("google.com"), 1);
-    ServerBlock server_block = server_map["google.com"];
-    EXPECT_EQ(server_block.error, "404.html");
-    RouteMap route_map = server_block.route_map;
-    EXPECT_EQ(route_map.count("./"), 1) << "ServerBlock/CASE_12";
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count("google.com"), 1);
+    LocationRouter location_router = location_router_map["google.com"];
+    EXPECT_EQ(location_router.error.index, "/404.html");
+    LocationMap location_map = location_router.location_map;
+    EXPECT_EQ(location_map.count("/"), 1) << "ServerBlock/CASE_12";
   }
 
   TestSyntaxException("ServerBlock/CASE_13");
@@ -149,47 +157,49 @@ TEST(ValidatorTest, ServerBlock) {
   TestSyntaxException("ServerBlock/CASE_17");
 
   {
-    Validator::Result result = TestValidatorSuccess("ServerBlock/CASE_18");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_18");
 
     ASSERT_EQ(result.port_map.size(), 1);
 
     ASSERT_EQ(result.port_map.count(8080), 1);
-    ServerGate server_gate = result.port_map[8080];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[8080];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count(""), 1);
-    ServerBlock server_block = server_map[""];
-    EXPECT_EQ(server_block.error, "error.html");
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
+    EXPECT_EQ(location_router.error.index, "/error.html");
 
-    RouteMap route_map = server_block.route_map;
-    EXPECT_EQ(route_map.count("./default"), 1) << "ServerBlock/CASE_18";
+    LocationMap location_map = location_router.location_map;
+    EXPECT_EQ(location_map.count("/default/"), 1) << "ServerBlock/CASE_18";
   }
 
   TestSyntaxException("ServerBlock/CASE_19");
   TestSyntaxException("ServerBlock/CASE_20");
 
   {
-    Validator::Result result = TestValidatorSuccess("ServerBlock/CASE_21");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_21");
     ASSERT_EQ(result.port_map.size(), 2);
 
     ASSERT_EQ(result.port_map.count(80), 1);
-    ServerGate server_gate = result.port_map[80];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[80];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count(""), 1);
-    ServerBlock server_block = server_map[""];
-    EXPECT_EQ(server_block.error, "error.html");
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
+    EXPECT_EQ(location_router.error.index, "/error.html");
 
     EXPECT_EQ(result.port_map.count(4242), 1);
-    server_gate = result.port_map[4242];
-    server_map = server_gate.server_map;
+    server_router = result.port_map[4242];
+    location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count(""), 1);
-    server_block = server_map[""];
-    EXPECT_EQ(server_block.error, "error.html");
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    location_router = location_router_map[""];
+    EXPECT_EQ(location_router.error.index, "/error.html");
 
     PortSet& port_set = result.port_set;
     ASSERT_EQ(port_set.size(), 2);
@@ -202,16 +212,17 @@ TEST(ValidatorTest, ServerBlock) {
   TestSyntaxException("ServerBlock/CASE_24");
 
   {
-    Validator::Result result = TestValidatorSuccess("ServerBlock/CASE_25");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_25");
     ASSERT_EQ(result.port_map.size(), 1);
 
     ASSERT_EQ(result.port_map.count(443), 1);
-    ServerGate server_gate = result.port_map[443];
-    ServerMap server_map = server_gate.server_map;
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count("blahblah"), 1);
-    ServerBlock server_block = server_map["blahblah"];
-    EXPECT_EQ(server_block.error, "please.html");
+    ServerRouter server_router = result.port_map[443];
+    LocationRouterMap location_router_map = server_router.location_router_map;
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count("blahblah"), 1);
+    LocationRouter location_router = location_router_map["blahblah"];
+    EXPECT_EQ(location_router.error.index, "/please.html");
 
     PortSet& port_set = result.port_set;
     ASSERT_EQ(port_set.size(), 1);
@@ -221,21 +232,22 @@ TEST(ValidatorTest, ServerBlock) {
   TestSyntaxException("ServerBlock/CASE_26");
 
   {
-    Validator::Result result = TestValidatorSuccess("ServerBlock/CASE_27");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_27");
     ASSERT_EQ(result.port_map.size(), 1);
 
     ASSERT_EQ(result.port_map.count(4242), 1);
-    ServerGate server_gate = result.port_map[4242];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[4242];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 2);
-    ASSERT_EQ(server_map.count(""), 1);
-    ServerBlock server_block = server_map[""];
-    EXPECT_EQ(server_block.error, "error.html");
+    ASSERT_EQ(location_router_map.size(), 2);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
+    EXPECT_EQ(location_router.error.index, "/error.html");
 
-    ASSERT_EQ(server_map.count("you_are_pro"), 1);
-    server_block = server_map["you_are_pro"];
-    EXPECT_EQ(server_block.error, "error.html");
+    ASSERT_EQ(location_router_map.count("you_are_pro"), 1);
+    location_router = location_router_map["you_are_pro"];
+    EXPECT_EQ(location_router.error.index, "/error.html");
 
     PortSet& port_set = result.port_set;
     ASSERT_EQ(port_set.size(), 1);
@@ -245,168 +257,182 @@ TEST(ValidatorTest, ServerBlock) {
   TestSyntaxException("ServerBlock/CASE_28");
 
   {
-    Validator::Result result = TestValidatorSuccess("ServerBlock/CASE_29");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_29");
     ASSERT_EQ(result.port_map.size(), 2);
     ASSERT_EQ(result.port_set.size(), 2);
 
     ASSERT_EQ(result.port_map.count(8080), 1);
-    ServerGate server_gate = result.port_map[8080];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[8080];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 2);
-    ASSERT_EQ(server_map.count(""), 1);
-    ServerBlock server_block = server_map[""];
-    EXPECT_EQ(server_block.error, "energetic.html");
+    ASSERT_EQ(location_router_map.size(), 2);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
+    EXPECT_EQ(location_router.error.index, "/energetic.html");
 
-    ASSERT_EQ(server_map.count("ghan"), 1);
-    server_block = server_map["ghan"];
-    EXPECT_EQ(server_block.error, "error.html");
-    EXPECT_EQ(server_gate.default_server.error, "energetic.html");
+    ASSERT_EQ(location_router_map.count("ghan"), 1);
+    location_router = location_router_map["ghan"];
+    EXPECT_EQ(location_router.error.index, "/error.html");
+    EXPECT_EQ(server_router.default_server.error.index, "/energetic.html");
 
     ASSERT_EQ(result.port_map.count(8081), 1);
-    server_gate = result.port_map[8081];
-    server_map = server_gate.server_map;
+    server_router = result.port_map[8081];
+    location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.count("jiskim"), 1);
-    server_block = server_map["jiskim"];
-    EXPECT_EQ(server_block.error, "error.html");
+    ASSERT_EQ(location_router_map.count("jiskim"), 1);
+    location_router = location_router_map["jiskim"];
+    EXPECT_EQ(location_router.error.index, "/error.html");
 
     PortSet& port_set = result.port_set;
 
     ASSERT_EQ(port_set.size(), 2);
     EXPECT_EQ(port_set.count(8080), 1);
     EXPECT_EQ(port_set.count(8081), 1);
-    EXPECT_EQ(server_gate.default_server.error, "error.html");
+    EXPECT_EQ(server_router.default_server.error.index, "/error.html");
   }
 
   {
-    Validator::Result result = TestValidatorSuccess("ServerBlock/CASE_30");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_30");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
     ASSERT_EQ(result.port_map.count(1111), 1);
     ASSERT_EQ(result.port_set.count(1111), 1);
-    ServerGate server_gate = result.port_map[1111];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[1111];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 3);
-    ASSERT_EQ(server_map.count("a"), 1);
-    ASSERT_EQ(server_map.count("b"), 1);
-    ASSERT_EQ(server_map.count("z"), 1);
-    EXPECT_EQ(server_gate.default_server.error, "go.html");
+    ASSERT_EQ(location_router_map.size(), 3);
+    ASSERT_EQ(location_router_map.count("a"), 1);
+    ASSERT_EQ(location_router_map.count("b"), 1);
+    ASSERT_EQ(location_router_map.count("z"), 1);
+    EXPECT_EQ(server_router.default_server.error.index, "/go.html");
   }
+
+  TestSyntaxException("ServerBlock/CASE_31");
 }
 
 TEST(ValidatorTest, RouteBlock) {
   {
-    Validator::Result result = TestValidatorSuccess("RouteBlock/CASE_00");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_00");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
     ASSERT_EQ(result.port_map.count(4242), 1);
     ASSERT_EQ(result.port_set.count(4242), 1);
-    ServerGate server_gate = result.port_map[4242];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[4242];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count(""), 1);
-    ServerBlock server_block = server_map[""];
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
 
-    EXPECT_EQ(server_block.error, "error.html");
-    RouteMap route_map = server_block.route_map;
+    EXPECT_EQ(location_router.error.index, "/error.html");
+    LocationMap location_map = location_router.location_map;
 
-    EXPECT_EQ(route_map.count("./normal"), 1) << "RouteBlock/CASE_00";
-    EXPECT_EQ(route_map.count(".php"), 1) << "RouteBlock/CASE_00";
+    EXPECT_EQ(location_map.count("/normal/"), 1) << "RouteBlock/CASE_00";
+    LocationRouter::CgiVector cgi_vector = location_router.cgi_vector;
+    EXPECT_EQ(cgi_vector.size(), 1);
+    EXPECT_EQ(cgi_vector[0].first, ".php") << "RouteBlock/CASE_00";
   }
 
   TestSyntaxException("RouteBlock/CASE_01");
   TestSyntaxException("RouteBlock/CASE_02");
 
   {
-    Validator::Result result = TestValidatorSuccess("RouteBlock/CASE_03");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_03");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
     ASSERT_EQ(result.port_map.count(80), 1);
     ASSERT_EQ(result.port_set.count(80), 1);
-    ServerGate server_gate = result.port_map[80];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[80];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count(""), 1);
-    ServerBlock server_block = server_map[""];
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
 
-    RouteMap route_map = server_block.route_map;
+    LocationMap location_map = location_router.location_map;
 
-    ASSERT_EQ(route_map.count("./"), 1) << "RouteBlock/CASE_03";
-    RouteBlock route_block = route_map["./"];
-    EXPECT_EQ(route_block.root, "./");
-    EXPECT_EQ(route_block.index, "");
-    EXPECT_EQ(route_block.methods, GET);
-    EXPECT_EQ(route_block.body_max, INT_MAX);
-    EXPECT_EQ(route_block.autoindex, false);
-    EXPECT_EQ(route_block.upload_path, "");
+    ASSERT_EQ(location_map.count("/"), 1) << "RouteBlock/CASE_03";
+    Location location = location_map["/"];
+    EXPECT_EQ(location.root, "/");
+    EXPECT_EQ(location.index, "");
+    EXPECT_EQ(location.methods, GET);
+    EXPECT_EQ(location.body_max, INT_MAX);
+    EXPECT_EQ(location.autoindex, false);
+    EXPECT_EQ(location.upload_path, "/");
   }
 
   {
-    Validator::Result result = TestValidatorSuccess("RouteBlock/CASE_04");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_04");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
     ASSERT_EQ(result.port_map.count(4242), 1);
     ASSERT_EQ(result.port_set.count(4242), 1);
-    ServerGate server_gate = result.port_map[4242];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[4242];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count(""), 1);
-    ServerBlock server_block = server_map[""];
-    RouteMap route_map = server_block.route_map;
-    ASSERT_EQ(route_map.count(".js"), 1) << "RouteBlock/CASE_04";
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
 
-    RouteBlock route_block = route_map[".js"];
-    EXPECT_EQ(route_block.root, "./");
-    EXPECT_EQ(route_block.methods, GET);
-    EXPECT_EQ(route_block.body_max, INT_MAX);
-    EXPECT_EQ(route_block.param, "fastjs_params");
+    LocationRouter::CgiVector cgi_vector = location_router.cgi_vector;
+    ASSERT_EQ(cgi_vector.size(), 1) << "RouteBlock/CASE_04";
+
+    LocationNode location_node = cgi_vector[0];
+    EXPECT_EQ(location_node.first, ".js");
+    Location& location = location_node.second;
+    EXPECT_EQ(location.root, "/");
+    EXPECT_EQ(location.methods, GET);
+    EXPECT_EQ(location.body_max, INT_MAX);
+    EXPECT_EQ(location.param, "/fastjs_params");
   }
 
   TestSyntaxException("RouteBlock/CASE_05");
 
   {
-    Validator::Result result = TestValidatorSuccess("RouteBlock/CASE_06");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_06");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
     ASSERT_EQ(result.port_map.count(4242), 1);
     ASSERT_EQ(result.port_set.count(4242), 1);
-    ServerGate server_gate = result.port_map[4242];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[4242];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count(""), 1);
-    ServerBlock server_block = server_map[""];
-    RouteMap route_map = server_block.route_map;
-    ASSERT_EQ(route_map.count("./everything"), 1) << "RouteBlock/CASE_06";
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
+    LocationMap location_map = location_router.location_map;
+    ASSERT_EQ(location_map.count("/everything/"), 1) << "RouteBlock/CASE_06";
 
-    RouteBlock route_block = route_map["./everything"];
-    EXPECT_EQ(route_block.root, "/root");
-    EXPECT_EQ(route_block.index, "your_fault.html");
-    EXPECT_EQ(route_block.upload_path, "/upload");
+    Location location = location_map["/everything/"];
+    EXPECT_EQ(location.root, "/root/");
+    EXPECT_EQ(location.index, "your_fault.html");
+    EXPECT_EQ(location.upload_path, "/upload/");
   }
 
   {
-    Validator::Result result = TestValidatorSuccess("RouteBlock/CASE_07");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_07");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
     ASSERT_EQ(result.port_map.count(4242), 1);
     ASSERT_EQ(result.port_set.count(4242), 1);
-    ServerGate server_gate = result.port_map[4242];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[4242];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count(""), 1);
-    ServerBlock server_block = server_map[""];
-    RouteMap route_map = server_block.route_map;
-    ASSERT_EQ(route_map.count("./everything"), 1) << "RouteBlock/CASE_07";
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
+    LocationMap location_map = location_router.location_map;
+    ASSERT_EQ(location_map.count("/everything/"), 1) << "RouteBlock/CASE_07";
 
-    RouteBlock route_block = route_map["./everything"];
-    EXPECT_EQ(route_block.methods, GET | POST | DELETE);
+    Location location = location_map["/everything/"];
+    EXPECT_EQ(location.methods, GET | POST | DELETE);
   }
 
   TestSyntaxException("RouteBlock/CASE_08");
@@ -414,64 +440,69 @@ TEST(ValidatorTest, RouteBlock) {
   TestSyntaxException("RouteBlock/CASE_10");
 
   {
-    Validator::Result result = TestValidatorSuccess("RouteBlock/CASE_11");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_11");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
     ASSERT_EQ(result.port_map.count(4242), 1);
     ASSERT_EQ(result.port_set.count(4242), 1);
-    ServerGate server_gate = result.port_map[4242];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[4242];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count(""), 1);
-    ServerBlock server_block = server_map[""];
-    RouteMap route_map = server_block.route_map;
-    ASSERT_EQ(route_map.count(".php"), 1) << "RouteBlock/CASE_11";
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
+    LocationRouter::CgiVector cgi_vector = location_router.cgi_vector;
+    ASSERT_EQ(cgi_vector.size(), 1) << "RouteBlock/CASE_11";
 
-    RouteBlock route_block = route_map[".php"];
-    EXPECT_EQ(route_block.methods, GET | POST);
+    LocationNode location_node = cgi_vector[0];
+    EXPECT_EQ(location_node.first, ".php");
+    Location& location = location_node.second;
+    EXPECT_EQ(location.methods, GET | POST);
   }
 
   TestSyntaxException("RouteBlock/CASE_12");
 
   {
-    Validator::Result result = TestValidatorSuccess("RouteBlock/CASE_13");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_13");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
     ASSERT_EQ(result.port_map.count(80), 1);
     ASSERT_EQ(result.port_set.count(80), 1);
-    ServerGate server_gate = result.port_map[80];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[80];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count(""), 1);
-    ServerBlock server_block = server_map[""];
-    RouteMap route_map = server_block.route_map;
-    ASSERT_EQ(route_map.count("./max"), 1) << "RouteBlock/CASE_13";
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
+    LocationMap location_map = location_router.location_map;
+    ASSERT_EQ(location_map.count("/max/"), 1) << "RouteBlock/CASE_13";
 
-    RouteBlock route_block = route_map["./max"];
-    EXPECT_EQ(route_block.methods, POST);
-    EXPECT_EQ(route_block.body_max, 4096);
+    Location location = location_map["/max/"];
+    EXPECT_EQ(location.methods, POST);
+    EXPECT_EQ(location.body_max, 4096);
   }
 
   {
-    Validator::Result result = TestValidatorSuccess("RouteBlock/CASE_14");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_14");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
     ASSERT_EQ(result.port_map.count(80), 1);
     ASSERT_EQ(result.port_set.count(80), 1);
-    ServerGate server_gate = result.port_map[80];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[80];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count(""), 1);
-    ServerBlock server_block = server_map[""];
-    RouteMap route_map = server_block.route_map;
-    ASSERT_EQ(route_map.count("./max"), 1) << "RouteBlock/CASE_14";
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
+    LocationMap location_map = location_router.location_map;
+    ASSERT_EQ(location_map.count("/max/"), 1) << "RouteBlock/CASE_14";
 
-    RouteBlock route_block = route_map["./max"];
-    EXPECT_EQ(route_block.methods, POST);
-    EXPECT_EQ(route_block.body_max, 128);
+    Location location = location_map["/max/"];
+    EXPECT_EQ(location.methods, POST);
+    EXPECT_EQ(location.body_max, 128);
   }
 
   TestSyntaxException("RouteBlock/CASE_15");
@@ -479,105 +510,113 @@ TEST(ValidatorTest, RouteBlock) {
   TestSyntaxException("RouteBlock/CASE_17");
 
   {
-    Validator::Result result = TestValidatorSuccess("RouteBlock/CASE_18");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_18");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
     ASSERT_EQ(result.port_map.count(5050), 1);
     ASSERT_EQ(result.port_set.count(5050), 1);
-    ServerGate server_gate = result.port_map[5050];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[5050];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count(""), 1);
-    ServerBlock server_block = server_map[""];
-    RouteMap route_map = server_block.route_map;
-    ASSERT_EQ(route_map.size(), 4);
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
+    LocationMap location_map = location_router.location_map;
+    ASSERT_EQ(location_map.size(), 3);
 
-    ASSERT_EQ(route_map.count("./first"), 1);
-    RouteBlock route_block = route_map["./first"];
-    EXPECT_EQ(route_block.methods, GET);
+    ASSERT_EQ(location_map.count("/first/"), 1);
+    Location location = location_map["/first/"];
+    EXPECT_EQ(location.methods, GET);
 
-    ASSERT_EQ(route_map.count("./second"), 1);
-    route_block = route_map["./second"];
-    EXPECT_EQ(route_block.methods, POST);
+    ASSERT_EQ(location_map.count("/second/"), 1);
+    location = location_map["/second/"];
+    EXPECT_EQ(location.methods, POST);
 
-    ASSERT_EQ(route_map.count(".rb"), 1);
-    route_block = route_map[".rb"];
-    EXPECT_EQ(route_block.param, "rb_param");
+    LocationRouter::CgiVector cgi_vector = location_router.cgi_vector;
+    ASSERT_EQ(cgi_vector.size(), 1);
+    LocationNode location_node = cgi_vector[0];
+    EXPECT_EQ(location_node.first, ".rb");
+    location = location_node.second;
+    EXPECT_EQ(location.param, "/rb_param");
 
-    ASSERT_EQ(route_map.count("./third"), 1);
-    route_block = route_map["./third"];
-    EXPECT_EQ(route_block.methods, DELETE);
+    ASSERT_EQ(location_map.count("/third/"), 1);
+    location = location_map["/third/"];
+    EXPECT_EQ(location.methods, DELETE);
   }
 
   TestSyntaxException("RouteBlock/CASE_19");
 
   {
-    Validator::Result result = TestValidatorSuccess("RouteBlock/CASE_20");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_20");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
     ASSERT_EQ(result.port_map.count(5252), 1);
     ASSERT_EQ(result.port_set.count(5252), 1);
-    ServerGate server_gate = result.port_map[5252];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[5252];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count(""), 1);
-    ServerBlock server_block = server_map[""];
-    RouteMap route_map = server_block.route_map;
-    ASSERT_EQ(route_map.size(), 1);
-    ASSERT_EQ(route_map.count(".php"), 1) << "RouteBlock/CASE_20";
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
+    LocationRouter::CgiVector cgi_vector = location_router.cgi_vector;
+    ASSERT_EQ(cgi_vector.size(), 1) << "RouteBlock/CASE_20";
 
-    RouteBlock route_block = route_map[".php"];
-    EXPECT_EQ(route_block.methods, GET | POST);
-    EXPECT_EQ(route_block.root, "/oh_no");
-    EXPECT_EQ(route_block.param, "param_param");
-    EXPECT_EQ(route_block.body_max, 1234);
+    LocationNode location_node = cgi_vector[0];
+    EXPECT_EQ(location_node.first, ".php");
+    Location& location = location_node.second;
+    EXPECT_EQ(location.methods, GET | POST);
+    EXPECT_EQ(location.root, "/oh_no/");
+    EXPECT_EQ(location.param, "/param_param");
+    EXPECT_EQ(location.body_max, 1234);
   }
 
   {
-    Validator::Result result = TestValidatorSuccess("RouteBlock/CASE_21");
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_21");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
     ASSERT_EQ(result.port_map.count(17), 1);
     ASSERT_EQ(result.port_set.count(17), 1);
-    ServerGate server_gate = result.port_map[17];
-    ServerMap server_map = server_gate.server_map;
+    ServerRouter server_router = result.port_map[17];
+    LocationRouterMap location_router_map = server_router.location_router_map;
 
-    ASSERT_EQ(server_map.size(), 1);
-    ASSERT_EQ(server_map.count(""), 1);
-    ServerBlock server_block = server_map[""];
-    RouteMap route_map = server_block.route_map;
-    ASSERT_EQ(route_map.size(), 6);
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
+    LocationMap location_map = location_router.location_map;
+    ASSERT_EQ(location_map.size(), 6);
 
-    ASSERT_EQ(route_map.count("./http_no_port"), 1) << "RouteBlock/CASE_21";
+    ASSERT_EQ(location_map.count("/http_no_port/"), 1) << "RouteBlock/CASE_21";
 
-    RouteBlock route_block = route_map["./http_no_port"];
-    EXPECT_EQ(route_block.redirect_to, "naver.com");
+    Location location = location_map["/http_no_port/"];
+    EXPECT_EQ(location.redirect_to, "naver.com");
 
-    ASSERT_EQ(route_map.count("./http_port"), 1) << "RouteBlock/CASE_21";
+    ASSERT_EQ(location_map.count("/http_port/"), 1) << "RouteBlock/CASE_21";
 
-    route_block = route_map["./http_port"];
-    EXPECT_EQ(route_block.redirect_to, "naver.com:8080");
+    location = location_map["/http_port/"];
+    EXPECT_EQ(location.redirect_to, "naver.com:8080");
 
-    ASSERT_EQ(route_map.count("./http_protoc_no_port"), 1)
+    ASSERT_EQ(location_map.count("/http_protoc_no_port/"), 1)
         << "RouteBlock/CASE_21";
-    route_block = route_map["./http_protoc_no_port"];
-    EXPECT_EQ(route_block.redirect_to, "http://naver.com");
+    location = location_map["/http_protoc_no_port/"];
+    EXPECT_EQ(location.redirect_to, "http://naver.com");
 
-    ASSERT_EQ(route_map.count("./https_protoc_no_port"), 1)
+    ASSERT_EQ(location_map.count("/https_protoc_no_port/"), 1)
         << "RouteBlock/CASE_21";
-    route_block = route_map["./https_protoc_no_port"];
-    EXPECT_EQ(route_block.redirect_to, "https://naver.com");
+    location = location_map["/https_protoc_no_port/"];
+    EXPECT_EQ(location.redirect_to, "https://naver.com");
 
-    ASSERT_EQ(route_map.count("./https_protoc_port"), 1)
+    ASSERT_EQ(location_map.count("/https_protoc_port/"), 1)
         << "RouteBlock/CASE_21";
-    route_block = route_map["./https_protoc_port"];
-    EXPECT_EQ(route_block.redirect_to, "https://naver.com:80");
+    location = location_map["/https_protoc_port/"];
+    EXPECT_EQ(location.redirect_to, "https://naver.com:80");
 
-    ASSERT_EQ(route_map.count("./https_only_port"), 1) << "RouteBlock/CASE_21";
-    route_block = route_map["./https_only_port"];
-    EXPECT_EQ(route_block.redirect_to, "naver.com:443");
+    ASSERT_EQ(location_map.count("/https_only_port/"), 1)
+        << "RouteBlock/CASE_21";
+    location = location_map["/https_only_port/"];
+    EXPECT_EQ(location.redirect_to, "naver.com:443");
   }
 
   TestSyntaxException("RouteBlock/CASE_22");

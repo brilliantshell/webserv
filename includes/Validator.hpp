@@ -18,6 +18,8 @@
 #include <string>
 
 #include "ParseUtils.hpp"
+#include "PathResolver.hpp"
+#include "Router.hpp"
 #include "Types.hpp"
 
 // SECTION : Validator
@@ -45,7 +47,7 @@ class Validator {
     kCgiRoute,
   };
 
-  enum RouteDirective {
+  enum LocationDirective {
     kAutoindex = 0,
     kMethods,
     kBodyMax,
@@ -58,21 +60,22 @@ class Validator {
 
   struct PortServerPair {
     uint16_t port;
-    ServerNode server_node;
+    LocationRouterNode location_router_node;
 
-    PortServerPair(uint16_t port, ServerNode server_node)
-        : port(port), server_node(server_node) {}
+    PortServerPair(uint16_t port, LocationRouterNode location_router_node)
+        : port(port), location_router_node(location_router_node) {}
   };
 
   typedef std::list<PortServerPair> PortServerList_;
   typedef std::string::const_iterator ConstIterator_;
   typedef std::map<std::string, ServerDirective> ServerKeyMap_;
   typedef std::map<std::string, ServerDirective>::iterator ServerKeyIt_;
-  typedef std::map<std::string, RouteDirective> RouteKeyMap_;
-  typedef std::map<std::string, RouteDirective>::iterator RouteKeyIt_;
+  typedef std::map<std::string, LocationDirective> RouteKeyMap_;
+  typedef std::map<std::string, LocationDirective>::iterator RouteKeyIt_;
 
   const std::string kConfig_;
   ConstIterator_ cursor_;
+  PathResolver path_resolver_;
 
   // 디렉티브 키맵 초기화
   void InitializeKeyMap(ServerKeyMap_& key_map) const;
@@ -85,23 +88,24 @@ class Validator {
   // parameter 파싱
   uint32_t TokenizeNumber(ConstIterator_& delim);
   const std::string TokenizeSingleString(ConstIterator_& delim);
-  const std::string TokenizeRoutePath(ConstIterator_& delim);
+  const std::string TokenizeRoutePath(ConstIterator_& delim,
+                                      ServerDirective is_cgi);
   uint8_t TokenizeMethods(ConstIterator_& delim, ServerDirective is_cgi);
   ConstIterator_ CheckEndOfParameter(ConstIterator_ delim);
 
   // 디렉티브별로 파싱하는 switch
   bool SwitchDirectivesToParseParam(ConstIterator_& delim,
-                                    ServerBlock& server_block, uint16_t& port,
-                                    std::string& server_name,
+                                    LocationRouter& server_block,
+                                    uint16_t& port, std::string& server_name,
                                     ServerKeyMap_& key_map);
   bool SwitchDirectivesToParseParam(ConstIterator_& delim,
-                                    RouteBlock& route_block,
+                                    Location& route_block,
                                     RouteKeyMap_& key_map,
                                     ServerDirective is_cgi);
 
-  // ServerBlock, RouteBlock 파싱 및 검증
-  PortServerPair ValidateServerBlock(PortSet& port_set);
-  RouteNode ValidateRouteBlock(ConstIterator_& token, ServerDirective is_cgi);
+  // LocationRouter, Location 파싱 및 검증
+  PortServerPair ValidateLocationRouter(PortSet& port_set);
+  LocationNode ValidateLocation(ConstIterator_& token, ServerDirective is_cgi);
 
   // PortMap 생성
   void GeneratePortMap(Result& result, PortServerList_& port_server_list) const;

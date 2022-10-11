@@ -13,7 +13,7 @@
 std::string FileToString(const std::string& file_path);
 
 Validator::Result TestHostVectors(const std::string& case_id) {
-  std::cout << case_id << std::endl;
+  std::cout << "\033[1;32m" << case_id << "\033[0m" << std::endl;
   Validator validator(FileToString(SOCKET_PATH_PREFIX + case_id + ".config"));
   return validator.Validate();
 }
