@@ -1,0 +1,3 @@
+GET /path/to/php/index.php HTTP/1.1
+Host: cgi_bundle:4242
+

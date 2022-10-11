@@ -11,26 +11,34 @@
 
 PathResolver::PathResolver(void) : file_name_("") {}
 
-bool PathResolver::Resolve(std::string &path, int purpose) {
+PathResolver::Status PathResolver::Resolve(std::string &path, Purpose purpose) {
   if (ReserveFileName(path, purpose) == false) {
-    return false;
+    return kFailure;
   }
   if (NormalizeDirPath(path) == false) {
-    return false;
+    return kFailure;
   }
   if (file_name_.size() > 0) {
-    path += file_name_;
-    file_name_.clear();
+    if (purpose != kRouter) {
+      path += file_name_;
+      file_name_.clear();
+    }
+    return kFile;
   }
-  return true;
+  return kDirectory;
 }
 
-bool PathResolver::ReserveFileName(std::string &path, int purpose) {
-  if (purpose == kErrorPage && path[0] != '/') {
+const std::string &PathResolver::get_file_name(void) const {
+  return file_name_;
+}
+
+// private
+bool PathResolver::ReserveFileName(std::string &path, Purpose purpose) {
+  if ((purpose == kErrorPage || purpose == kParam) && path[0] != '/') {
     path.insert(0, "/");
   }
   if (path[path.size() - 1] != '/') {
-    size_t not_dot = path.find_last_not_of(".");
+    size_t not_dot = path.rfind('.');
     if (purpose == kLocation || not_dot == path.size() - 2 ||
         not_dot == path.size() - 3) {
       path += '/';
@@ -43,7 +51,8 @@ bool PathResolver::ReserveFileName(std::string &path, int purpose) {
       path.erase(last_slash_pos + 1);
     }
   }
-  return !(purpose == kErrorPage && file_name_.size() == 0);
+  return !((purpose == kErrorPage || purpose == kParam) &&
+           file_name_.size() == 0);
 }
 
 bool PathResolver::NormalizeDirPath(std::string &path) {

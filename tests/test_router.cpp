@@ -11,7 +11,7 @@
 
 #include <fstream>
 #include <iostream>
-#include <sstream>
+//#include <sstream>
 
 #include "Connection.hpp"
 #include "HttpParser.hpp"
@@ -271,5 +271,98 @@ TEST(RouterTest, LocationRouter) {
     EXPECT_EQ(route_result.method, GET);
     EXPECT_EQ(route_result.success_path, "./body_max.html");
     EXPECT_EQ(route_result.error_path, "./body_max.html");
+  }
+
+  {
+    Validator::Result result =
+        TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "s_05");
+    PortMap port_map = result.port_map;
+    EXPECT_EQ(port_map.size(), 1);
+    EXPECT_EQ(port_map.count(4242), 1);
+
+    HttpParser parser;
+    std::string req_buf = FileToString(ROUTER_REQ_PATH_PREFIX "s_05.txt");
+    int status = parser.Parse(req_buf);
+    EXPECT_EQ(status, HttpParser::kComplete);
+    HttpParser::Result parse_result = parser.get_result();
+
+    Router router(port_map[4242]);
+    Router::Result route_result =
+        router.Route(parse_result.status, parse_result.request);
+
+    EXPECT_EQ(route_result.status, 200);
+    EXPECT_EQ(route_result.method, GET);
+    EXPECT_EQ(route_result.success_path, "./a/b/a/b/zjj");
+    EXPECT_EQ(route_result.error_path, "./f/irst/error.html");
+  }
+
+  {
+    Validator::Result result =
+        TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "s_06");
+    PortMap port_map = result.port_map;
+    EXPECT_EQ(port_map.size(), 1);
+    EXPECT_EQ(port_map.count(4242), 1);
+
+    HttpParser parser;
+    std::string req_buf = FileToString(ROUTER_REQ_PATH_PREFIX "s_06.txt");
+    int status = parser.Parse(req_buf);
+    EXPECT_EQ(status, HttpParser::kComplete);
+    HttpParser::Result parse_result = parser.get_result();
+
+    Router router(port_map[4242]);
+    Router::Result route_result =
+        router.Route(parse_result.status, parse_result.request);
+
+    EXPECT_EQ(route_result.status, 200);
+    EXPECT_EQ(route_result.method, GET);
+    EXPECT_EQ(route_result.success_path, "./path/to/php/index.php");
+    EXPECT_EQ(route_result.error_path, "./error.html");
+    EXPECT_EQ(route_result.param, "./php_cgi");
+  }
+
+  {
+    Validator::Result result =
+        TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "s_07");
+    PortMap port_map = result.port_map;
+    EXPECT_EQ(port_map.size(), 1);
+    EXPECT_EQ(port_map.count(4242), 1);
+
+    HttpParser parser;
+    std::string req_buf = FileToString(ROUTER_REQ_PATH_PREFIX "s_07.txt");
+    int status = parser.Parse(req_buf);
+    EXPECT_EQ(status, HttpParser::kClose);
+    HttpParser::Result parse_result = parser.get_result();
+
+    Router router(port_map[4242]);
+    Router::Result route_result =
+        router.Route(parse_result.status, parse_result.request);
+
+    EXPECT_EQ(route_result.status, 200);
+    EXPECT_EQ(route_result.method, POST);
+    EXPECT_EQ(route_result.success_path, "./root/upload_path/upload/file.txt");
+    EXPECT_EQ(route_result.error_path, "./error.html");
+  }
+
+  {
+    Validator::Result result =
+        TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "f_05");
+    PortMap port_map = result.port_map;
+    EXPECT_EQ(port_map.size(), 1);
+    EXPECT_EQ(port_map.count(4242), 1);
+
+    HttpParser parser;
+    std::string req_buf = FileToString(ROUTER_REQ_PATH_PREFIX "f_05.txt");
+    int status = parser.Parse(req_buf);
+    EXPECT_EQ(status, HttpParser::kClose);
+    HttpParser::Result parse_result = parser.get_result();
+
+    Router router(port_map[4242]);
+    Router::Result route_result =
+        router.Route(parse_result.status, parse_result.request);
+
+    EXPECT_EQ(route_result.status, 403);  // FORBIDDEN
+    EXPECT_EQ(route_result.method, GET);
+    EXPECT_EQ(route_result.success_path, "./error.html");
+    EXPECT_EQ(route_result.error_path, "./error.html");
   }
 }

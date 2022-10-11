@@ -42,13 +42,15 @@ TEST(PathResolverTest, ResolvePathForRouter) {
   {
     std::string path("/a/../index.html");
     PathResolver resolver;
-    resolver.Resolve(path, PathResolver::kRouter);
-    EXPECT_EQ(path, "/index.html");
+    EXPECT_EQ(resolver.Resolve(path, PathResolver::kRouter),
+              PathResolver::Status::kFile);
+    EXPECT_EQ(path, "/");
   }
   {
     std::string path("/a/../index.html/");
     PathResolver resolver;
-    resolver.Resolve(path, PathResolver::kRouter);
+    EXPECT_EQ(resolver.Resolve(path, PathResolver::kRouter),
+              PathResolver::kDirectory);
     EXPECT_EQ(path, "/index.html/");
   }
   {

@@ -1,0 +1,4 @@
+POST /upload/file.txt HTTP/1.0
+Content-Length: 10
+
+abcdefghij

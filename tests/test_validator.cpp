@@ -18,13 +18,13 @@ std::string FileToString(const std::string& file_path) {
 }
 
 void TestSyntaxException(const std::string& case_id) {
-  std::cout << case_id << std::endl;
+  std::cout << "\033[1;32m" << case_id << "\033[0m" << std::endl;
   Validator validator(FileToString(PATH_PREFIX + case_id + ".config"));
   EXPECT_THROW(validator.Validate(), Validator::SyntaxErrorException);
 }
 
 Validator::Result TestValidatorSuccess(const std::string& case_id) {
-  std::cout << case_id << std::endl;
+  std::cout << "\033[1;32m" << case_id << "\033[0m" << std::endl;
   Validator validator(FileToString(case_id + ".config"));
   return validator.Validate();
 }
@@ -362,7 +362,7 @@ TEST(ValidatorTest, RouteBlock) {
     EXPECT_EQ(location.methods, GET);
     EXPECT_EQ(location.body_max, INT_MAX);
     EXPECT_EQ(location.autoindex, false);
-    EXPECT_EQ(location.upload_path, "");
+    EXPECT_EQ(location.upload_path, "/");
   }
 
   {
@@ -388,7 +388,7 @@ TEST(ValidatorTest, RouteBlock) {
     EXPECT_EQ(location.root, "/");
     EXPECT_EQ(location.methods, GET);
     EXPECT_EQ(location.body_max, INT_MAX);
-    EXPECT_EQ(location.param, "fastjs_params");
+    EXPECT_EQ(location.param, "/fastjs_params");
   }
 
   TestSyntaxException("RouteBlock/CASE_05");
@@ -538,7 +538,7 @@ TEST(ValidatorTest, RouteBlock) {
     LocationNode location_node = cgi_vector[0];
     EXPECT_EQ(location_node.first, ".rb");
     location = location_node.second;
-    EXPECT_EQ(location.param, "rb_param");
+    EXPECT_EQ(location.param, "/rb_param");
 
     ASSERT_EQ(location_map.count("/third/"), 1);
     location = location_map["/third/"];
@@ -568,7 +568,7 @@ TEST(ValidatorTest, RouteBlock) {
     Location& location = location_node.second;
     EXPECT_EQ(location.methods, GET | POST);
     EXPECT_EQ(location.root, "/oh_no/");
-    EXPECT_EQ(location.param, "param_param");
+    EXPECT_EQ(location.param, "/param_param");
     EXPECT_EQ(location.body_max, 1234);
   }
 

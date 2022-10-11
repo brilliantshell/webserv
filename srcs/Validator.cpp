@@ -64,13 +64,13 @@ void Validator::InitializeKeyMap(RouteKeyMap_& key_map,
   if (is_cgi == ServerDirective::kRoute) {
     key_map["autoindex"] = LocationDirective::kAutoindex;
     key_map["redirect_to"] = LocationDirective::kRedirectTo;
+    key_map["index"] = LocationDirective::kIndex;
   } else {
     key_map["param"] = LocationDirective::kParam;
   }
   key_map["methods"] = LocationDirective::kMethods;
   key_map["body_max"] = LocationDirective::kBodyMax;
   key_map["root"] = LocationDirective::kRoot;
-  key_map["index"] = LocationDirective::kIndex;
   key_map["upload_path"] = LocationDirective::kUploadPath;
 }
 
@@ -145,7 +145,8 @@ uint32_t Validator::TokenizeNumber(ConstIterator_& delim) {
  */
 const std::string Validator::TokenizeSingleString(ConstIterator_& delim) {
   delim = std::find_if(cursor_, kConfig_.end(), IsCharSet(" \t\n", true));
-  return std::string(cursor_, CheckEndOfParameter(delim));
+  CheckEndOfParameter(delim);
+  return std::string(cursor_, delim);
 }
 
 /**
@@ -248,7 +249,8 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
       break;
     case ServerDirective::kError: {
       std::string err_page = TokenizeSingleString(delim);
-      if (path_resolver_.Resolve(err_page, PathResolver::kErrorPage) == false) {
+      if (path_resolver_.Resolve(err_page, PathResolver::Purpose::kErrorPage) ==
+          PathResolver::kFailure) {
         throw SyntaxErrorException();
       }
       location_router.error = Location(true, err_page);
@@ -312,7 +314,15 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
       location.body_max = num;
       break;
     }
-    case LocationDirective::kParam:
+    case LocationDirective::kParam: {
+      location.param = TokenizeSingleString(delim);
+      if (path_resolver_.Resolve(location.param,
+                                 PathResolver::Purpose::kParam) ==
+          PathResolver::kFailure) {
+        throw SyntaxErrorException();
+      }
+      break;
+    }
     case LocationDirective::kIndex:
     case LocationDirective::kRoot:
     case LocationDirective::kUploadPath:
@@ -320,7 +330,8 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
       location[key_it->first] = TokenizeSingleString(delim);
       if ((key_it->second == LocationDirective::kRoot ||
            key_it->second == LocationDirective::kUploadPath) &&
-          path_resolver_.Resolve(location[key_it->first]) == false) {
+          path_resolver_.Resolve(location[key_it->first]) ==
+              PathResolver::kFailure) {
         throw SyntaxErrorException();
       }
       break;
@@ -378,8 +389,8 @@ LocationNode Validator::ValidateLocation(ConstIterator_& delim,
   Location location;
   RouteKeyMap_ key_map;
   std::string path = TokenizeRoutePath(delim, is_cgi);
-  if (*(++delim) != '{' ||
-      is_cgi == kRoute && path_resolver_.Resolve(path) == false) {
+  if (*(++delim) != '{' || is_cgi == kRoute && path_resolver_.Resolve(path) ==
+                                                   PathResolver::kFailure) {
     throw SyntaxErrorException();
   }
   InitializeKeyMap(key_map, is_cgi);

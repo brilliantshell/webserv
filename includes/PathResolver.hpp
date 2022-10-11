@@ -15,20 +15,28 @@
 
 class PathResolver {
  public:
-  enum {
+  enum Purpose {
     kLocation = 0,
     kErrorPage,
+    kParam,
     kRouter,
+  };
+
+  enum Status {
+    kFailure = 0,
+    kDirectory,
+    kFile,
   };
 
   PathResolver(void);
 
-  bool Resolve(std::string &path, int purpose = PathResolver::kLocation);
+  Status Resolve(std::string &path, Purpose = kLocation);
+  const std::string &get_file_name(void) const;
 
  private:
   std::string file_name_;
 
-  bool ReserveFileName(std::string &path, int purpose);
+  bool ReserveFileName(std::string &path, Purpose);
   bool NormalizeDirPath(std::string &path);
 };
 

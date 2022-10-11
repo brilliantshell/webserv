@@ -13,25 +13,25 @@
 
 Router::Router(ServerRouter& server_router) : server_router_(server_router) {}
 
-Router::Result Router::Route(int status, const Request& request) {
+Router::Result Router::Route(int status, Request& request) {
   Result result(status);
   LocationRouter& location_router = server_router_[request.req.host];
   result.error_path = "." + location_router.error.index;
   if (status >= 400) {
     result.success_path = result.error_path;
   } else {
-    std::pair<LocationNode, size_t> cgi_discriminator =
+    CgiDiscriminator cgi_discriminator =
         GetCgiLocation(location_router.cgi_vector, request.req.path);
     cgi_discriminator.second == std::string::npos
-        ? RouteToLocation(result, location_router, request.req)
-        : RouteToCgi(result, cgi_discriminator.first,
-                     cgi_discriminator.first.first, request.req);
+        ? RouteToLocation(result, location_router, request)
+        : RouteToCgi(result, cgi_discriminator, cgi_discriminator.first.first,
+                     request);
   }
   return result;
 }
 
 // private
-std::pair<LocationNode, size_t> Router::GetCgiLocation(
+Router::CgiDiscriminator Router::GetCgiLocation(
     LocationRouter::CgiVector& cgi_vector, const std::string& path) {
   LocationNode location_node;
   size_t pos = std::string::npos;
@@ -47,48 +47,63 @@ std::pair<LocationNode, size_t> Router::GetCgiLocation(
   return std::make_pair(location_node, pos);
 }
 
+#include <iostream>
 void Router::RouteToLocation(Router::Result& result,
                              LocationRouter& location_router,
-                             const RequestLine& req) {
-  // TODO PATH RESOLVE
-  Location& location = location_router[req.path];
-  result.method = location.methods;
-
-  if ((location.methods & req.method) == 0) {
-    result.success_path = result.error_path;
-    result.method = GET;
-    result.status = 405;
-    return;
+                             Request& request) {
+  PathResolver path_resolver;
+  PathResolver::Status path_status =
+      path_resolver.Resolve(request.req.path, PathResolver::Purpose::kRouter);
+  if (path_status == PathResolver::Status::kFailure) {
+    return UpdateStatus(result, 404);  // Path Not Found
   }
+  Location& location = location_router[request.req.path];
   if (location.error == true) {
-    result.success_path = result.error_path;
-    result.method = GET;
-    result.status = 404;
-    return;
+    return UpdateStatus(result, 404);  // Page Not Found
   }
-  std::string path =
-      location.root + req.path +
-      ((location.index.size() == 0 && location.autoindex == false)
-           ? "index.html"
-           : location.index);
-  if (path_resolver_.Resolve(path, PathResolver::kRouter) == false) {
-    return;  // NOTE : ㅇㅔ러코드 분기 가르기
+  if ((location.methods & request.req.method) == 0) {
+    return UpdateStatus(result, 405);  // Method Not Allowed
   }
+  if (location.body_max < request.content.size()) {
+    return UpdateStatus(result, 413);  // Request Entity Too Large
+  }
+  std::string path = location.root;
+  if ((location.methods & POST) == POST) {
+    path += location.upload_path.substr(1);
+  }
+  path += request.req.path.substr(1);
+  if (path_status == PathResolver::Status::kFile) {
+    path += path_resolver.get_file_name();
+  } else {
+    if ((location.methods & POST) == POST) {
+      return UpdateStatus(result, 403);  // Forbidden
+    }
+    path += ((location.index.size() == 0 && location.autoindex == false)
+                 ? "index.html"
+                 : location.index);
+  }
+  result.method = location.methods;
   result.success_path = "." + path;
 }
 
-void Router::RouteToCgi(Router::Result& result, LocationNode& cgi_location_node,
-                        std::string& cgi_extension, const RequestLine& req) {
-  if ((cgi_location_node.second.methods & req.method) == 0) {
-    result.success_path = result.error_path;
-    result.method = GET;
-    result.status = 405;
-    return;
+void Router::RouteToCgi(Router::Result& result,
+                        CgiDiscriminator& cgi_discriminator,
+                        std::string& cgi_extension, const Request& request) {
+  if ((cgi_discriminator.first.second.methods & request.req.method) == 0) {
+    return UpdateStatus(result, 405);  // Method Not Allowed
   }
-  result.success_path = "." + cgi_location_node.second.root +
-                        req.path.substr(0, cgi_extension.size());
-  result.param = cgi_location_node.second.param;
-  result.method = cgi_location_node.second.methods;
+  result.success_path = "." + cgi_discriminator.first.second.root +
+                        request.req.path.substr(
+                            1, cgi_discriminator.second + cgi_extension.size());
+  result.param = "." + cgi_discriminator.first.second.param;
+  result.method = cgi_discriminator.first.second.methods;
+  // TODO : cgi meta-variable setting
+}
+
+void Router::UpdateStatus(Result& result, int status) {
+  result.success_path = result.error_path;
+  result.method = GET;
+  result.status = status;
 }
 
 // SECTION : Location
@@ -99,7 +114,7 @@ Location::Location(void)
       body_max(INT_MAX),
       root("/"),
       index(""),
-      upload_path(""),
+      upload_path("/"),
       redirect_to(""),
       param("") {}
 
@@ -109,37 +124,22 @@ Location::Location(bool is_error, std::string error_path)
 // SECTION : LocationRouter
 LocationRouter::LocationRouter(void) : error(true, "/error.html") {}
 
-#include <iostream>
 Location& LocationRouter::operator[](const std::string& path) {
-  // std::pair<LocationMap::iterator, LocationMap::iterator> range =
-  //     location_map.equal_range(path);
-  // LocationMap::iterator lower_bound = --range.first;
-  // LocationMap::iterator upper_bound = range.second;
-
-  // if (lower_bound != location_map.end() && lower_bound->first == path) {
-  //   return lower_bound->second;
-  // }
-  // if (lower_bound == upper_bound && lower_bound == location_map.end()) {
-  //   std::cout << "따흑... " << location_map.size() << "\n";
-  //   return error;
-  // }
-  // std::cout << "upper : " << upper_bound->first << ", path : " << path
-  //           << std::endl;
-  // if (lower_bound != location_map.end() &&
-  //     path.size() > lower_bound->first.size() &&
-  //     std::equal(lower_bound->first.begin(), lower_bound->first.end(),
-  //                path.begin())) {
-  //   return lower_bound->second;
-  // } else if (upper_bound != location_map.end() &&
-  //            path.size() > upper_bound->first.size() &&
-  //            std::equal(upper_bound->first.begin(), upper_bound->first.end(),
-  //                       path.begin())) {
-  //   return upper_bound->second;
-  // }
-  // std::cout << "여기 오냐?\n";
-  // return error;
-
-  return (location_map.count(path) == 1) ? location_map[path] : error;
+  size_t pos = std::string::npos;
+  size_t end_pos = path.rfind('/', pos);
+  std::string target_path = path.substr(0, end_pos + 1);
+  while (end_pos != std::string::npos) {
+    if (location_map.count(target_path) == 1) {
+      return location_map[target_path];
+    }
+    pos = end_pos;
+    if (pos == 0) {
+      break;
+    }
+    end_pos = path.rfind('/', pos - 1);
+    target_path = path.substr(0, end_pos + 1);
+  }
+  return error;
 }
 
 // SECTION: ServerRouter
