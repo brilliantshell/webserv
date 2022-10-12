@@ -197,7 +197,7 @@ TEST(RouteTest, ServerRouter) {
         router.Route(parse_result.status, parse_result.request);
 
     EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, DELETE);
+    EXPECT_EQ(route_result.method, GET);
     EXPECT_EQ(route_result.success_path, "./yongjule/index.html");
     EXPECT_EQ(route_result.error_path, "./yongjule.error.html");
   }
@@ -352,6 +352,30 @@ TEST(RouterTest, LocationRouter) {
 
     HttpParser parser;
     std::string req_buf = FileToString(ROUTER_REQ_PATH_PREFIX "f_05.txt");
+    int status = parser.Parse(req_buf);
+    EXPECT_EQ(status, HttpParser::kClose);
+    HttpParser::Result parse_result = parser.get_result();
+
+    Router router(port_map[4242]);
+    Router::Result route_result =
+        router.Route(parse_result.status, parse_result.request);
+
+    EXPECT_EQ(route_result.status, 403);  // FORBIDDEN
+    EXPECT_EQ(route_result.method, GET);
+    EXPECT_EQ(route_result.success_path, "./error.html");
+    EXPECT_EQ(route_result.error_path, "./error.html");
+  }
+
+  // f 06 directory delete
+  {
+    Validator::Result result =
+        TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "f_06");
+    PortMap port_map = result.port_map;
+    EXPECT_EQ(port_map.size(), 1);
+    EXPECT_EQ(port_map.count(4242), 1);
+
+    HttpParser parser;
+    std::string req_buf = FileToString(ROUTER_REQ_PATH_PREFIX "f_06.txt");
     int status = parser.Parse(req_buf);
     EXPECT_EQ(status, HttpParser::kClose);
     HttpParser::Result parse_result = parser.get_result();

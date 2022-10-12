@@ -47,7 +47,6 @@ Router::CgiDiscriminator Router::GetCgiLocation(
   return std::make_pair(location_node, pos);
 }
 
-#include <iostream>
 void Router::RouteToLocation(Router::Result& result,
                              LocationRouter& location_router,
                              Request& request) {
@@ -75,7 +74,7 @@ void Router::RouteToLocation(Router::Result& result,
   if (path_status == PathResolver::Status::kFile) {
     path += path_resolver.get_file_name();
   } else {
-    if ((location.methods & POST) == POST) {
+    if (location.methods & (POST | DELETE)) {
       return UpdateStatus(result, 403);  // Forbidden
     }
     path += ((location.index.size() == 0 && location.autoindex == false)

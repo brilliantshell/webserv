@@ -29,6 +29,7 @@ add_executable(
 	tests/test_parser.cpp
 	tests/test_router.cpp
 	tests/test_path_resolver.cpp
+	tests/test_resource_manager.cpp
 	srcs/Validator.cpp
 	srcs/PassiveSockets.cpp
 	srcs/Connection.cpp
@@ -37,6 +38,7 @@ add_executable(
 	srcs/HeaderParser.cpp
 	srcs/Router.cpp
 	srcs/PathResolver.cpp
+	srcs/ResourceManager.cpp
 )
 
 add_executable(
@@ -60,6 +62,7 @@ add_executable(
 	srcs/Router.cpp
 	srcs/UriParser.cpp
 	srcs/PathResolver.cpp
+	srcs/ResourceManager.cpp
 )
 
 target_include_directories(
