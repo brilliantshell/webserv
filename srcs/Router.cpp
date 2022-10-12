@@ -47,7 +47,6 @@ Router::CgiDiscriminator Router::GetCgiLocation(
   return std::make_pair(location_node, pos);
 }
 
-#include <iostream>
 void Router::RouteToLocation(Router::Result& result,
                              LocationRouter& location_router,
                              Request& request) {

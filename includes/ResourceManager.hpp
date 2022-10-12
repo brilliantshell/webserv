@@ -10,6 +10,7 @@
 #ifndef INCLUDES_RESOURCE_MANAGER_HPP_
 #define INCLUDES_RESOURCE_MANAGER_HPP_
 
+#include <dirent.h>
 #include <sys/stat.h>
 
 #include <fstream>
@@ -30,6 +31,9 @@ class ResourceManager {
   void Get(Result& result, Router::Result& router_result);
   void GetErrorPage(Result& result, Router::Result& router_result);
   void CheckFileMode(Result& result, Router::Result& router_result);
+  void GenerateAutoindex(Result& result, const std::string& path);
+  void ListAutoindexFiles(std::string& content,
+                          std::vector<std::string>& files);
 
   void Post(Result& result, Router::Result& router_result);
 
