@@ -1,0 +1,7 @@
+POST /unauthorized/f_05.html HTTP/1.1
+Host: ghan
+Content-length: 10
+
+thisis403h
+
+

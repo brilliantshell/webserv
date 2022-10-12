@@ -12,6 +12,7 @@
 
 #include <dirent.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include <fstream>
 #include <sstream>
@@ -23,9 +24,11 @@ class ResourceManager {
   struct Result {
     int status;
     std::string content;
+    std::string location;
   };
 
-  Result ExecuteMethod(Router::Result& route_result);
+  Result ExecuteMethod(Router::Result& route_result,
+                       const std::string& request_content);
 
  private:
   void Get(Result& result, Router::Result& router_result);
@@ -35,7 +38,8 @@ class ResourceManager {
   void ListAutoindexFiles(std::string& content,
                           std::vector<std::string>& files);
 
-  void Post(Result& result, Router::Result& router_result);
+  void Post(Result& result, Router::Result& router_result,
+            const std::string& request_content);
 
   void Delete(Result& result, Router::Result& router_result);
 };

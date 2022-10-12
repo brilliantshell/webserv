@@ -10,7 +10,7 @@
 #include "ResourceManager.hpp"
 
 ResourceManager::Result ResourceManager::ExecuteMethod(
-    Router::Result& router_result) {
+    Router::Result& router_result, const std::string& request_content) {
   Result result;
   result.status = router_result.status;
 
@@ -24,7 +24,7 @@ ResourceManager::Result ResourceManager::ExecuteMethod(
       Get(result, router_result);
       break;
     case POST:
-      Post(result, router_result);
+      Post(result, router_result, request_content);
       break;
     case DELETE:
       Delete(result, router_result);
@@ -150,7 +150,69 @@ void ResourceManager::ListAutoindexFiles(std::string& content,
 }
 
 // POST
-void ResourceManager::Post(Result& result, Router::Result& router_result) {}
+void ResourceManager::Post(Result& result, Router::Result& router_result,
+                           const std::string& request_content) {
+  size_t ext_start = router_result.success_path.rfind('.');
+  std::string name = router_result.success_path;
+  std::string ext("");
+  if (ext_start > 0 && ext_start < name.size() - 1) {
+    name = router_result.success_path.substr(0, ext_start);
+    ext = router_result.success_path.substr(ext_start);
+  }
+
+  result.location = router_result.success_path;
+  int i = 0;
+  for (; i < 100; ++i) {
+    errno = 0;
+    if (access(result.location.c_str(), F_OK) == -1) {
+      if (errno != ENOENT) {
+        result.status = 500;  // INTERNAL_SERVER_ERROR
+        return;
+      }
+      break;
+    }
+    std::stringstream ss;
+    ss << name << "_" << i << ext;
+    result.location = ss.str();
+  }
+  if (i == 100) {
+    result.status = 403;  // INTERNAL_SERVER_ERROR
+    return;
+  }
+
+  errno = 0;
+  std::ofstream ofs(result.location);  // fail -> failbit
+  if (errno == EACCES) {
+    result.status = 403;  // FORBIDDEN
+  } else {
+    if (ofs.fail()) {       // bad - io operation error, fail - logical error
+      result.status = 500;  // INTERNAL SERVER ERROR
+      return;
+    }
+    ofs << request_content;
+    result.status = 201;  // CREATED
+    result.content = "YAY! The file is created at " +
+                     result.location.substr(1) + "!\r\nHave a nice day~";
+  }
+}
 
 // DELETE
-void ResourceManager::Delete(Result& result, Router::Result& router_result) {}
+void ResourceManager::Delete(Result& result, Router::Result& router_result) {
+  errno = 0;
+  if (access(router_result.success_path.c_str(), W_OK) == -1) {
+    if (errno == ENOENT) {
+      result.status = 404;  // PAGE NOT FOUND
+    } else if (errno == EACCES) {
+      result.status = 403;  // FORBIDDEN
+    } else {
+      result.status = 500;  // INTERNAL_SERVER_ERROR
+    }
+    return;
+  }
+  if (unlink(router_result.success_path.c_str()) == -1) {
+    result.status = 500;  // INTERNAL_SERVER_ERROR
+    return;
+  }
+  result.status = 200;  // OK
+  result.content = router_result.success_path.substr(1) + " is removed!\r\n";
+}

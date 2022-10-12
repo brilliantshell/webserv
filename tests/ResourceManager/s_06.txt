@@ -1,0 +1,10 @@
+POST /s_06.txt HTTP/1.1
+Host: ghan
+Content-Length: 42
+
+hello
+world
+hello
+world
+hello
+world

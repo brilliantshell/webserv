@@ -12,7 +12,8 @@
 std::string FileToString(const std::string& file_path) {
   std::ifstream ifs(file_path);
   if (!ifs.good()) {
-    std::cerr << "Open failure: " << file_path << std::endl;
+    std::cerr << "오픈 실패란다~!!~!!!~!!\nOpen failure: " << file_path
+              << std::endl;
   }
   std::stringstream ss;
   ifs >> ss.rdbuf();
