@@ -10,6 +10,7 @@
 #ifndef INCLUDES_SERVER_ROUTER_HPP_
 #define INCLUDES_SERVER_ROUTER_HPP_
 
+#include "CgiEnv.hpp"
 #include "PathResolver.hpp"
 #include "Types.hpp"
 
@@ -67,12 +68,15 @@ struct ServerRouter {
 
 class Router {
  public:
+  typedef std::pair<uint16_t, std::string> ConnectionInfo;
+
   struct Result {
     int status;
     uint8_t method;
     std::string success_path;
     std::string error_path;
     std::string param;
+    CgiEnv cgi_env;
 
     Result(int parse_status)
         : status(parse_status),
@@ -84,7 +88,8 @@ class Router {
 
   Router(ServerRouter& server_router);
 
-  Result Route(int status, Request& request);
+  Result Route(int status, Request& request,
+               const ConnectionInfo& connection_info);
 
  private:
   typedef std::pair<LocationNode, size_t> CgiDiscriminator;
@@ -94,8 +99,9 @@ class Router {
                                   const std::string& path);
   void RouteToLocation(Result& result, LocationRouter& location_router,
                        Request& request);
-  void RouteToCgi(Result& result, CgiDiscriminator& cgi_discriminator,
-                  std::string& cgi_extension, const Request& request);
+  void RouteToCgi(Result& result, Request& request,
+                  const CgiDiscriminator& cgi_discriminator,
+                  const ConnectionInfo& connection_info);
   void UpdateStatus(Result& result, int status);
 };
 

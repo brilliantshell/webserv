@@ -13,7 +13,8 @@
 
 Router::Router(ServerRouter& server_router) : server_router_(server_router) {}
 
-Router::Result Router::Route(int status, Request& request) {
+Router::Result Router::Route(int status, Request& request,
+                             const ConnectionInfo& connection_info) {
   Result result(status);
   LocationRouter& location_router = server_router_[request.req.host];
   result.error_path = "." + location_router.error.index;
@@ -24,8 +25,7 @@ Router::Result Router::Route(int status, Request& request) {
         GetCgiLocation(location_router.cgi_vector, request.req.path);
     cgi_discriminator.second == std::string::npos
         ? RouteToLocation(result, location_router, request)
-        : RouteToCgi(result, cgi_discriminator, cgi_discriminator.first.first,
-                     request);
+        : RouteToCgi(result, request, cgi_discriminator, connection_info);
   }
   return result;
 }
@@ -47,8 +47,7 @@ Router::CgiDiscriminator Router::GetCgiLocation(
   return std::make_pair(location_node, pos);
 }
 
-void Router::RouteToLocation(Router::Result& result,
-                             LocationRouter& location_router,
+void Router::RouteToLocation(Result& result, LocationRouter& location_router,
                              Request& request) {
   PathResolver path_resolver;
   PathResolver::Status path_status =
@@ -85,18 +84,23 @@ void Router::RouteToLocation(Router::Result& result,
   result.success_path = "." + path;
 }
 
-void Router::RouteToCgi(Router::Result& result,
-                        CgiDiscriminator& cgi_discriminator,
-                        std::string& cgi_extension, const Request& request) {
-  if ((cgi_discriminator.first.second.methods & request.req.method) == 0) {
+void Router::RouteToCgi(Result& result, Request& request,
+                        const CgiDiscriminator& cgi_discriminator,
+                        const ConnectionInfo& connection_info) {
+  const std::string& cgi_ext = cgi_discriminator.first.first;
+  const Location& cgi_location = cgi_discriminator.first.second;
+  if ((cgi_location.methods & request.req.method) == 0) {
     return UpdateStatus(result, 405);  // Method Not Allowed
   }
-  result.success_path = "." + cgi_discriminator.first.second.root +
-                        request.req.path.substr(
-                            1, cgi_discriminator.second + cgi_extension.size());
-  result.param = "." + cgi_discriminator.first.second.param;
-  result.method = cgi_discriminator.first.second.methods;
-  // TODO : cgi meta-variable setting
+  result.success_path =
+      "." + cgi_location.root +
+      request.req.path.substr(1, cgi_discriminator.second + cgi_ext.size());
+  result.param = "." + cgi_location.param;
+  result.method = cgi_location.methods;
+  if (result.cgi_env.SetMetaVariables(request, cgi_location.root, cgi_ext,
+                                      connection_info) == false) {
+    result.status = 500;  // INTERNAL SERVER ERROR
+  }
 }
 
 void Router::UpdateStatus(Result& result, int status) {

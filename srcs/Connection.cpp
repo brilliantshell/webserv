@@ -43,6 +43,10 @@ void Connection::set_fd(int fd) { fd_ = fd; }
 
 const int Connection::get_status(void) const { return status_; }
 
+void Connection::set_client_addr(std::string client_addr) {
+  client_addr_ = client_addr;
+}
+
 // SECTION : private
 void Connection::Receive(void) {
   if (recv(fd_, &buffer_[0], BUFFER_SIZE - 1, 0) == -1) {

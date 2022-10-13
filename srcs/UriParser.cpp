@@ -70,7 +70,13 @@ void UriParser::ValidateQuery(std::string& uri, size_t& start) {
   size_t pos = start;
   while (pos < uri.size() && result_.is_valid) {
     if (IsCharSet(PCHAR "/?", false)(uri[pos])) {
-      result_.is_valid = (uri[pos] == '%') ? DecodeHexToAscii(uri, pos) : false;
+      if (uri[pos] == '%' && uri.size() > pos + 2) {
+        result_.is_valid = IsCharSet(HEXDIG, true)(uri[pos + 1]) &&
+                           IsCharSet(HEXDIG, true)(uri[pos + 2]);
+        pos += 2;
+      } else {
+        result_.is_valid = false;
+      }
     }
     ++pos;
   }

@@ -10,7 +10,7 @@
 #include "Validator.hpp"
 
 #define PARSER_PATH_PREFIX "../tests/HttpParser/"
-#define GOINFRE_PATH "/Users/jiskim/goinfre/"
+#define GOINFRE_PATH "/Users/ghan/goinfre/"
 
 /**
 
@@ -111,8 +111,9 @@ TEST(UriParserTest, ValidateURI) {
     EXPECT_EQ(result.host.size(), 0);
     EXPECT_EQ(result.path, "/search.naver");
     EXPECT_EQ(result.query,
-              "?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=이것은+검색+\
-쿼리문+입니다");
+              "?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=%EC%9D%B4%\
+EA%B2%83%EC%9D%80+%EA%B2%80%EC%83%89+%EC%BF%BC%EB%A6%AC%EB%AC%B8+%EC%\
+9E%85%EB%8B%88%EB%8B%A4");
   }
 
   // Absolute Form URI
@@ -120,15 +121,17 @@ TEST(UriParserTest, ValidateURI) {
     UriParser uri_parser;
     UriParser::Result result = uri_parser.ParseTarget(
         "http://naver.com/"
-        "search.naver?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=%EC%9D%B4%"
+        "search.%6eaver?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=%EC%9D%"
+        "B4%"
         "EA%B2%83%EC%9D%80+%EA%B2%80%EC%83%89+%EC%BF%BC%EB%A6%AC%EB%AC%B8+%EC%"
         "9E%85%EB%8B%88%EB%8B%A4");
     EXPECT_EQ(result.is_valid, true);
     EXPECT_EQ(result.host, "naver.com");
     EXPECT_EQ(result.path, "/search.naver");
     EXPECT_EQ(result.query,
-              "?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=이것은+검색+\
-쿼리문+입니다");
+              "?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=%EC%9D%B4%\
+EA%B2%83%EC%9D%80+%EA%B2%80%EC%83%89+%EC%BF%BC%EB%A6%AC%EB%AC%B8+%EC%\
+9E%85%EB%8B%88%EB%8B%A4");
   }
 
   {
@@ -142,8 +145,9 @@ TEST(UriParserTest, ValidateURI) {
     EXPECT_EQ(result.host, "naver.com");
     EXPECT_EQ(result.path, "/search.naver");
     EXPECT_EQ(result.query,
-              "?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=이것은+검색+\
-쿼리문+입니다");
+              "?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=%EC%9D%B4%\
+EA%B2%83%EC%9D%80+%EA%B2%80%EC%83%89+%EC%BF%BC%EB%A6%AC%EB%AC%B8+%EC%\
+9E%85%EB%8B%88%EB%8B%A4");
   }
 
   {
@@ -153,6 +157,16 @@ TEST(UriParserTest, ValidateURI) {
         "search.naver?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=%EC%9D%B4%"
         "EA%B2%83%EC%9D%80+%EA%B2%80%EC%83%89+%EC%BF%BC%EB%A6%AC%EB%AC%B8+%EC%"
         "9E%85%EB%8B%88%EB%8B%A4");
+    EXPECT_EQ(result.is_valid, false);
+  }
+
+  {
+    UriParser uri_parser;
+    UriParser::Result result = uri_parser.ParseTarget(
+        "http://naver.com:42424/"
+        "search.naver?where=nexearch&sm=top_hty&fbm=1&ie=utf8&query=%EC%9D%B4%"
+        "EA%B2%83%EC%9D%80+%EA%B2%80%EC%83%89+%EC%BF%BC%EB%A6%AC%EB%AC%B8+%EC%"
+        "9E%85%EB%8B%88%EB%8B%A");
     EXPECT_EQ(result.is_valid, false);
   }
 
@@ -937,6 +951,7 @@ TEST(HttpParserTest, ParseBody) {
     EXPECT_EQ(std::equal(result.request.content.begin(),
                          result.request.content.end(), body + 58),
               true);
+    free(body);
     close(fd);
   }
 
@@ -981,6 +996,7 @@ TEST(HttpParserTest, ParseBody) {
     size_t crlfcrlf = std::string(body).find(CRLF CRLF);
     EXPECT_EQ(result.request.content.size(), 10000);
     EXPECT_EQ(result.request.content, std::string(body).substr(crlfcrlf + 4));
+    free(body);
     close(fd);
   }
 
@@ -1125,6 +1141,7 @@ TEST(HttpParserTest, ParseBody) {
     EXPECT_EQ(std::equal(result.request.content.begin(),
                          result.request.content.end(), body + crlfcrlf + 4),
               true);
+    free(body);
     close(fd);
   }
 
@@ -1173,6 +1190,7 @@ TEST(HttpParserTest, ParseBody) {
     EXPECT_EQ(std::equal(result.request.content.begin(),
                          result.request.content.end(), body + crlfcrlf + 4),
               true);
+    free(body);
 
     parser.Clear();
     memset(buffer, 0, BUFFER_SIZE + 1);

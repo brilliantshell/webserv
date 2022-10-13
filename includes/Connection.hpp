@@ -15,6 +15,7 @@
 
 #include <fcntl.h>
 #include <sys/socket.h>
+#include <sys/types.h>
 #include <unistd.h>
 
 #include <cstring>
@@ -34,10 +35,14 @@ class Connection {
   void set_fd(int fd);
   const int get_status(void) const;
 
+  void set_client_addr(std::string client_addr);
+  const std::string& get_client_addr(void) const;
+
  private:
   int fd_;
   int status_;
   std::string buffer_;
+  std::string client_addr_;
   HttpParser parser_;
 
   void Receive(void);

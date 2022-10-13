@@ -39,6 +39,7 @@ add_executable(
 	srcs/Router.cpp
 	srcs/PathResolver.cpp
 	srcs/ResourceManager.cpp
+	srcs/CgiEnv.cpp
 )
 
 add_executable(
@@ -48,6 +49,7 @@ add_executable(
 	srcs/Router.cpp
 	srcs/ClientConnection.cpp
 	srcs/PathResolver.cpp
+	srcs/CgiEnv.cpp
 )
 
 add_executable(
@@ -63,6 +65,7 @@ add_executable(
 	srcs/UriParser.cpp
 	srcs/PathResolver.cpp
 	srcs/ResourceManager.cpp
+	srcs/CgiEnv.cpp
 )
 
 target_include_directories(
