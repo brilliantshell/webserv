@@ -388,10 +388,32 @@ TEST(ValidatorTest, RouteBlock) {
     EXPECT_EQ(location.root, "/");
     EXPECT_EQ(location.methods, GET);
     EXPECT_EQ(location.body_max, INT_MAX);
-    EXPECT_EQ(location.param, "/fastjs_params");
   }
 
-  TestSyntaxException("RouteBlock/CASE_05");
+  // NOTE : no longer needed
+  // TestSyntaxException("RouteBlock/CASE_05");
+
+  {
+    Validator::Result result =
+        TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_06");
+    ASSERT_EQ(result.port_map.size(), 1);
+    ASSERT_EQ(result.port_set.size(), 1);
+    ASSERT_EQ(result.port_map.count(4242), 1);
+    ASSERT_EQ(result.port_set.count(4242), 1);
+    ServerRouter server_router = result.port_map[4242];
+    LocationRouterMap location_router_map = server_router.location_router_map;
+
+    ASSERT_EQ(location_router_map.size(), 1);
+    ASSERT_EQ(location_router_map.count(""), 1);
+    LocationRouter location_router = location_router_map[""];
+    LocationMap location_map = location_router.location_map;
+    ASSERT_EQ(location_map.count("/everything/"), 1) << "RouteBlock/CASE_06";
+
+    Location location = location_map["/everything/"];
+    EXPECT_EQ(location.root, "/root/");
+    EXPECT_EQ(location.index, "your_fault.html");
+    EXPECT_EQ(location.upload_path, "/upload/");
+  }
 
   {
     Validator::Result result =
@@ -538,14 +560,14 @@ TEST(ValidatorTest, RouteBlock) {
     LocationNode location_node = cgi_vector[0];
     EXPECT_EQ(location_node.first, ".rb");
     location = location_node.second;
-    EXPECT_EQ(location.param, "/rb_param");
 
     ASSERT_EQ(location_map.count("/third/"), 1);
     location = location_map["/third/"];
     EXPECT_EQ(location.methods, DELETE);
   }
 
-  TestSyntaxException("RouteBlock/CASE_19");
+  // NOTE NO LONGER NEEDED
+  // TestSyntaxException("RouteBlock/CASE_19");
 
   {
     Validator::Result result =
@@ -568,7 +590,6 @@ TEST(ValidatorTest, RouteBlock) {
     Location& location = location_node.second;
     EXPECT_EQ(location.methods, GET | POST);
     EXPECT_EQ(location.root, "/oh_no/");
-    EXPECT_EQ(location.param, "/param_param");
     EXPECT_EQ(location.body_max, 1234);
   }
 

@@ -1,6 +1,7 @@
 {
-  "files.associations": {
+	"files.associations": {
 		"": "",
+		"*.config": "plaintext",
 		"string": "cpp",
 		"iosfwd": "cpp",
 		"exception": "cpp",
@@ -82,7 +83,8 @@
 		"numeric": "cpp",
 		"random": "cpp",
 		"memory_resource": "cpp",
-		"filesystem": "cpp"
+		"filesystem": "cpp",
+		"csignal": "cpp"
 	},
-  "cmake.configureOnOpen": false
+	"cmake.configureOnOpen": false
 }

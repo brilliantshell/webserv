@@ -17,6 +17,7 @@
 #include <fstream>
 #include <sstream>
 
+#include "CgiManager.hpp"
 #include "Router.hpp"
 
 class ResourceManager {
@@ -25,6 +26,7 @@ class ResourceManager {
     int status;
     std::string content;
     std::string location;
+    std::vector<std::string> header;
   };
 
   Result ExecuteMethod(Router::Result& route_result,

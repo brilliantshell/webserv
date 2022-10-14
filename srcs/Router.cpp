@@ -104,12 +104,12 @@ void Router::RouteToCgi(Result& result, Request& request,
   result.success_path =
       "." + cgi_location.root +
       request.req.path.substr(1, cgi_discriminator.second + cgi_ext.size() - 1);
-  result.param = "." + cgi_location.param;
   result.method = cgi_location.methods;
   if (result.cgi_env.SetMetaVariables(request, cgi_location.root, cgi_ext,
                                       connection_info) == false) {
     result.status = 500;  // INTERNAL SERVER ERROR
   }
+  result.is_cgi = true;
 }
 
 bool Router::GetHostAddr(std::string& server_addr) const {
@@ -138,8 +138,7 @@ Location::Location(void)
       root("/"),
       index(""),
       upload_path("/"),
-      redirect_to(""),
-      param("") {}
+      redirect_to("") {}
 
 Location::Location(bool is_error, std::string error_path)
     : error(is_error), index(error_path) {}

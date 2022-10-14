@@ -53,7 +53,6 @@ void HttpServer::AcceptConnection(struct kevent* sock_ev, int socket_fd) {
   sockaddr_in addr;
   socklen_t addr_len = sizeof(addr);
   int fd = accept(socket_fd, reinterpret_cast<sockaddr*>(&addr), &addr_len);
-  // int fd = accept(socket_fd, NULL, NULL);
   if (fd == -1) {
     std::cerr << "HttpServer : accept failed : " << strerror(errno) << '\n';
     return;

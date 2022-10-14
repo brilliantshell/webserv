@@ -397,13 +397,15 @@ TEST(ResourceManager, POSTMethod) {
               "./resources/post/unauthorized/f_05.html");
     EXPECT_EQ(route_result.error_path, "./resources/error.html");
 
+    chmod("./resources/post/unauthorized", 0555);
     ResourceManager rm;
     ResourceManager::Result rm_result =
         rm.ExecuteMethod(route_result, parse_result.request.content);
-    EXPECT_EQ(rm_result.status, 403);  // CREATED
+    EXPECT_EQ(rm_result.status, 403);  // FORBIDDEN
     errno = 0;
     ASSERT_EQ(access("./resources/post/unauthorized/f_05.txt", F_OK), -1);
     ASSERT_EQ(errno, ENOENT);
+    chmod("./resources/post/unauthorized", 0777);
   }
 
   // s 05 file already exist

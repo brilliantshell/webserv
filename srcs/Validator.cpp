@@ -65,8 +65,6 @@ void Validator::InitializeKeyMap(RouteKeyMap_& key_map,
     key_map["autoindex"] = LocationDirective::kAutoindex;
     key_map["redirect_to"] = LocationDirective::kRedirectTo;
     key_map["index"] = LocationDirective::kIndex;
-  } else {
-    key_map["param"] = LocationDirective::kParam;
   }
   key_map["methods"] = LocationDirective::kMethods;
   key_map["body_max"] = LocationDirective::kBodyMax;
@@ -314,15 +312,6 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
       location.body_max = num;
       break;
     }
-    case LocationDirective::kParam: {
-      location.param = TokenizeSingleString(delim);
-      if (path_resolver_.Resolve(location.param,
-                                 PathResolver::Purpose::kParam) ==
-          PathResolver::kFailure) {
-        throw SyntaxErrorException();
-      }
-      break;
-    }
     case LocationDirective::kIndex:
     case LocationDirective::kRoot:
     case LocationDirective::kUploadPath:
@@ -399,9 +388,6 @@ LocationNode Validator::ValidateLocation(ConstIterator_& delim,
       break;
     }
     cursor_ = delim;
-  }
-  if (key_map.count("param")) {
-    throw SyntaxErrorException();
   }
   delim = std::find(delim, kConfig_.end(), '}');
   if (++delim == kConfig_.end()) {

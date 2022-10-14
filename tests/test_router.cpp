@@ -28,11 +28,11 @@ Validator::Result TestValidatorSuccess(const std::string& case_id);
 // Route() 결과값
 /*
 result{
+        is_cgi
         status
         method
         success_path
         error_path
-        param
 }
 */
 //
@@ -61,7 +61,7 @@ TEST(RouteTest, ServerRouter) {
     EXPECT_EQ(route_result.method, GET);
     EXPECT_EQ(route_result.success_path, "./normal/index.html");
     EXPECT_EQ(route_result.error_path, "./error.html");
-    EXPECT_EQ(route_result.param, "");
+    EXPECT_FALSE(route_result.is_cgi);
   }
 
   {
@@ -329,7 +329,7 @@ TEST(RouterTest, LocationRouter) {
     EXPECT_EQ(route_result.method, GET);
     EXPECT_EQ(route_result.success_path, "./path/to/php/index.php");
     EXPECT_EQ(route_result.error_path, "./error.html");
-    EXPECT_EQ(route_result.param, "./php_cgi");
+    EXPECT_TRUE(route_result.is_cgi);
   }
 
   {
@@ -457,7 +457,7 @@ TEST(RouterTest, CgiMetaVariables) {
         "SERVER_SOFTWARE=BrilliantServer/1.0",
     };
 
-    EXPECT_EQ(route_result.param, "./fastphp_param");
+    EXPECT_TRUE(route_result.is_cgi);
     const char** cgi_envp = route_result.cgi_env.get_env();
     ASSERT_NE(reinterpret_cast<long>(cgi_envp), NULL);
     for (size_t i = 0; i < 17; ++i) {
@@ -522,7 +522,7 @@ TEST(RouterTest, CgiMetaVariables) {
         "SERVER_SOFTWARE=BrilliantServer/1.0",
     };
 
-    EXPECT_EQ(route_result.param, "./fastphp_param");
+    EXPECT_TRUE(route_result.is_cgi);
     const char** cgi_envp = route_result.cgi_env.get_env();
     ASSERT_NE(reinterpret_cast<long>(cgi_envp), NULL);
     for (size_t i = 0; i < 17; ++i) {
@@ -588,7 +588,7 @@ TEST(RouterTest, CgiMetaVariables) {
         "SERVER_SOFTWARE=BrilliantServer/1.0",
     };
 
-    EXPECT_EQ(route_result.param, "./fastphp_param");
+    EXPECT_TRUE(route_result.is_cgi);
     const char** cgi_envp = route_result.cgi_env.get_env();
     ASSERT_NE(reinterpret_cast<long>(cgi_envp), NULL);
     for (size_t i = 0; i < 17; ++i) {
@@ -652,7 +652,7 @@ TEST(RouterTest, CgiMetaVariables) {
         "SERVER_SOFTWARE=BrilliantServer/1.0",
     };
 
-    EXPECT_EQ(route_result.param, "./fastphp_param");
+    EXPECT_TRUE(route_result.is_cgi);
     const char** cgi_envp = route_result.cgi_env.get_env();
     ASSERT_NE(reinterpret_cast<long>(cgi_envp), NULL);
     for (size_t i = 0; i < 17; ++i) {
@@ -717,7 +717,7 @@ TEST(RouterTest, CgiMetaVariables) {
         "SERVER_SOFTWARE=BrilliantServer/1.0",
     };
 
-    EXPECT_EQ(route_result.param, "./ghan_param");
+    EXPECT_TRUE(route_result.is_cgi);
     const char** cgi_envp = route_result.cgi_env.get_env();
     ASSERT_NE(reinterpret_cast<long>(cgi_envp), NULL);
     for (size_t i = 0; i < 17; ++i) {
@@ -782,7 +782,7 @@ TEST(RouterTest, CgiMetaVariables) {
         "SERVER_SOFTWARE=BrilliantServer/1.0",
     };
 
-    EXPECT_EQ(route_result.param, "./ghan_param");
+    EXPECT_TRUE(route_result.is_cgi);
     const char** cgi_envp = route_result.cgi_env.get_env();
     ASSERT_NE(reinterpret_cast<long>(cgi_envp), NULL);
     for (size_t i = 0; i < 17; ++i) {

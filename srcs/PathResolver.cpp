@@ -34,7 +34,7 @@ const std::string &PathResolver::get_file_name(void) const {
 
 // private
 bool PathResolver::ReserveFileName(std::string &path, Purpose purpose) {
-  if ((purpose == kErrorPage || purpose == kParam) && path[0] != '/') {
+  if ((purpose == kErrorPage) && path[0] != '/') {
     path.insert(0, "/");
   }
   if (path[path.size() - 1] != '/') {
@@ -51,8 +51,7 @@ bool PathResolver::ReserveFileName(std::string &path, Purpose purpose) {
       path.erase(last_slash_pos + 1);
     }
   }
-  return !((purpose == kErrorPage || purpose == kParam) &&
-           file_name_.size() == 0);
+  return !((purpose == kErrorPage) && file_name_.size() == 0);
 }
 
 bool PathResolver::NormalizeDirPath(std::string &path) {
