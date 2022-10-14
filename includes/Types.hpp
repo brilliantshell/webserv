@@ -54,4 +54,14 @@ struct Request {
   std::string content;  // NULLABLE
 };
 
+// SECTION : Router 가 필요한 server & client 연결 정보
+struct ConnectionInfo {
+  uint16_t server_port;
+  std::string server_name;
+  std::string client_addr;
+
+  ConnectionInfo(uint16_t port, std::string addr)
+      : server_port(port), client_addr(addr) {}
+};
+
 #endif  // INCLUDES_TYPES_HPP_

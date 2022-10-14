@@ -10,6 +10,7 @@
 #ifndef INCLUDES_SERVER_ROUTER_HPP_
 #define INCLUDES_SERVER_ROUTER_HPP_
 
+#include "CgiEnv.hpp"
 #include "PathResolver.hpp"
 #include "Types.hpp"
 
@@ -62,7 +63,7 @@ struct ServerRouter {
   LocationRouterMap location_router_map;
   LocationRouter default_server;
 
-  LocationRouter& operator[](const std::string& server_name);
+  LocationRouter& operator[](const std::string& host);
 };
 
 class Router {
@@ -73,6 +74,7 @@ class Router {
     std::string success_path;
     std::string error_path;
     std::string param;
+    CgiEnv cgi_env;
 
     Result(int parse_status)
         : status(parse_status),
@@ -84,7 +86,7 @@ class Router {
 
   Router(ServerRouter& server_router);
 
-  Result Route(int status, Request& request);
+  Result Route(int status, Request& request, ConnectionInfo connection_info);
 
  private:
   typedef std::pair<LocationNode, size_t> CgiDiscriminator;
@@ -94,8 +96,10 @@ class Router {
                                   const std::string& path);
   void RouteToLocation(Result& result, LocationRouter& location_router,
                        Request& request);
-  void RouteToCgi(Result& result, CgiDiscriminator& cgi_discriminator,
-                  std::string& cgi_extension, const Request& request);
+  void RouteToCgi(Result& result, Request& request,
+                  const CgiDiscriminator& cgi_discriminator,
+                  const ConnectionInfo& connection_info);
+  bool GetHostAddr(std::string& server_addr) const;
   void UpdateStatus(Result& result, int status);
 };
 

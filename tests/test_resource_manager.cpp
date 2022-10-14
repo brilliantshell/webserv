@@ -49,7 +49,8 @@ TEST(ResourceManager, GETMethod) {
 
     Router router(port_map[80]);
     Router::Result route_result =
-        router.Route(parse_result.status, parse_result.request);
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(route_result.status, 200);
     EXPECT_EQ(route_result.method, GET);
@@ -79,7 +80,8 @@ TEST(ResourceManager, GETMethod) {
 
     Router router(port_map[80]);
     Router::Result route_result =
-        router.Route(parse_result.status, parse_result.request);
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(route_result.status, 200);
     EXPECT_EQ(route_result.method, GET);
@@ -110,7 +112,8 @@ TEST(ResourceManager, GETMethod) {
     chmod("./resources/f_01.html", 0111);
     Router router(port_map[80]);
     Router::Result route_result =
-        router.Route(parse_result.status, parse_result.request);
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(route_result.status, 200);
     EXPECT_EQ(route_result.method, GET);
@@ -122,7 +125,6 @@ TEST(ResourceManager, GETMethod) {
         rm.ExecuteMethod(route_result, parse_result.request.content);
     EXPECT_EQ(rm_result.status, 403);
     EXPECT_EQ(rm_result.content, FileToString(RM_REQ_PATH_PREFIX "error.html"));
-    std::cout << "여기서 터지면 chmod를 생각해보렴\n";
     chmod("./resources/f_01.html", 0777);
   }
 
@@ -142,7 +144,8 @@ TEST(ResourceManager, GETMethod) {
 
     Router router(port_map[80]);
     Router::Result route_result =
-        router.Route(parse_result.status, parse_result.request);
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(route_result.status, 200);
     EXPECT_EQ(route_result.method, GET);
@@ -171,7 +174,8 @@ TEST(ResourceManager, GETMethod) {
 
     Router router(port_map[80]);
     Router::Result route_result =
-        router.Route(parse_result.status, parse_result.request);
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(route_result.status, 200);
     EXPECT_EQ(route_result.method, GET);
@@ -200,7 +204,8 @@ TEST(ResourceManager, GETMethod) {
 
     Router router(port_map[80]);
     Router::Result route_result =
-        router.Route(parse_result.status, parse_result.request);
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(route_result.status, 200);
     EXPECT_EQ(route_result.method, GET);
@@ -237,7 +242,8 @@ pre><hr></body></html>");
 
     Router router(port_map[80]);
     Router::Result route_result =
-        router.Route(parse_result.status, parse_result.request);
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(route_result.status, 200);
     EXPECT_EQ(route_result.method, GET);
@@ -277,7 +283,8 @@ pre><hr></body></html>");
 
     Router router(port_map[80]);
     Router::Result route_result =
-        router.Route(parse_result.status, parse_result.request);
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(route_result.status, 200);
     EXPECT_EQ(route_result.method, GET);
@@ -307,7 +314,8 @@ pre><hr></body></html>");
 
     Router router(port_map[80]);
     Router::Result route_result =
-        router.Route(parse_result.status, parse_result.request);
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(route_result.status, 200);
     EXPECT_EQ(route_result.method, GET);
@@ -346,7 +354,8 @@ TEST(ResourceManager, POSTMethod) {
 
     Router router(port_map[80]);
     Router::Result route_result =
-        router.Route(parse_result.status, parse_result.request);
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(route_result.status, 200);
     EXPECT_EQ(route_result.method, POST);
@@ -379,7 +388,8 @@ TEST(ResourceManager, POSTMethod) {
 
     Router router(port_map[80]);
     Router::Result route_result =
-        router.Route(parse_result.status, parse_result.request);
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(route_result.status, 200);
     EXPECT_EQ(route_result.method, POST);
@@ -412,7 +422,8 @@ TEST(ResourceManager, POSTMethod) {
 
     Router router(port_map[80]);
     Router::Result route_result =
-        router.Route(parse_result.status, parse_result.request);
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(route_result.status, 200);
     EXPECT_EQ(route_result.method, POST);
@@ -445,7 +456,8 @@ TEST(ResourceManager, POSTMethod) {
 
     Router router(port_map[80]);
     Router::Result route_result =
-        router.Route(parse_result.status, parse_result.request);
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(route_result.status, 200);
     EXPECT_EQ(route_result.method, POST);
@@ -480,7 +492,8 @@ TEST(ResourceManager, DELETEMethod) {
 
     Router router(port_map[80]);
     Router::Result route_result =
-        router.Route(parse_result.status, parse_result.request);
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(route_result.status, 200);
     EXPECT_EQ(route_result.method, DELETE);
@@ -515,7 +528,8 @@ TEST(ResourceManager, DELETEMethod) {
 
     Router router(port_map[80]);
     Router::Result route_result =
-        router.Route(parse_result.status, parse_result.request);
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(route_result.status, 200);
     EXPECT_EQ(route_result.method, DELETE);
@@ -553,7 +567,8 @@ TEST(ResourceManager, DELETEMethod) {
 
     Router router(port_map[80]);
     Router::Result route_result =
-        router.Route(parse_result.status, parse_result.request);
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(route_result.status, 200);
     EXPECT_EQ(route_result.method, DELETE);

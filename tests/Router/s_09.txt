@@ -1,0 +1,5 @@
+POST /index.php HTTP/1.0
+conTent-LengtH: 10
+Content-Type: text/html; charset="ISO-8859-4"
+
+postcgihah

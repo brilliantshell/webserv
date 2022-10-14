@@ -13,9 +13,18 @@
 
 Router::Router(ServerRouter& server_router) : server_router_(server_router) {}
 
-Router::Result Router::Route(int status, Request& request) {
+Router::Result Router::Route(int status, Request& request,
+                             ConnectionInfo connection_info) {
   Result result(status);
   LocationRouter& location_router = server_router_[request.req.host];
+  if (&location_router == &server_router_.default_server) {
+    if (GetHostAddr(connection_info.server_name) == false) {
+      result.status = 500;  // INTERNAL SERVER ERROR
+      return result;
+    }
+  } else {
+    connection_info.server_name = request.req.host;
+  }
   result.error_path = "." + location_router.error.index;
   if (status >= 400) {
     result.success_path = result.error_path;
@@ -24,13 +33,13 @@ Router::Result Router::Route(int status, Request& request) {
         GetCgiLocation(location_router.cgi_vector, request.req.path);
     cgi_discriminator.second == std::string::npos
         ? RouteToLocation(result, location_router, request)
-        : RouteToCgi(result, cgi_discriminator, cgi_discriminator.first.first,
-                     request);
+        : RouteToCgi(result, request, cgi_discriminator, connection_info);
   }
   return result;
 }
 
 // private
+
 Router::CgiDiscriminator Router::GetCgiLocation(
     LocationRouter::CgiVector& cgi_vector, const std::string& path) {
   LocationNode location_node;
@@ -47,8 +56,7 @@ Router::CgiDiscriminator Router::GetCgiLocation(
   return std::make_pair(location_node, pos);
 }
 
-void Router::RouteToLocation(Router::Result& result,
-                             LocationRouter& location_router,
+void Router::RouteToLocation(Result& result, LocationRouter& location_router,
                              Request& request) {
   PathResolver path_resolver;
   PathResolver::Status path_status =
@@ -85,18 +93,34 @@ void Router::RouteToLocation(Router::Result& result,
   result.success_path = "." + path;
 }
 
-void Router::RouteToCgi(Router::Result& result,
-                        CgiDiscriminator& cgi_discriminator,
-                        std::string& cgi_extension, const Request& request) {
-  if ((cgi_discriminator.first.second.methods & request.req.method) == 0) {
+void Router::RouteToCgi(Result& result, Request& request,
+                        const CgiDiscriminator& cgi_discriminator,
+                        const ConnectionInfo& connection_info) {
+  const std::string& cgi_ext = cgi_discriminator.first.first;
+  const Location& cgi_location = cgi_discriminator.first.second;
+  if ((cgi_location.methods & request.req.method) == 0) {
     return UpdateStatus(result, 405);  // Method Not Allowed
   }
-  result.success_path = "." + cgi_discriminator.first.second.root +
-                        request.req.path.substr(
-                            1, cgi_discriminator.second + cgi_extension.size());
-  result.param = "." + cgi_discriminator.first.second.param;
-  result.method = cgi_discriminator.first.second.methods;
-  // TODO : cgi meta-variable setting
+  result.success_path =
+      "." + cgi_location.root +
+      request.req.path.substr(1, cgi_discriminator.second + cgi_ext.size() - 1);
+  result.param = "." + cgi_location.param;
+  result.method = cgi_location.methods;
+  if (result.cgi_env.SetMetaVariables(request, cgi_location.root, cgi_ext,
+                                      connection_info) == false) {
+    result.status = 500;  // INTERNAL SERVER ERROR
+  }
+}
+
+bool Router::GetHostAddr(std::string& server_addr) const {
+  std::string h(sysconf(_SC_HOST_NAME_MAX), '\0');
+  gethostname(&h[0], sysconf(_SC_HOST_NAME_MAX));
+  struct hostent* host = gethostbyname(&h[0]);
+  if (host == NULL) {
+    return false;
+  }
+  server_addr = inet_ntoa(*(struct in_addr*)host->h_addr_list[0]);
+  return true;
 }
 
 void Router::UpdateStatus(Result& result, int status) {
@@ -142,8 +166,12 @@ Location& LocationRouter::operator[](const std::string& path) {
 }
 
 // SECTION: ServerRouter
-LocationRouter& ServerRouter::operator[](const std::string& server_name) {
-  std::string host = server_name.substr(0, server_name.find(':'));
-  return (location_router_map.count(host) == 1) ? location_router_map[host]
-                                                : default_server;
+LocationRouter& ServerRouter::operator[](const std::string& host) {
+  if (host.size() == 0) {
+    return default_server;
+  }
+  std::string server_name = host.substr(0, host.find(':'));
+  return (location_router_map.count(server_name) == 1)
+             ? location_router_map[server_name]
+             : default_server;
 }
