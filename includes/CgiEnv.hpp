@@ -11,6 +11,8 @@
 #define INCLUDES_CGIENV_HPP_
 
 #include <arpa/inet.h>
+#include <libgen.h>
+#include <libproc.h>
 #include <netdb.h>
 #include <unistd.h>
 
@@ -28,9 +30,9 @@ class CgiEnv {
   CgiEnv(void);
   ~CgiEnv(void);
   const char** get_env(void) const;
-  bool SetMetaVariables(
-      Request& request, const std::string& root, const std::string& cgi_ext,
-      const std::pair<uint16_t, std::string>& connection_info);
+  bool SetMetaVariables(Request& request, const std::string& root,
+                        const std::string& cgi_ext,
+                        const ConnectionInfo& connection_info);
 
  private:
   struct ScriptUri {
@@ -48,8 +50,6 @@ class CgiEnv {
 
   template <typename T>
   std::string IntToString(T value) const;
-
-  bool GetHostAddr(std::string& server_addr) const;
 
   const char* set_env(const size_t idx, const std::string& key_value);
 };

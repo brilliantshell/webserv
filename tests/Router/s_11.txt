@@ -1,0 +1,13 @@
+POST /script.php/path_info?%EC%9D%B4%EA%B2%83%EC%9D%80=QStr HTTP/1.1
+Host: jiskim:4242
+Transfer-Encoding: chunked
+Content-Type: application/octet-stream; charset="utf-8"
+
+4
+gh
+
+4
+an
+
+0
+

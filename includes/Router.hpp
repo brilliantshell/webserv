@@ -63,13 +63,11 @@ struct ServerRouter {
   LocationRouterMap location_router_map;
   LocationRouter default_server;
 
-  LocationRouter& operator[](const std::string& server_name);
+  LocationRouter& operator[](const std::string& host);
 };
 
 class Router {
  public:
-  typedef std::pair<uint16_t, std::string> ConnectionInfo;
-
   struct Result {
     int status;
     uint8_t method;
@@ -88,8 +86,7 @@ class Router {
 
   Router(ServerRouter& server_router);
 
-  Result Route(int status, Request& request,
-               const ConnectionInfo& connection_info);
+  Result Route(int status, Request& request, ConnectionInfo connection_info);
 
  private:
   typedef std::pair<LocationNode, size_t> CgiDiscriminator;
@@ -102,6 +99,7 @@ class Router {
   void RouteToCgi(Result& result, Request& request,
                   const CgiDiscriminator& cgi_discriminator,
                   const ConnectionInfo& connection_info);
+  bool GetHostAddr(std::string& server_addr) const;
   void UpdateStatus(Result& result, int status);
 };
 

@@ -36,14 +36,13 @@ const char **CgiEnv::get_env(void) const {
 }
 
 // private
-bool CgiEnv::SetMetaVariables(
-    Request &request, const std::string &root, const std::string &cgi_ext,
-    const std::pair<uint16_t, std::string> &connection_info) {
+
+bool CgiEnv::SetMetaVariables(Request &request, const std::string &root,
+                              const std::string &cgi_ext,
+                              const ConnectionInfo &connection_info) {
   ScriptUri script_uri;
-  std::string server_addr;
   if (ParseScriptUriComponents(script_uri, request.req.path, root, cgi_ext) ==
-          false ||
-      GetHostAddr(server_addr) == false) {
+      false) {
     return false;
   }
   const std::string key_value[17] = {
@@ -58,8 +57,8 @@ bool CgiEnv::SetMetaVariables(
       "PATH_INFO=" + script_uri.path_info,
       "PATH_TRANSLATED=" + script_uri.path_translated,
       "QUERY_STRING=" + request.req.query,
-      "REMOTE_ADDR=" + connection_info.second,
-      "REMOTE_HOST=" + connection_info.second,
+      "REMOTE_ADDR=" + connection_info.client_addr,
+      "REMOTE_HOST=" + connection_info.client_addr,
       "REMOTE_IDENT=",
       "REMOTE_USER=",
       "REQUEST_METHOD=" + std::string((request.req.method == GET) ? "GET"
@@ -67,9 +66,8 @@ bool CgiEnv::SetMetaVariables(
                                           ? "POST"
                                           : "DELETE"),
       "SCRIPT_NAME=" + script_uri.script_name,
-      "SERVER_NAME=" +
-          ((request.req.host.size() == 0) ? server_addr : request.req.host),
-      "SERVER_PORT=" + IntToString(connection_info.first),
+      "SERVER_NAME=" + connection_info.server_name,
+      "SERVER_PORT=" + IntToString(connection_info.server_port),
       "SERVER_PROTOCOL=" +
           std::string((request.req.version == HttpParser::kHttp1_0)
                           ? "HTTP/1.0"
@@ -91,15 +89,23 @@ bool CgiEnv::ParseScriptUriComponents(ScriptUri &script_uri,
   size_t ext_dot = req_uri.find(cgi_ext);
   size_t script_start = req_uri.rfind('/', ext_dot);
   script_uri.path_info = req_uri.substr(ext_dot + cgi_ext.size());
-  char *cwd = getcwd(NULL, 0);
-  if (cwd == NULL) {
-    return false;
+  char *cwd;
+  {
+    char proc_name[PROC_PIDPATHINFO_MAXSIZE + 1];
+    memset(proc_name, 0, PROC_PIDPATHINFO_MAXSIZE + 1);
+    if (proc_pidpath(getpid(), proc_name, PROC_PIDPATHINFO_MAXSIZE) <= 0) {
+      return false;
+    }
+    cwd = dirname(proc_name);
+    if (cwd == NULL) {
+      return false;
+    }
   }
-  script_uri.path_translated =
-      script_uri.path_info.size() > 0 ? cwd + root + script_uri.path_info : "";
-  free(cwd);
+  script_uri.path_translated = script_uri.path_info.size() > 0
+                                   ? cwd + root + script_uri.path_info.substr(1)
+                                   : "";
   script_uri.script_name =
-      req_uri.substr(script_start, ext_dot - script_start + ext_dot);
+      root + req_uri.substr(1, ext_dot + cgi_ext.size() - 1);
   return true;
 }
 
@@ -108,17 +114,6 @@ std::string CgiEnv::IntToString(T value) const {
   std::stringstream ss;
   ss << value;
   return ss.str();
-}
-
-bool CgiEnv::GetHostAddr(std::string &server_addr) const {
-  std::string h(sysconf(_SC_HOST_NAME_MAX), '\0');
-  gethostname(&h[0], sysconf(_SC_HOST_NAME_MAX));
-  struct hostent *host = gethostbyname(&h[0]);
-  if (host == NULL) {
-    return false;
-  }
-  server_addr = inet_ntoa(*(struct in_addr *)host->h_addr_list[0]);
-  return true;
 }
 
 const char *CgiEnv::set_env(const size_t idx, const std::string &key_value) {

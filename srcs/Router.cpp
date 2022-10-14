@@ -14,9 +14,17 @@
 Router::Router(ServerRouter& server_router) : server_router_(server_router) {}
 
 Router::Result Router::Route(int status, Request& request,
-                             const ConnectionInfo& connection_info) {
+                             ConnectionInfo connection_info) {
   Result result(status);
   LocationRouter& location_router = server_router_[request.req.host];
+  if (&location_router == &server_router_.default_server) {
+    if (GetHostAddr(connection_info.server_name) == false) {
+      result.status = 500;  // INTERNAL SERVER ERROR
+      return result;
+    }
+  } else {
+    connection_info.server_name = request.req.host;
+  }
   result.error_path = "." + location_router.error.index;
   if (status >= 400) {
     result.success_path = result.error_path;
@@ -31,6 +39,7 @@ Router::Result Router::Route(int status, Request& request,
 }
 
 // private
+
 Router::CgiDiscriminator Router::GetCgiLocation(
     LocationRouter::CgiVector& cgi_vector, const std::string& path) {
   LocationNode location_node;
@@ -94,13 +103,24 @@ void Router::RouteToCgi(Result& result, Request& request,
   }
   result.success_path =
       "." + cgi_location.root +
-      request.req.path.substr(1, cgi_discriminator.second + cgi_ext.size());
+      request.req.path.substr(1, cgi_discriminator.second + cgi_ext.size() - 1);
   result.param = "." + cgi_location.param;
   result.method = cgi_location.methods;
   if (result.cgi_env.SetMetaVariables(request, cgi_location.root, cgi_ext,
                                       connection_info) == false) {
     result.status = 500;  // INTERNAL SERVER ERROR
   }
+}
+
+bool Router::GetHostAddr(std::string& server_addr) const {
+  std::string h(sysconf(_SC_HOST_NAME_MAX), '\0');
+  gethostname(&h[0], sysconf(_SC_HOST_NAME_MAX));
+  struct hostent* host = gethostbyname(&h[0]);
+  if (host == NULL) {
+    return false;
+  }
+  server_addr = inet_ntoa(*(struct in_addr*)host->h_addr_list[0]);
+  return true;
 }
 
 void Router::UpdateStatus(Result& result, int status) {
@@ -146,8 +166,12 @@ Location& LocationRouter::operator[](const std::string& path) {
 }
 
 // SECTION: ServerRouter
-LocationRouter& ServerRouter::operator[](const std::string& server_name) {
-  std::string host = server_name.substr(0, server_name.find(':'));
-  return (location_router_map.count(host) == 1) ? location_router_map[host]
-                                                : default_server;
+LocationRouter& ServerRouter::operator[](const std::string& host) {
+  if (host.size() == 0) {
+    return default_server;
+  }
+  std::string server_name = host.substr(0, host.find(':'));
+  return (location_router_map.count(server_name) == 1)
+             ? location_router_map[server_name]
+             : default_server;
 }
