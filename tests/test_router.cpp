@@ -573,7 +573,7 @@ TEST(RouterTest, CgiMetaVariables) {
         "CONTENT_TYPE=application/octet-stream; charset=\"utf-8\"",
         "GATEWAY_INTERFACE=CGI/1.1",
         "PATH_INFO=/path_info/sub_path_info",
-        "PATH_TRANSLATED=/Users/yongjule/webserv/build/root/"
+        "PATH_TRANSLATED=/Users/jiskim/webserv/build/root/"
         "path_info/sub_path_info",
         "QUERY_STRING=?%EC%9D%B4%EA%B2%83%EC%9D%80=QStr",
         "REMOTE_ADDR=127.0.0.1",
@@ -638,7 +638,7 @@ TEST(RouterTest, CgiMetaVariables) {
         "CONTENT_TYPE=application/octet-stream; charset=\"utf-8\"",
         "GATEWAY_INTERFACE=CGI/1.1",
         "PATH_INFO=/path_info",
-        "PATH_TRANSLATED=/Users/yongjule/webserv/build/path_info",
+        "PATH_TRANSLATED=/Users/jiskim/webserv/build/path_info",
         "QUERY_STRING=?%EC%9D%B4%EA%B2%83%EC%9D%80=QStr",
         "REMOTE_ADDR=127.0.0.1",
         "REMOTE_HOST=127.0.0.1",

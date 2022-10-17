@@ -28,11 +28,10 @@ class UriParser {
 
   Result ParseTarget(std::string uri);
   bool ParseHost(std::string& uri);
+  bool DecodeHexToAscii(std::string& uri, const size_t pos);
 
  private:
   Result result_;
-
-  bool DecodeHexToAscii(std::string& uri, const size_t pos);
 
   void ValidatePath(std::string& uri, size_t& start);
   void ValidateQuery(std::string& uri, size_t& start);

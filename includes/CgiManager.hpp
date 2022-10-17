@@ -14,6 +14,11 @@
 #include <string>
 
 #include "Router.hpp"
+#include "UriParser.hpp"
+
+#define FIELD_LINE_MAX 8192    // 8KB
+#define HEADER_MAX 16384       // 16KB
+#define CONTENT_MAX 134217728  // 128MB
 
 class CgiManager {
  public:
@@ -32,20 +37,22 @@ class CgiManager {
                  const std::string& request_content, int status);
 
  private:
-  int out_fd_[2];
-  int in_fd_[2];
-
   // child
   void DupFds(int in[2], int out[2]);
+  void ParseScriptCommandLine(std::vector<std::string>& arg_vector,
+                              std::string query);
+  void ExecuteScript(int in_fd[], int out_fd[], const char* success_path,
+                     char* const* env);
 
   // parent
   bool OpenPipes(Result& result, int in[2], int out[2]);
-
   void PassRequestContent(Result& result, const std::string& request_content,
                           int in_fd[2], int out_fd[2]);
-
-  void ReceiveCgiResponse(std::string& result_content,
-                          std::vector<std::string>& header, int from_cgi_fd);
+  void ReceiveCgiHeaderFields(Result& result, std::vector<std::string>& header,
+                              const std::string& header_buf);
+  void ReceiveCgiResponse(Result& result, std::vector<std::string>& header,
+                          int from_cgi_fd);
+  void ParseCgiHeader(Result& result, std::vector<std::string>& header);
 };
 
 #endif  // INCLUDES_CGIMANAGER_HPP

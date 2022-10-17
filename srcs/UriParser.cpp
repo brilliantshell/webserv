@@ -30,7 +30,6 @@ bool UriParser::ParseHost(std::string& uri) {
   return result_.is_valid;
 }
 
-// SECTION : private
 bool UriParser::DecodeHexToAscii(std::string& uri, const size_t pos) {
   IsCharSet is_hexdig(HEXDIG, true);
   if (pos + 2 < uri.size() && is_hexdig(uri[pos + 1]) &&
@@ -45,6 +44,7 @@ bool UriParser::DecodeHexToAscii(std::string& uri, const size_t pos) {
   return false;
 }
 
+// SECTION : private
 // Origin form 검증 및 파싱
 void UriParser::ValidatePath(std::string& uri, size_t& start) {
   if (result_.is_valid == false) {

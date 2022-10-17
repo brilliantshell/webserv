@@ -76,6 +76,11 @@ add_executable(
 	cgi_src/cgi.cpp
 )
 
+add_executable(
+	cgi_max.php
+	cgi_src/cgi_max.cpp
+)
+
 target_include_directories(
 	test_webserv
 	PUBLIC ${CMAKE_SOURCE_DIR}/includes
@@ -99,6 +104,7 @@ target_link_libraries(
 execute_process(
 	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/tests/ResourceManager ${CMAKE_SOURCE_DIR}/build/resources
 	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/build/cgi.php ${CMAKE_SOURCE_DIR}/build/resources/cgi/cgi.php
+	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/build/cgi_max.php ${CMAKE_SOURCE_DIR}/build/resources/cgi/cgi_max.php
 )
 
 include(GoogleTest)
