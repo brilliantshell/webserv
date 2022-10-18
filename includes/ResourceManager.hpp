@@ -18,6 +18,7 @@
 #include <sstream>
 
 #include "CgiManager.hpp"
+#include "ResponseData.hpp"
 #include "Router.hpp"
 #include "Types.hpp"
 
@@ -27,6 +28,7 @@ class ResourceManager {
     int status;
     std::string content;
     std::string location;
+    std::string ext;
     ResponseHeaderMap header;
   };
 
@@ -45,6 +47,7 @@ class ResourceManager {
             const std::string& request_content);
 
   void Delete(Result& result, Router::Result& router_result);
+  std::string ParseExtension(const std::string& success_path);
 };
 
 #endif  // INCLUDES_RESOURCE_MANAGER_HPP_

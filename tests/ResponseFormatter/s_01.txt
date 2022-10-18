@@ -1,0 +1,3 @@
+GET /s_01.css HTTP/1.1
+host: ghan:4242
+

@@ -13,12 +13,10 @@ ResourceManager::Result ResourceManager::ExecuteMethod(
     Router::Result& router_result, const std::string& request_content) {
   Result result;
   result.status = router_result.status;
-
   if (router_result.status >= 400) {
     GetErrorPage(result, router_result);
     return result;
   }
-
   // Location
   if (router_result.is_cgi == false) {
     switch (router_result.method & (GET | POST | DELETE)) {
@@ -34,6 +32,7 @@ ResourceManager::Result ResourceManager::ExecuteMethod(
       default:
         break;
     }
+    result.ext = ParseExtension(router_result.success_path);
   } else {
     CgiManager cgiManager;
     CgiManager::Result cgi_result = cgiManager.Execute(
@@ -41,7 +40,6 @@ ResourceManager::Result ResourceManager::ExecuteMethod(
     result.status = cgi_result.status;
     result.content = cgi_result.content;
   }
-
   return result;
 }
 
@@ -225,4 +223,18 @@ void ResourceManager::Delete(Result& result, Router::Result& router_result) {
   }
   result.status = 200;  // OK
   result.content = router_result.success_path.substr(1) + " is removed!\r\n";
+}
+
+// Parse Extension for MIME type
+std::string ResourceManager::ParseExtension(const std::string& success_path) {
+  size_t last_slash = success_path.rfind('/');
+  if (last_slash > success_path.size() - 3) {
+    return "";
+  }
+  size_t last_dot = success_path.rfind('.');
+  if (last_dot == std::string::npos || last_dot < last_slash ||
+      last_dot == success_path.size() - 1) {
+    return "";
+  }
+  return success_path.substr(last_dot + 1);
 }
