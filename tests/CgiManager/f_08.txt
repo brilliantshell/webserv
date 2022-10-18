@@ -1,0 +1,4 @@
+POST /cgi_redir.php?location+https://naver.com+0+Status+302+Found+Status+200+OK HTTP/1.0
+Content-Length: 10
+
+abcdefghij

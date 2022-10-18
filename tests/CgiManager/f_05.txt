@@ -1,0 +1,4 @@
+POST /cgi_redir.php?location+%2fyongjule+0 HTTP/1.0
+Content-Length: 3
+
+abc

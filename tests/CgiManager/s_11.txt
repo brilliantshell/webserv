@@ -1,0 +1,4 @@
+POST /cgi_redir.php?location+https://naver.com+0+Status+302+Found+Content-Type+text/html+0+Allow+GET,%20POST+0+x-cgi-dummy+dummy+0 HTTP/1.0
+Content-Length: 3
+
+abc

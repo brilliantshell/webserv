@@ -14,19 +14,6 @@ int main(int argc, char **argv, char **envp) {
     }
   }
   std::cout << "\n";
-  for (int i = 0; envp[i]; ++i)
-    std::cout << "envp [" << i << "] : " << envp[i] << "\n";
-  ssize_t read_bytes;
-  char buf[1024];
-  std::cout << "\n";
-  while ((read_bytes = read(0, buf, sizeof(buf))) > 0) {
-    std::cout.write(buf, read_bytes);
-  }
-  if (argc > 1) {
-    std::cout << "\n";
-    for (size_t i = 0; i < argc - 1; ++i) {
-      std::cout << argv[i + 1] << ((i + 2 == argc) ? "" : "+");
-    }
-  }
+  std::cout << "cwd : " << getcwd(NULL, 0);
   return 0;
 }

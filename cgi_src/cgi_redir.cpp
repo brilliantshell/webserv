@@ -1,6 +1,7 @@
 #include <unistd.h>
 
 #include <iostream>
+#include <sstream>
 #include <string>
 
 int main(int argc, char **argv, char **envp) {
@@ -14,18 +15,20 @@ int main(int argc, char **argv, char **envp) {
     }
   }
   std::cout << "\n";
-  for (int i = 0; envp[i]; ++i)
-    std::cout << "envp [" << i << "] : " << envp[i] << "\n";
-  ssize_t read_bytes;
-  char buf[1024];
-  std::cout << "\n";
-  while ((read_bytes = read(0, buf, sizeof(buf))) > 0) {
-    std::cout.write(buf, read_bytes);
-  }
-  if (argc > 1) {
-    std::cout << "\n";
-    for (size_t i = 0; i < argc - 1; ++i) {
-      std::cout << argv[i + 1] << ((i + 2 == argc) ? "" : "+");
+  std::stringstream ss(getenv("CONTENT_LENGTH"));
+  size_t len = 0;
+  ss >> len;
+  if (len > 0) {
+    char buf[2049];
+    memset(buf, 0, 2049);
+    while (len > 0) {
+      ssize_t read_size = read(0, buf, 2048);
+      if (read_size < 0) {
+        break;
+      }
+      std::cout << buf;
+      len -= read_size;
+      memset(buf, 0, 2049);
     }
   }
   return 0;

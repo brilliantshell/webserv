@@ -81,6 +81,16 @@ add_executable(
 	cgi_src/cgi_max.cpp
 )
 
+add_executable(
+	cgi_cwd.php
+	cgi_src/cgi_cwd.cpp
+)
+
+add_executable(
+	cgi_redir.php
+	cgi_src/cgi_redir.cpp
+)
+
 target_include_directories(
 	test_webserv
 	PUBLIC ${CMAKE_SOURCE_DIR}/includes
@@ -105,6 +115,8 @@ execute_process(
 	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/tests/ResourceManager ${CMAKE_SOURCE_DIR}/build/resources
 	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/build/cgi.php ${CMAKE_SOURCE_DIR}/build/resources/cgi/cgi.php
 	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/build/cgi_max.php ${CMAKE_SOURCE_DIR}/build/resources/cgi/cgi_max.php
+	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/build/cgi_cwd.php ${CMAKE_SOURCE_DIR}/build/resources/cgi/cgi_cwd.php
+	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/build/cgi_redir.php ${CMAKE_SOURCE_DIR}/build/resources/cgi/cgi_redir.php
 )
 
 include(GoogleTest)
