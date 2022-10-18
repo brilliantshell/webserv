@@ -1,0 +1,2 @@
+GET /cgi_redir.php?location+http://www.our42vent.42cadet.trashservice.io+0+x-cgi-dummy+dummy+0 HTTP/1.0
+

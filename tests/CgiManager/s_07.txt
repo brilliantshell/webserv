@@ -1,0 +1,2 @@
+GET /cgi_redir.php?Location+%2fghan+0 HTTP/1.0
+

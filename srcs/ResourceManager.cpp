@@ -19,19 +19,29 @@ ResourceManager::Result ResourceManager::ExecuteMethod(
     return result;
   }
 
-  switch (router_result.method & (GET | POST | DELETE)) {
-    case GET:
-      Get(result, router_result);
-      break;
-    case POST:
-      Post(result, router_result, request_content);
-      break;
-    case DELETE:
-      Delete(result, router_result);
-      break;
-    default:
-      break;
+  // Location
+  if (router_result.is_cgi == false) {
+    switch (router_result.method & (GET | POST | DELETE)) {
+      case GET:
+        Get(result, router_result);
+        break;
+      case POST:
+        Post(result, router_result, request_content);
+        break;
+      case DELETE:
+        Delete(result, router_result);
+        break;
+      default:
+        break;
+    }
+  } else {
+    CgiManager cgiManager;
+    CgiManager::Result cgi_result = cgiManager.Execute(
+        router_result, result.header, request_content, result.status);
+    result.status = cgi_result.status;
+    result.content = cgi_result.content;
   }
+
   return result;
 }
 

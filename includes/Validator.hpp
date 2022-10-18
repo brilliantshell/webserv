@@ -55,7 +55,6 @@ class Validator {
     kIndex,
     kUploadPath,
     kRedirectTo,
-    kParam,
   };
 
   struct PortServerPair {

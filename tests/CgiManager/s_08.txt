@@ -1,0 +1,2 @@
+GET /cgi_redir.php?location+/jiskim+0 HTTP/1.0
+

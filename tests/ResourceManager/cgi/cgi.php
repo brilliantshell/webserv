@@ -1,0 +1,1 @@
+/goinfre/ghan/webserv/build/cgi.php

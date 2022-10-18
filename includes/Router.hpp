@@ -23,7 +23,6 @@ struct Location {
   std::string index;
   std::string upload_path;
   std::string redirect_to;
-  std::string param;
 
   Location(void);
   Location(bool is_error, std::string error_path);
@@ -35,10 +34,8 @@ struct Location {
       return index;
     } else if (key == "upload_path") {
       return upload_path;
-    } else if (key == "redirect_to") {
-      return redirect_to;
     }
-    return param;
+    return redirect_to;
   }
 };
 
@@ -69,19 +66,19 @@ struct ServerRouter {
 class Router {
  public:
   struct Result {
+    bool is_cgi;
     int status;
     uint8_t method;
     std::string success_path;
     std::string error_path;
-    std::string param;
     CgiEnv cgi_env;
 
     Result(int parse_status)
-        : status(parse_status),
+        : is_cgi(false),
+          status(parse_status),
           method(GET),
           success_path(""),
-          error_path(""),
-          param("") {}
+          error_path("") {}
   };
 
   Router(ServerRouter& server_router);

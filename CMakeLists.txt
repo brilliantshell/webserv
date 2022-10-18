@@ -30,6 +30,7 @@ add_executable(
 	tests/test_router.cpp
 	tests/test_path_resolver.cpp
 	tests/test_resource_manager.cpp
+	tests/test_cgi_manager.cpp
 	srcs/Validator.cpp
 	srcs/PassiveSockets.cpp
 	srcs/Connection.cpp
@@ -40,6 +41,7 @@ add_executable(
 	srcs/PathResolver.cpp
 	srcs/ResourceManager.cpp
 	srcs/CgiEnv.cpp
+	srcs/CgiManager.cpp
 )
 
 add_executable(
@@ -66,6 +68,27 @@ add_executable(
 	srcs/PathResolver.cpp
 	srcs/ResourceManager.cpp
 	srcs/CgiEnv.cpp
+	srcs/CgiManager.cpp
+)
+
+add_executable(
+	cgi.php
+	cgi_src/cgi.cpp
+)
+
+add_executable(
+	cgi_max.php
+	cgi_src/cgi_max.cpp
+)
+
+add_executable(
+	cgi_cwd.php
+	cgi_src/cgi_cwd.cpp
+)
+
+add_executable(
+	cgi_redir.php
+	cgi_src/cgi_redir.cpp
 )
 
 target_include_directories(
@@ -86,6 +109,14 @@ target_include_directories(
 target_link_libraries(
 	test_webserv
 	GTest::gtest
+)
+
+execute_process(
+	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/tests/ResourceManager ${CMAKE_SOURCE_DIR}/build/resources
+	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/build/cgi.php ${CMAKE_SOURCE_DIR}/build/resources/cgi/cgi.php
+	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/build/cgi_max.php ${CMAKE_SOURCE_DIR}/build/resources/cgi/cgi_max.php
+	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/build/cgi_cwd.php ${CMAKE_SOURCE_DIR}/build/resources/cgi/cgi_cwd.php
+	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/build/cgi_redir.php ${CMAKE_SOURCE_DIR}/build/resources/cgi/cgi_redir.php
 )
 
 include(GoogleTest)

@@ -64,4 +64,7 @@ struct ConnectionInfo {
       : server_port(port), client_addr(addr) {}
 };
 
+// SECTION : ResourceManager 가 반환하는 응답 헤더 필드
+typedef std::map<std::string, std::string> ResponseHeaderMap;
+
 #endif  // INCLUDES_TYPES_HPP_

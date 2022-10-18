@@ -1,0 +1,3 @@
+GET /cgi.php?Content-Type+text/plain+0+X-CGI-BYE+BYEBYE+BYEBYEBYE+X-CGI-HI+HI+HI HTTP/1.1
+Host: ghan
+

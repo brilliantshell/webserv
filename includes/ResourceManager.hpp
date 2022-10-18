@@ -17,7 +17,9 @@
 #include <fstream>
 #include <sstream>
 
+#include "CgiManager.hpp"
 #include "Router.hpp"
+#include "Types.hpp"
 
 class ResourceManager {
  public:
@@ -25,6 +27,7 @@ class ResourceManager {
     int status;
     std::string content;
     std::string location;
+    ResponseHeaderMap header;
   };
 
   Result ExecuteMethod(Router::Result& route_result,

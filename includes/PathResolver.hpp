@@ -18,7 +18,6 @@ class PathResolver {
   enum Purpose {
     kLocation = 0,
     kErrorPage,
-    kParam,
     kRouter,
   };
 
