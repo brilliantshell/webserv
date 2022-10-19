@@ -157,12 +157,13 @@ void HttpParser::TokenizeVersion(size_t& pos) {
     return;
   }
   std::string version = request_line_buf_.substr(pos);
-  if (version == "HTTP/1.1") {
-    result_.request.req.version = kHttp1_1;
-  } else if (version == "HTTP/1.0") {
-    result_.request.req.version = kHttp1_0;
+  if (version.size() != 8) {
+    UpdateStatus(400, kClose);  // BAD REQUEST
+  } else if (version.compare(0, 7, "HTTP/1.") == 0 && '0' <= version[7] &&
+             version[7] <= '9') {
+    result_.request.req.version = version[7] == '0' ? kHttp1_0 : kHttp1_1;
   } else {
-    UpdateStatus(505, kComplete);  // HTTP VERSION NOT SUPPORTED
+    UpdateStatus(505, kClose);  // HTTP VERSION NOT SUPPORTED
   }
 }
 

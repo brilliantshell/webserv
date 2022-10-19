@@ -1,0 +1,4 @@
+GET /s_05.html HTTP/1.2
+Host: jiskim
+Accept: */*
+

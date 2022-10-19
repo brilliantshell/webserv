@@ -21,6 +21,7 @@
 #include "PathResolver.hpp"
 #include "Router.hpp"
 #include "Types.hpp"
+#include "UriParser.hpp"
 
 // SECTION : Validator
 class Validator {
@@ -91,6 +92,7 @@ class Validator {
                                       ServerDirective is_cgi);
   uint8_t TokenizeMethods(ConstIterator_& delim, ServerDirective is_cgi);
   ConstIterator_ CheckEndOfParameter(ConstIterator_ delim);
+  void ValidateRedirectToToken(std::string& redirect_to_token);
 
   // 디렉티브별로 파싱하는 switch
   bool SwitchDirectivesToParseParam(ConstIterator_& delim,

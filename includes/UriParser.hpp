@@ -19,16 +19,25 @@ class UriParser {
  public:
   struct Result {
     bool is_valid;
+    std::string port;
+    std::string scheme;
     std::string path;
     std::string query;
     std::string host;
 
-    Result(void) : is_valid(true), path("/") {}
+    Result(void)
+        : is_valid(true),
+          port(""),
+          scheme(""),
+          host(""),
+          path("/"),
+          query("") {}
   };
 
   Result ParseTarget(std::string uri);
   bool ParseHost(std::string& uri);
   bool DecodeHexToAscii(std::string& uri, const size_t pos);
+  std::string GetFullPath(void);
 
  private:
   Result result_;

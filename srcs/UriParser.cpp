@@ -44,6 +44,15 @@ bool UriParser::DecodeHexToAscii(std::string& uri, const size_t pos) {
   return false;
 }
 
+std::string UriParser::GetFullPath(void) {
+  if (result_.scheme.empty() == true) {
+    return result_.path + result_.query;
+  } else {
+    return result_.scheme + "://" + result_.host + result_.port + result_.path +
+           result_.query;
+  }
+}
+
 // SECTION : private
 // Origin form 검증 및 파싱
 void UriParser::ValidatePath(std::string& uri, size_t& start) {
@@ -90,9 +99,11 @@ void UriParser::ValidateScheme(std::string& uri, size_t& start) {
   while (start < uri.size() && uri[start] != ':' && result_.is_valid) {
     if (IsCharSet(ALPHA DIGIT "+-.", false)(uri[start])) {
       result_.is_valid = false;
+      return;
     }
     ++start;
   }
+  result_.scheme = uri.substr(0, start);
 }
 
 void UriParser::ValidateHierPart(std::string& uri, size_t& start) {
@@ -133,8 +144,10 @@ void UriParser::ValidateAuthority(std::string& uri, size_t& start) {
   }
   result_.host = uri.substr(start, pos - start);
   if (uri[pos] == ':') {
+    size_t pos_start = pos;
     while (++pos < uri.size() && IsCharSet(DIGIT, true)(uri[pos]))
       ;
+    result_.port = uri.substr(pos_start, pos - pos_start);
   }
   start = pos;
 }

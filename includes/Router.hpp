@@ -71,6 +71,7 @@ class Router {
     uint8_t method;
     std::string success_path;
     std::string error_path;
+    std::string redirect_to;
     CgiEnv cgi_env;
 
     Result(int parse_status)
@@ -78,7 +79,8 @@ class Router {
           status(parse_status),
           method(GET),
           success_path(""),
-          error_path("") {}
+          error_path(""),
+          redirect_to("") {}
   };
 
   Router(ServerRouter& server_router);

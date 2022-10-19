@@ -6,8 +6,12 @@
 
 #include "HttpServer.hpp"
 #include "PassiveSockets.hpp"
+#include "ResponseData.hpp"
 #include "Types.hpp"
 #include "Validator.hpp"
+
+StatusMap g_status_map;
+MimeMap g_mime_map;
 
 std::string FileToString(const std::string& file_path) {
   std::ifstream ifs(file_path);
@@ -21,6 +25,10 @@ std::string FileToString(const std::string& file_path) {
 }
 
 int main(int argc, char* argv[]) {
+  if (argc != 2) {
+    std::cerr << "Usage: ./server [config_file_path]\n";
+    return 1;
+  }
   Validator validator(FileToString(argv[1]));
   Validator::Result ret = validator.Validate();
 

@@ -1,0 +1,3 @@
+GET /f_00.html HTTP/1.1
+Host: ghan:4242
+

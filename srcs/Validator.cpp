@@ -1,3 +1,4 @@
+
 /**
  * @file Validator.cpp
  * @author ghan, jiskim, yongjule
@@ -8,8 +9,6 @@
  */
 
 #include "Validator.hpp"
-
-#include "PathResolver.hpp"
 
 // SECTION : public
 Validator::Validator(const std::string& config) : kConfig_(config) {}
@@ -210,6 +209,23 @@ Validator::ConstIterator_ Validator::CheckEndOfParameter(ConstIterator_ delim) {
 }
 
 /**
+ * @brief redirect_to 토큰 검증
+ *
+ * @param redirect_to_token
+ */
+void Validator::ValidateRedirectToToken(std::string& redirect_to_token) {
+  UriParser uri_parser;
+  UriParser::Result uri_result = uri_parser.ParseTarget(redirect_to_token);
+  if (uri_result.is_valid == false ||
+      path_resolver_.Resolve(uri_result.path,
+                             PathResolver::Purpose::kRedirectTo) ==
+          PathResolver::kFailure) {
+    throw SyntaxErrorException();
+  }
+  redirect_to_token = uri_parser.GetFullPath();
+}
+
+/**
  * @brief LocationRouter 디렉티브별로 파싱하는 switch
  *
  * @param delim 디렉티브 종료 위치 가리킬 레퍼런스, 파싱 후 개행 위치로
@@ -312,10 +328,13 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
       location.body_max = num;
       break;
     }
+    case LocationDirective::kRedirectTo:
+      location[key_it->first] = TokenizeSingleString(delim);
+      ValidateRedirectToToken(location[key_it->first]);
+      break;
     case LocationDirective::kIndex:
     case LocationDirective::kRoot:
     case LocationDirective::kUploadPath:
-    case LocationDirective::kRedirectTo:
       location[key_it->first] = TokenizeSingleString(delim);
       if ((key_it->second == LocationDirective::kRoot ||
            key_it->second == LocationDirective::kUploadPath) &&

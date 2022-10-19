@@ -11,7 +11,8 @@ void printNow(void) {
   auto now = std::chrono::system_clock::now();
   auto in_time_t = std::chrono::system_clock::to_time_t(now);
   std::cout << "이번엔 다르다! ⏰ " << std::ctime(&in_time_t) << std::endl;
-  system("leaks test_webserv");
+  std::string leak_str = "leaks " + std::to_string(getpid()) + " > /dev/null";
+  system(leak_str.c_str());
 }
 
 int main(int argc, char** argv) {

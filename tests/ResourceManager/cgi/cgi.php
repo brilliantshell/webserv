@@ -1,1 +1,1 @@
-/goinfre/ghan/webserv/build/cgi.php
+/Users/yongjule/webserv/build/cgi.php

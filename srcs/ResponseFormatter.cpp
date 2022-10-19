@@ -17,12 +17,21 @@ std::string ResponseFormatter::Format(ResourceManager::Result& resource_result,
      << resource_result.status << " " << g_status_map[resource_result.status]
      << CRLF << "server: BrilliantServer/1.0" << CRLF
      << "date: " + FormatCurrentTime() << CRLF
-     << "allow: " << FormatAllowedMethods(allowed_methods) << CRLF
+     << ((resource_result.status == 301)
+             ? ""
+             : ("allow: " + FormatAllowedMethods(allowed_methods) + CRLF))
      << "connection: "
      << ((keep_alive == HttpParser::kComplete) ? "keep-alive" : "close") << CRLF
-     << "content-length: " << resource_result.content.size() << CRLF
-     << "content-type: "
-     << FormatContentType(resource_result.ext, resource_result.header) << CRLF;
+     << "content-length: " << resource_result.content.size() << CRLF;
+  std::string content_type =
+      FormatContentType(resource_result.is_autoindex, resource_result.ext,
+                        resource_result.header);
+  if (content_type.empty() == false) {
+    ss << "content-type: " << content_type << CRLF;
+  }
+  if (resource_result.location.empty() == false) {  // 201 || 301
+    ss << "location: " << resource_result.location << CRLF;
+  }
   ResolveConflicts(resource_result.header);
   for (ResponseHeaderMap::const_iterator it = resource_result.header.begin();
        it != resource_result.header.end(); ++it) {
@@ -34,16 +43,14 @@ std::string ResponseFormatter::Format(ResourceManager::Result& resource_result,
 
 std::string ResponseFormatter::FormatCurrentTime(void) {
   time_t now = time(0);
-  struct tm tstruct;
   char buf[80];
-  tstruct = *gmtime(&now);
-  strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", &tstruct);
+  struct tm gmt_time = *gmtime(&now);
+  strftime(buf, sizeof(buf), "%a, %d %b %Y %H:%M:%S GMT", &gmt_time);
   return buf;
 }
 
 std::string ResponseFormatter::FormatAllowedMethods(uint8_t allowed_methods) {
   std::string methods;
-
   if (allowed_methods & GET) {
     methods += "GET";
   }
@@ -56,17 +63,20 @@ std::string ResponseFormatter::FormatAllowedMethods(uint8_t allowed_methods) {
   return methods;
 }
 
-std::string ResponseFormatter::FormatContentType(const std::string& ext,
+std::string ResponseFormatter::FormatContentType(bool is_autoindex,
+                                                 const std::string& ext,
                                                  ResponseHeaderMap& header) {
-  std::string content_type;
+  if (is_autoindex == true) {
+    return "text/html";
+  }
+  std::string content_type = "";
   ResponseHeaderMap::iterator content_type_it = header.find("content-type");
   if (content_type_it != header.end()) {
     content_type = content_type_it->second;
     header.erase(content_type_it);
   } else {
     MimeMap::iterator mime_it = g_mime_map.find(ext);
-    content_type = (mime_it != g_mime_map.end()) ? mime_it->second
-                                                 : "application/octet-stream";
+    content_type = (mime_it != g_mime_map.end()) ? mime_it->second : "";
   }
   return content_type;
 }

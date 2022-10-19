@@ -53,15 +53,15 @@ TEST(RouteTest, ServerRouter) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[4242]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./normal/index.html");
-    EXPECT_EQ(route_result.error_path, "./error.html");
-    EXPECT_FALSE(route_result.is_cgi);
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./normal/index.html");
+    EXPECT_EQ(router_result.error_path, "./error.html");
+    EXPECT_FALSE(router_result.is_cgi);
   }
 
   {
@@ -78,15 +78,15 @@ TEST(RouteTest, ServerRouter) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[4242]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path,
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path,
               "./root_inside/test/index.html/index.html");
-    EXPECT_EQ(route_result.error_path, "./blah/404.html");
+    EXPECT_EQ(router_result.error_path, "./blah/404.html");
   }
 
   {
@@ -103,14 +103,14 @@ TEST(RouteTest, ServerRouter) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[4242]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 404);
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./blah/404.html");
-    EXPECT_EQ(route_result.error_path, "./blah/404.html");
+    EXPECT_EQ(router_result.status, 404);
+    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./blah/404.html");
+    EXPECT_EQ(router_result.error_path, "./blah/404.html");
   }
 
   {
@@ -127,14 +127,14 @@ TEST(RouteTest, ServerRouter) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[2424]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(2424, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./ghan/index.html");
-    EXPECT_EQ(route_result.error_path, "./ghan.error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./ghan/index.html");
+    EXPECT_EQ(router_result.error_path, "./ghan.error.html");
   }
 
   {
@@ -151,14 +151,14 @@ TEST(RouteTest, ServerRouter) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[2424]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(2424, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./yongjule/index.html");
-    EXPECT_EQ(route_result.error_path, "./yongjule.error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./yongjule/index.html");
+    EXPECT_EQ(router_result.error_path, "./yongjule.error.html");
   }
 
   {
@@ -175,14 +175,14 @@ TEST(RouteTest, ServerRouter) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[4242]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 400);
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./f_01.html");
-    EXPECT_EQ(route_result.error_path, "./f_01.html");
+    EXPECT_EQ(router_result.status, 400);
+    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./f_01.html");
+    EXPECT_EQ(router_result.error_path, "./f_01.html");
   }
 
   {
@@ -199,14 +199,14 @@ TEST(RouteTest, ServerRouter) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[2424]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(2424, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./yongjule/index.html");
-    EXPECT_EQ(route_result.error_path, "./yongjule.error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./yongjule/index.html");
+    EXPECT_EQ(router_result.error_path, "./yongjule.error.html");
   }
 }
 
@@ -225,14 +225,14 @@ TEST(RouterTest, LocationRouter) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[2424]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(2424, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 405);
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./yongjule.error.html");
-    EXPECT_EQ(route_result.error_path, "./yongjule.error.html");
+    EXPECT_EQ(router_result.status, 405);
+    EXPECT_TRUE((router_result.method & GET) == 0);
+    EXPECT_EQ(router_result.success_path, "./yongjule.error.html");
+    EXPECT_EQ(router_result.error_path, "./yongjule.error.html");
   }
 
   {
@@ -249,14 +249,14 @@ TEST(RouterTest, LocationRouter) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[4242]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 405);
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./merong_jiskim");
-    EXPECT_EQ(route_result.error_path, "./merong_jiskim");
+    EXPECT_EQ(router_result.status, 405);
+    EXPECT_TRUE((router_result.method & parse_result.request.req.method) == 0);
+    EXPECT_EQ(router_result.success_path, "./merong_jiskim");
+    EXPECT_EQ(router_result.error_path, "./merong_jiskim");
   }
 
   {
@@ -273,14 +273,14 @@ TEST(RouterTest, LocationRouter) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[4242]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 413);
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./body_max.html");
-    EXPECT_EQ(route_result.error_path, "./body_max.html");
+    EXPECT_EQ(router_result.status, 413);
+    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./body_max.html");
+    EXPECT_EQ(router_result.error_path, "./body_max.html");
   }
 
   {
@@ -297,14 +297,14 @@ TEST(RouterTest, LocationRouter) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[4242]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./a/b/a/b/zjj");
-    EXPECT_EQ(route_result.error_path, "./f/irst/error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./a/b/a/b/zjj");
+    EXPECT_EQ(router_result.error_path, "./f/irst/error.html");
   }
 
   {
@@ -321,15 +321,15 @@ TEST(RouterTest, LocationRouter) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[4242]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./path/to/php/index.php");
-    EXPECT_EQ(route_result.error_path, "./error.html");
-    EXPECT_TRUE(route_result.is_cgi);
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./path/to/php/index.php");
+    EXPECT_EQ(router_result.error_path, "./error.html");
+    EXPECT_TRUE(router_result.is_cgi);
   }
 
   {
@@ -346,14 +346,14 @@ TEST(RouterTest, LocationRouter) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[4242]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, POST);
-    EXPECT_EQ(route_result.success_path, "./root/upload_path/upload/file.txt");
-    EXPECT_EQ(route_result.error_path, "./error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./root/upload_path/upload/file.txt");
+    EXPECT_EQ(router_result.error_path, "./error.html");
   }
 
   {
@@ -370,14 +370,14 @@ TEST(RouterTest, LocationRouter) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[4242]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 403);  // FORBIDDEN
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./error.html");
-    EXPECT_EQ(route_result.error_path, "./error.html");
+    EXPECT_EQ(router_result.status, 403);  // FORBIDDEN
+    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./error.html");
+    EXPECT_EQ(router_result.error_path, "./error.html");
   }
 
   // f 06 directory delete
@@ -395,14 +395,14 @@ TEST(RouterTest, LocationRouter) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[4242]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 403);  // FORBIDDEN
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./error.html");
-    EXPECT_EQ(route_result.error_path, "./error.html");
+    EXPECT_EQ(router_result.status, 403);  // FORBIDDEN
+    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./error.html");
+    EXPECT_EQ(router_result.error_path, "./error.html");
   }
 }
 
@@ -422,14 +422,14 @@ TEST(RouterTest, CgiMetaVariables) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[4242]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./index.php");
-    EXPECT_EQ(route_result.error_path, "./error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./index.php");
+    EXPECT_EQ(router_result.error_path, "./error.html");
 
     char hostname[256];
     memset(hostname, 0, sizeof(hostname));
@@ -457,8 +457,8 @@ TEST(RouterTest, CgiMetaVariables) {
         "SERVER_SOFTWARE=BrilliantServer/1.0",
     };
 
-    EXPECT_TRUE(route_result.is_cgi);
-    const char** cgi_envp = route_result.cgi_env.get_env();
+    EXPECT_TRUE(router_result.is_cgi);
+    const char** cgi_envp = router_result.cgi_env.get_env();
     ASSERT_NE(reinterpret_cast<long>(cgi_envp), NULL);
     for (size_t i = 0; i < 17; ++i) {
       if (cgi_envp[i] != NULL) {
@@ -487,14 +487,14 @@ TEST(RouterTest, CgiMetaVariables) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[4242]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, POST);
-    EXPECT_EQ(route_result.success_path, "./index.php");
-    EXPECT_EQ(route_result.error_path, "./error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./index.php");
+    EXPECT_EQ(router_result.error_path, "./error.html");
 
     char hostname[256];
     memset(hostname, 0, sizeof(hostname));
@@ -522,8 +522,8 @@ TEST(RouterTest, CgiMetaVariables) {
         "SERVER_SOFTWARE=BrilliantServer/1.0",
     };
 
-    EXPECT_TRUE(route_result.is_cgi);
-    const char** cgi_envp = route_result.cgi_env.get_env();
+    EXPECT_TRUE(router_result.is_cgi);
+    const char** cgi_envp = router_result.cgi_env.get_env();
     ASSERT_NE(reinterpret_cast<long>(cgi_envp), NULL);
     for (size_t i = 0; i < 17; ++i) {
       if (cgi_envp[i] != NULL) {
@@ -552,14 +552,14 @@ TEST(RouterTest, CgiMetaVariables) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[4242]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method & POST, POST);
-    EXPECT_EQ(route_result.success_path, "./root/after_root/script.php");
-    EXPECT_EQ(route_result.error_path, "./error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./root/after_root/script.php");
+    EXPECT_EQ(router_result.error_path, "./error.html");
 
     char hostname[256];
     memset(hostname, 0, sizeof(hostname));
@@ -589,8 +589,8 @@ TEST(RouterTest, CgiMetaVariables) {
         "SERVER_SOFTWARE=BrilliantServer/1.0",
     };
 
-    EXPECT_TRUE(route_result.is_cgi);
-    const char** cgi_envp = route_result.cgi_env.get_env();
+    EXPECT_TRUE(router_result.is_cgi);
+    const char** cgi_envp = router_result.cgi_env.get_env();
     ASSERT_NE(reinterpret_cast<long>(cgi_envp), NULL);
     for (size_t i = 0; i < 17; ++i) {
       if (cgi_envp[i] != NULL) {
@@ -618,14 +618,14 @@ TEST(RouterTest, CgiMetaVariables) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[4242]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method & POST, POST);
-    EXPECT_EQ(route_result.success_path, "./script.php");
-    EXPECT_EQ(route_result.error_path, "./error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./script.php");
+    EXPECT_EQ(router_result.error_path, "./error.html");
 
     char hostname[256];
     memset(hostname, 0, sizeof(hostname));
@@ -653,8 +653,8 @@ TEST(RouterTest, CgiMetaVariables) {
         "SERVER_SOFTWARE=BrilliantServer/1.0",
     };
 
-    EXPECT_TRUE(route_result.is_cgi);
-    const char** cgi_envp = route_result.cgi_env.get_env();
+    EXPECT_TRUE(router_result.is_cgi);
+    const char** cgi_envp = router_result.cgi_env.get_env();
     ASSERT_NE(reinterpret_cast<long>(cgi_envp), NULL);
     for (size_t i = 0; i < 17; ++i) {
       if (cgi_envp[i] != NULL) {
@@ -683,14 +683,14 @@ TEST(RouterTest, CgiMetaVariables) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[4242]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method & GET, GET);
-    EXPECT_EQ(route_result.success_path, "./index.php");
-    EXPECT_EQ(route_result.error_path, "./error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./index.php");
+    EXPECT_EQ(router_result.error_path, "./error.html");
 
     char hostname[256];
     memset(hostname, 0, sizeof(hostname));
@@ -718,8 +718,8 @@ TEST(RouterTest, CgiMetaVariables) {
         "SERVER_SOFTWARE=BrilliantServer/1.0",
     };
 
-    EXPECT_TRUE(route_result.is_cgi);
-    const char** cgi_envp = route_result.cgi_env.get_env();
+    EXPECT_TRUE(router_result.is_cgi);
+    const char** cgi_envp = router_result.cgi_env.get_env();
     ASSERT_NE(reinterpret_cast<long>(cgi_envp), NULL);
     for (size_t i = 0; i < 17; ++i) {
       if (cgi_envp[i] != NULL) {
@@ -748,14 +748,14 @@ TEST(RouterTest, CgiMetaVariables) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[4242]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method & GET, GET);
-    EXPECT_EQ(route_result.success_path, "./index.php");
-    EXPECT_EQ(route_result.error_path, "./error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./index.php");
+    EXPECT_EQ(router_result.error_path, "./error.html");
 
     char hostname[256];
     memset(hostname, 0, sizeof(hostname));
@@ -783,8 +783,8 @@ TEST(RouterTest, CgiMetaVariables) {
         "SERVER_SOFTWARE=BrilliantServer/1.0",
     };
 
-    EXPECT_TRUE(route_result.is_cgi);
-    const char** cgi_envp = route_result.cgi_env.get_env();
+    EXPECT_TRUE(router_result.is_cgi);
+    const char** cgi_envp = router_result.cgi_env.get_env();
     ASSERT_NE(reinterpret_cast<long>(cgi_envp), NULL);
     for (size_t i = 0; i < 17; ++i) {
       if (cgi_envp[i] != NULL) {

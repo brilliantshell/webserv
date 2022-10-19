@@ -22,32 +22,54 @@
 #include "Router.hpp"
 #include "Types.hpp"
 
+#define LAST_ERROR_DOCUMENT                                               \
+  "<!DOCTYPE html><title>500 Internal Server Error</title><body><h1>500 " \
+  "Internal Server Error</ h1></ body></ html> "
+
 class ResourceManager {
  public:
   struct Result {
+    bool is_autoindex;
     int status;
     std::string content;
-    std::string location;
+    std::string location;  // success or error path
     std::string ext;
     ResponseHeaderMap header;
+
+    Result(int router_result_status)
+        : is_autoindex(false), status(router_result_status), location("") {}
   };
 
-  Result ExecuteMethod(Router::Result& route_result,
-                       const std::string& request_content);
+  Result ExecuteMethod(Router::Result& router_result,
+                       const Request& request_content);
 
  private:
+  void HandleStaticRequest(Result& result, Router::Result& router_result,
+                           const Request& request);
+
+  // GET
   void Get(Result& result, Router::Result& router_result);
   void GetErrorPage(Result& result, Router::Result& router_result);
+
+  // POST
+  void Post(Result& result, Router::Result& router_result,
+            const std::string& request_content);
+  std::string FindValidOutputPath(Result& result, std::string& success_path);
+
+  // DELETE
+  void Delete(Result& result, Router::Result& router_result);
+
+  // Utils
+  std::string ParseExtension(const std::string& success_path);
+  std::string GenerateRedirectPage(const std::string& redirect_to);
   void CheckFileMode(Result& result, Router::Result& router_result);
   void GenerateAutoindex(Result& result, const std::string& path);
   void ListAutoindexFiles(std::string& content,
                           std::vector<std::string>& files);
 
-  void Post(Result& result, Router::Result& router_result,
-            const std::string& request_content);
-
-  void Delete(Result& result, Router::Result& router_result);
-  std::string ParseExtension(const std::string& success_path);
+  // CGI
+  void HandleCgiRequest(Result& result, Router::Result& router_result,
+                        const std::string& request_content);
 };
 
 #endif  // INCLUDES_RESOURCE_MANAGER_HPP_

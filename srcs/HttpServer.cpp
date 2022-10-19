@@ -39,12 +39,19 @@ void HttpServer::InitKqueue(void) {
   // error handling
 }
 
+// #include <execinfo.h>
+
 void HttpServer::UpdateKqueue(struct kevent* sock_ev, int socket_fd,
                               int16_t ev_filt, uint16_t ev_flag) {
   EV_SET(sock_ev, socket_fd, ev_filt, ev_flag, 0, 0, NULL);
   if (kevent(kq_, sock_ev, 1, NULL, 0, NULL) == -1) {
     std::cerr << " HttpServer : UpdateKqueue failed : " << strerror(errno)
               << '\n';
+    // std::cerr << "Stack Back trace:\n";
+    // void* array[10];
+    // size_t size;
+    // size = backtrace(array, 10);
+    // backtrace_symbols_fd(array, size, STDERR_FILENO);
     return;  // error handling
   }
 }

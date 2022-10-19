@@ -612,34 +612,36 @@ TEST(ValidatorTest, RouteBlock) {
     ASSERT_EQ(location_map.count("/http_no_port/"), 1) << "RouteBlock/CASE_21";
 
     Location location = location_map["/http_no_port/"];
-    EXPECT_EQ(location.redirect_to, "naver.com");
+    EXPECT_EQ(location.redirect_to, "http://naver.com/");
 
     ASSERT_EQ(location_map.count("/http_port/"), 1) << "RouteBlock/CASE_21";
 
     location = location_map["/http_port/"];
-    EXPECT_EQ(location.redirect_to, "naver.com:8080");
+    EXPECT_EQ(location.redirect_to, "http://naver.com:8080/");
 
     ASSERT_EQ(location_map.count("/http_protoc_no_port/"), 1)
         << "RouteBlock/CASE_21";
     location = location_map["/http_protoc_no_port/"];
-    EXPECT_EQ(location.redirect_to, "http://naver.com");
+    EXPECT_EQ(location.redirect_to, "http://naver.com/");
 
     ASSERT_EQ(location_map.count("/https_protoc_no_port/"), 1)
         << "RouteBlock/CASE_21";
     location = location_map["/https_protoc_no_port/"];
-    EXPECT_EQ(location.redirect_to, "https://naver.com");
+    EXPECT_EQ(location.redirect_to, "https://naver.com/");
 
     ASSERT_EQ(location_map.count("/https_protoc_port/"), 1)
         << "RouteBlock/CASE_21";
     location = location_map["/https_protoc_port/"];
-    EXPECT_EQ(location.redirect_to, "https://naver.com:80");
+    EXPECT_EQ(location.redirect_to, "https://naver.com:80/");
 
     ASSERT_EQ(location_map.count("/https_only_port/"), 1)
         << "RouteBlock/CASE_21";
     location = location_map["/https_only_port/"];
-    EXPECT_EQ(location.redirect_to, "naver.com:443");
+    EXPECT_EQ(location.redirect_to, "https://naver.com:443/");
   }
 
   TestSyntaxException("RouteBlock/CASE_22");
   TestSyntaxException("RouteBlock/CASE_23");
+
+  // TestSyntaxException
 }
