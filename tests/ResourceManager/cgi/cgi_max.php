@@ -1,1 +1,1 @@
-/goinfre/ghan/webserv/build/cgi_max.php
+/Users/jiskim/webserv/build/cgi_max.php

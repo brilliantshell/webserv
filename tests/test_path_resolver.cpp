@@ -42,41 +42,41 @@ TEST(PathResolverTest, ResolvePathForRouter) {
   {
     std::string path("/a/../index.html");
     PathResolver resolver;
-    EXPECT_EQ(resolver.Resolve(path, PathResolver::kRouter),
+    EXPECT_EQ(resolver.Resolve(path, PathResolver::kHttpParser),
               PathResolver::Status::kFile);
     EXPECT_EQ(path, "/");
   }
   {
     std::string path("/a/../index.html/");
     PathResolver resolver;
-    EXPECT_EQ(resolver.Resolve(path, PathResolver::kRouter),
+    EXPECT_EQ(resolver.Resolve(path, PathResolver::kHttpParser),
               PathResolver::kDirectory);
     EXPECT_EQ(path, "/index.html/");
   }
   {
     std::string path("/a/../index.html/./../.../");
     PathResolver resolver;
-    resolver.Resolve(path, PathResolver::kRouter);
+    resolver.Resolve(path, PathResolver::kHttpParser);
     EXPECT_EQ(path, "/.../");
   }
   {
     std::string path("/a/../index.html/./../..thisisdir/");
     PathResolver resolver;
-    resolver.Resolve(path, PathResolver::kRouter);
+    resolver.Resolve(path, PathResolver::kHttpParser);
     EXPECT_EQ(path, "/..thisisdir/");
   }
 
   {
     std::string path("/a/../index.html/./../.느낌이오잖아~/");
     PathResolver resolver;
-    resolver.Resolve(path, PathResolver::kRouter);
+    resolver.Resolve(path, PathResolver::kHttpParser);
     EXPECT_EQ(path, "/.느낌이오잖아~/");
   }
 
   {
     std::string path("/a/./../");
     PathResolver resolver;
-    resolver.Resolve(path, PathResolver::kRouter);
+    resolver.Resolve(path, PathResolver::kHttpParser);
     EXPECT_EQ(path, "/");
   }
 }

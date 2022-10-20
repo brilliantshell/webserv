@@ -10,7 +10,7 @@
 #include "Validator.hpp"
 
 #define PARSER_PATH_PREFIX "../tests/HttpParser/"
-#define GOINFRE_PATH "/Users/ghan/goinfre/"
+#define GOINFRE_PATH "/Users/jiskim/goinfre/"
 
 /**
 
@@ -323,7 +323,7 @@ TEST(HttpParserTest, ParseRequestLine) {
   }
 
   // f 08 - invalid HTTP version request
-  TestParseError(PARSER_PATH_PREFIX "f_08.txt", HttpParser::kComplete, 505);
+  TestParseError(PARSER_PATH_PREFIX "f_08.txt", HttpParser::kClose, 505);
 
   // s 03 - case insensitive host
   std::cout << "s 03 - case insensitive host\n";

@@ -37,13 +37,13 @@ TEST(CgiManagerTest, InputOutput) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & GET, GET);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
     const char** cgi_env = router_result.cgi_env.get_env();
     std::stringstream ss;
@@ -89,13 +89,13 @@ TEST(CgiManagerTest, InputOutput) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & POST, POST);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
     const char** cgi_env = router_result.cgi_env.get_env();
     std::stringstream ss;
@@ -141,13 +141,13 @@ TEST(CgiManagerTest, InputOutput) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & POST, POST);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
     const char** cgi_env = router_result.cgi_env.get_env();
     std::stringstream ss;
@@ -193,13 +193,13 @@ TEST(CgiManagerTest, InputOutput) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & GET, GET);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
     const char** cgi_env = router_result.cgi_env.get_env();
     std::stringstream ss;
@@ -247,14 +247,14 @@ TEST(CgiManagerTest, ParseCgiResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & GET, GET);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
 
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
     const char** cgi_env = router_result.cgi_env.get_env();
     std::stringstream ss;
@@ -269,17 +269,9 @@ TEST(CgiManagerTest, ParseCgiResponse) {
         uri_parser.DecodeHexToAscii(decoded_query, i);
       }
     }
-    EXPECT_EQ(
-        rm_result.content,
-        ss.str() + "\n" + parse_result.request.content +
-            ((!parse_result.request.req.query.empty() &&
-              parse_result.request.req.query.find("=") == std::string::npos)
-                 ? ("\n" + decoded_query.substr(1))
-                 : ""));
-    EXPECT_EQ(rm_result.header.size(), 1);
-    EXPECT_EQ(rm_result.header.count("content-type"), 1);
-    EXPECT_EQ(rm_result.header["content-type"], "text/plain");
-    EXPECT_EQ(rm_result.location, "");
+    EXPECT_EQ(rm_result.content,
+              "<!DOCTYPE html><title>400 Bad Request</title><body><h1>400 Bad \
+Request</h1></body></html>");
   }
 
   // s 05 successful document response
@@ -301,13 +293,13 @@ TEST(CgiManagerTest, ParseCgiResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & GET, GET);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
     const char** cgi_env = router_result.cgi_env.get_env();
     std::stringstream ss;
@@ -354,13 +346,13 @@ TEST(CgiManagerTest, ParseCgiResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & GET, GET);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_max.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 500);
   }
@@ -384,13 +376,13 @@ TEST(CgiManagerTest, ParseCgiResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & GET, GET);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_max.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 500);
   }
@@ -414,13 +406,13 @@ TEST(CgiManagerTest, ParseCgiResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & GET, GET);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_max.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 500);
   }
@@ -444,13 +436,13 @@ TEST(CgiManagerTest, ParseCgiResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & GET, GET);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_max.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 500);
   }
@@ -474,13 +466,13 @@ TEST(CgiManagerTest, ParseCgiResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & GET, GET);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 500);
   }
@@ -504,13 +496,13 @@ TEST(CgiManagerTest, ParseCgiResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & GET, GET);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_cwd.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
     const char** cgi_env = router_result.cgi_env.get_env();
     std::stringstream ss;
@@ -554,13 +546,13 @@ TEST(CgiManagerTest, ParseCgiResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & GET, GET);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 200);
     EXPECT_EQ(rm_result.header.size(), 1);
@@ -587,13 +579,13 @@ TEST(CgiManagerTest, ParseCgiResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & GET, GET);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 500);
   }
@@ -617,13 +609,13 @@ TEST(CgiManagerTest, ParseCgiResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & GET, GET);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 200);
     EXPECT_EQ(rm_result.header.size(), 1);
@@ -650,13 +642,13 @@ TEST(CgiManagerTest, ParseCgiResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & GET, GET);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 500);
   }
@@ -680,15 +672,15 @@ TEST(CgiManagerTest, ParseCgiResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & GET, GET);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
-    ASSERT_EQ(rm_result.status, 200);
+    ASSERT_EQ(rm_result.status, 302);
     EXPECT_EQ(rm_result.header.size(), 1);
     EXPECT_EQ(rm_result.header.count("location"), 1);
     EXPECT_EQ(rm_result.header["location"],
@@ -714,15 +706,15 @@ TEST(CgiManagerTest, ParseCgiResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & GET, GET);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
-    ASSERT_EQ(rm_result.status, 200);
+    ASSERT_EQ(rm_result.status, 302);
     EXPECT_EQ(rm_result.header.size(), 1);
     EXPECT_EQ(rm_result.header.count("location"), 1);
     EXPECT_EQ(rm_result.header["location"],
@@ -748,13 +740,13 @@ TEST(CgiManagerTest, ParseCgiResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & GET, GET);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 500);
   }
@@ -778,13 +770,13 @@ TEST(CgiManagerTest, ParseCgiResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & GET, GET);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 500);
   }
@@ -808,13 +800,13 @@ TEST(CgiManagerTest, ParseCgiResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & GET, GET);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 500);
   }
@@ -838,13 +830,13 @@ TEST(CgiManagerTest, ParseCgiResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_EQ(router_result.method & GET, GET);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(router_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 302);
     EXPECT_EQ(rm_result.header.size(), 3);
@@ -854,5 +846,7 @@ TEST(CgiManagerTest, ParseCgiResponse) {
     EXPECT_EQ(rm_result.header["content-type"], "text/html");
     EXPECT_EQ(rm_result.header.count("allow"), 1);
     EXPECT_EQ(rm_result.header["allow"], "GET, POST");
+
+    EXPECT_EQ(rm_result.content, "abc");
   }
 }

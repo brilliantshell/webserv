@@ -24,15 +24,13 @@ void HttpParser::ReceiveHeader(std::string& segment) {
   size_t pos = header_buf_.find(CRLF CRLF);
   if (pos == std::string::npos) {
     if (header_buf_.size() > HEADER_MAX) {
-      UpdateStatus(400, kHDLenErr);  // BAD REQUEST
-      return;
+      return UpdateStatus(400, kHDLenErr);  // BAD REQUEST
     }
   } else {
     header_buf_ = header_buf_.substr(0, pos + 2);
     ParseHeader();
     if (header_buf_.size() > HEADER_MAX) {
-      UpdateStatus(400, kHDLenErr);  // BAD REQUEST
-      return;
+      return UpdateStatus(400, kHDLenErr);  // BAD REQUEST
     }
     if (status_ < kComplete) {
       status_ = kContent;
@@ -74,7 +72,6 @@ void HttpParser::TokenizeFieldValueList(size_t& cursor, std::string& name) {
   if (status_ >= kComplete) {
     return;
   }
-
   size_t value_start = cursor;
   SkipWhiteSpace(cursor);
   size_t start = cursor;
@@ -131,18 +128,15 @@ void HttpParser::ParseFieldValueList(std::list<std::string>& values,
       std::string::iterator token_end =
           std::remove_if(token.begin(), token.end(), IsCharSet(SP HTAB, true));
       if (token_end == token.begin()) {
-        UpdateStatus(400, kClose);  // BAD REQUEST
-        return;
+        return UpdateStatus(400, kClose);  // BAD REQUEST;
       }
       token.erase(token_end, token.end());
       std::transform(token.begin(), token.end(), token.begin(), ::tolower);
       if (valid_map.count(token) == 0) {
-        UpdateStatus(no_match_status, kClose);
-        return;
+        return UpdateStatus(no_match_status, kClose);
       }
       if (valid_map[token] > 0) {
-        UpdateStatus(400, kClose);  // BAD REQUEST
-        return;
+        return UpdateStatus(400, kClose);  // BAD REQUEST
       }
       values.push_back(token);
       ++valid_map[token];
@@ -164,8 +158,7 @@ void HttpParser::ParseTransferEncoding(std::list<std::string>& encodings) {
     return;
   }
   if (encodings.empty() || encodings.back() != "chunked") {
-    UpdateStatus(400, kClose);  // BAD REQUEST
-    return;
+    return UpdateStatus(400, kClose);  // BAD REQUEST
   }
   body_length_ = CHUNKED;
 }
@@ -201,8 +194,7 @@ void HttpParser::DetermineBodyLength(void) {
   Fields::iterator cl_it = header.find("content-length");
   Fields::iterator te_it = header.find("transfer-encoding");
   if (te_it != header.end() && cl_it != header.end()) {
-    UpdateStatus(400, kClose);  // BAD REQUEST
-    return;
+    return UpdateStatus(400, kClose);  // BAD REQUEST
   }
   if (te_it != header.end() && result_.request.req.version == kHttp1_1) {
     ParseTransferEncoding(te_it->second);
@@ -212,7 +204,6 @@ void HttpParser::DetermineBodyLength(void) {
     UpdateStatus(411, (result_.request.req.version == kHttp1_1)
                           ? kComplete
                           : kClose);  // LENGTH REQUIRED
-    return;
   }
 }
 
@@ -254,7 +245,7 @@ void HttpParser::ValidateConnection(void) {
 }
 
 void HttpParser::ParseHeader(void) {
-  if (result_.status != 200) {  // FIXME
+  if (result_.status != 200) {
     return;
   }
   size_t start = 0;

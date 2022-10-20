@@ -1,0 +1,3 @@
+GET /f_03.txt HTTP/2.0
+Host: blah
+

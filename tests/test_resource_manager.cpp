@@ -48,18 +48,18 @@ TEST(ResourceManager, GETMethod) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[80]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./resources/s_00.html");
-    EXPECT_EQ(route_result.error_path, "./resources/error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./resources/s_00.html");
+    EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(route_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 200);
     EXPECT_EQ(rm_result.content, FileToString(RM_REQ_PATH_PREFIX "s_00.html"));
   }
@@ -79,18 +79,18 @@ TEST(ResourceManager, GETMethod) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[80]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./resources/f_00.html");
-    EXPECT_EQ(route_result.error_path, "./resources/error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./resources/f_00.html");
+    EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(route_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 404);
     EXPECT_EQ(rm_result.content, FileToString(RM_REQ_PATH_PREFIX "error.html"));
   }
@@ -111,24 +111,24 @@ TEST(ResourceManager, GETMethod) {
 
     chmod("./resources/f_01.html", 0111);
     Router router(port_map[80]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./resources/f_01.html");
-    EXPECT_EQ(route_result.error_path, "./resources/error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./resources/f_01.html");
+    EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(route_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 403);
     EXPECT_EQ(rm_result.content, FileToString(RM_REQ_PATH_PREFIX "error.html"));
     chmod("./resources/f_01.html", 0777);
   }
 
-  // f 02 GET FAIL 500 (ERROR, BUT NO ERROR PAGE)
+  // f 02 GET FAIL 404 (ERROR, BUT NO ERROR PAGE, GET DEFAULT ERROR PAGE)
   {
     Validator::Result result =
         TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_02");
@@ -143,19 +143,19 @@ TEST(ResourceManager, GETMethod) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[80]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./resources/f_02.html");
-    EXPECT_EQ(route_result.error_path, "./resources/sinnarisyeos.sinna");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./resources/f_02.html");
+    EXPECT_EQ(router_result.error_path, "./resources/sinnarisyeos.sinna");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(route_result, parse_result.request.content);
-    EXPECT_EQ(rm_result.status, 500);
+        rm.ExecuteMethod(router_result, parse_result.request);
+    EXPECT_EQ(rm_result.status, 404);
   }
 
   // f 03 ERROR PATH IS DIRECTORY - http1.1
@@ -173,18 +173,18 @@ TEST(ResourceManager, GETMethod) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[80]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./resources/f_03.html");
-    EXPECT_EQ(route_result.error_path, "./resources");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./resources/f_03.html");
+    EXPECT_EQ(router_result.error_path, "./resources");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(route_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 500);
   }
 
@@ -203,18 +203,18 @@ TEST(ResourceManager, GETMethod) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[80]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./_deps/");
-    EXPECT_EQ(route_result.error_path, "./resources/error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./_deps/");
+    EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(route_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 200);
     EXPECT_EQ(rm_result.content,
               "<!DOCTYPE html><html><title>Index of /_deps/\
@@ -241,18 +241,18 @@ pre><hr></body></html>");
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[80]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./_deps/googletest-build/");
-    EXPECT_EQ(route_result.error_path, "./resources/error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./_deps/googletest-build/");
+    EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(route_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 200);
     EXPECT_EQ(rm_result.content,
               "<!DOCTYPE html><html><title>Index of /_deps/googletest-build/\
@@ -282,18 +282,18 @@ pre><hr></body></html>");
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[80]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, GET);
-    EXPECT_EQ(route_result.success_path, "./resources/s_03.html");
-    EXPECT_EQ(route_result.error_path, "./resources/error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./resources/s_03.html");
+    EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(route_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 200);
     EXPECT_EQ(rm_result.content, FileToString(RM_REQ_PATH_PREFIX "s_03.html"));
   }
@@ -313,24 +313,24 @@ pre><hr></body></html>");
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[80]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, GET);
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(
-        route_result.success_path,
+        router_result.success_path,
         "./resources/"
         "b5bceb60fa34881dc1edd5954020dafb83abe747b9131a99c0be79940c40e1d10031de"
         "39909cbf085e8095f46cbd056ba6c951c0972346aa0895baada73e3d20270860793ee2"
         "1ae203f8093db247201bd282d1ccdb06909cd292b34ab8b42e4485b511ba638beebb22"
         "58cc26b28ce6205eaf4380e12a6ea7944afb6fbdc93ce567");
-    EXPECT_EQ(route_result.error_path, "./resources/error.html");
+    EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(route_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 500);
     EXPECT_EQ(rm_result.content, FileToString(RM_REQ_PATH_PREFIX "error.html"));
   }
@@ -353,18 +353,18 @@ TEST(ResourceManager, POSTMethod) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[80]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, POST);
-    EXPECT_EQ(route_result.success_path, "./resources/post/s_04.txt");
-    EXPECT_EQ(route_result.error_path, "./resources/error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./resources/post/s_04.txt");
+    EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(route_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 201);  // CREATED
     ASSERT_EQ(access("./resources/post/s_04.txt", F_OK), 0);
     EXPECT_EQ(parse_result.request.content,
@@ -387,20 +387,20 @@ TEST(ResourceManager, POSTMethod) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[80]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, POST);
-    EXPECT_EQ(route_result.success_path,
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path,
               "./resources/post/unauthorized/f_05.html");
-    EXPECT_EQ(route_result.error_path, "./resources/error.html");
+    EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
     chmod("./resources/post/unauthorized", 0555);
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(route_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 403);  // FORBIDDEN
     errno = 0;
     ASSERT_EQ(access("./resources/post/unauthorized/f_05.txt", F_OK), -1);
@@ -423,23 +423,22 @@ TEST(ResourceManager, POSTMethod) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[80]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, POST);
-    EXPECT_EQ(route_result.success_path, "./resources/post/s_05.txt");
-    EXPECT_EQ(route_result.error_path, "./resources/error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./resources/post/s_05.txt");
+    EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(route_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 201);  // CREATED
     ASSERT_EQ(access("./resources/post/s_05_0.txt", F_OK), 0);
     EXPECT_EQ(parse_result.request.content,
               FileToString(RM_REQ_PATH_PREFIX "post/s_05_0.txt"));
-    std::cout << rm_result.content << '\n';
     unlink("./resources/post/s_05_0.txt");
   }
 
@@ -457,23 +456,22 @@ TEST(ResourceManager, POSTMethod) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[80]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, POST);
-    EXPECT_EQ(route_result.success_path, "./resources/post/s_06.txt");
-    EXPECT_EQ(route_result.error_path, "./resources/error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./resources/post/s_06.txt");
+    EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(route_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 201);  // CREATED
     ASSERT_EQ(access("./resources/post/s_06.txt", F_OK), 0);
     EXPECT_EQ(parse_result.request.content,
               FileToString(RM_REQ_PATH_PREFIX "post/s_06.txt"));
-    std::cout << rm_result.content << '\n';
     unlink("./resources/post/s_06.txt");
   }
 }
@@ -493,14 +491,14 @@ TEST(ResourceManager, DELETEMethod) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[80]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, DELETE);
-    EXPECT_EQ(route_result.success_path, "./resources/delete/s_07.txt");
-    EXPECT_EQ(route_result.error_path, "./resources/error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./resources/delete/s_07.txt");
+    EXPECT_EQ(router_result.error_path, "./resources/error.html");
     {
       std::ofstream ofs("./resources/delete/s_07.txt");
       ofs << "smart";
@@ -508,10 +506,9 @@ TEST(ResourceManager, DELETEMethod) {
     ASSERT_EQ(access("./resources/delete/s_07.txt", F_OK), 0);
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(route_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 200);  // CREATED
     ASSERT_EQ(access("./resources/delete/s_07.txt", F_OK), -1);
-    std::cout << rm_result.content << '\n';
     unlink("./resources/delete/s_07.txt");
   }
 
@@ -529,14 +526,14 @@ TEST(ResourceManager, DELETEMethod) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[80]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, DELETE);
-    EXPECT_EQ(route_result.success_path, "./resources/delete/f_06.txt");
-    EXPECT_EQ(route_result.error_path, "./resources/error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./resources/delete/f_06.txt");
+    EXPECT_EQ(router_result.error_path, "./resources/error.html");
     {
       std::ofstream ofs("./resources/delete/f_06.txt");
       ofs << "smart";
@@ -547,7 +544,7 @@ TEST(ResourceManager, DELETEMethod) {
     ASSERT_EQ(access("./resources/delete/f_06.txt", F_OK), 0);
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(route_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 403);  // FORBIDDEN`
     ASSERT_EQ(access("./resources/delete/f_06.txt", F_OK), 0);
     chmod("./resources/delete/f_06.txt", 0777);
@@ -568,18 +565,18 @@ TEST(ResourceManager, DELETEMethod) {
     HttpParser::Result parse_result = parser.get_result();
 
     Router router(port_map[80]);
-    Router::Result route_result =
+    Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
 
-    EXPECT_EQ(route_result.status, 200);
-    EXPECT_EQ(route_result.method, DELETE);
-    EXPECT_EQ(route_result.success_path, "./resources/delete/f_07.txt");
-    EXPECT_EQ(route_result.error_path, "./resources/error.html");
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./resources/delete/f_07.txt");
+    EXPECT_EQ(router_result.error_path, "./resources/error.html");
     ASSERT_EQ(access("./resources/delete/f_07.txt", F_OK), -1);
     ResourceManager rm;
     ResourceManager::Result rm_result =
-        rm.ExecuteMethod(route_result, parse_result.request.content);
+        rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 404);  // PAGE NOT FOUND
     ASSERT_EQ(access("./resources/delete/f_07.txt", F_OK), -1);
   }

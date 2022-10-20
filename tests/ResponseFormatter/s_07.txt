@@ -1,0 +1,3 @@
+GET /rf_resources/s_06.html HTTP/1.1
+Host: ghan
+

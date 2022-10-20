@@ -58,13 +58,8 @@ Router::CgiDiscriminator Router::GetCgiLocation(
 
 void Router::RouteToLocation(Result& result, LocationRouter& location_router,
                              Request& request) {
-  PathResolver path_resolver;
-  PathResolver::Status path_status =
-      path_resolver.Resolve(request.req.path, PathResolver::Purpose::kRouter);
-  if (path_status == PathResolver::Status::kFailure) {
-    return UpdateStatus(result, 404);  // Path Not Found
-  }
   Location& location = location_router[request.req.path];
+  result.methods = location.methods;
   if (location.error == true) {
     return UpdateStatus(result, 404);  // Page Not Found
   }
@@ -74,23 +69,25 @@ void Router::RouteToLocation(Result& result, LocationRouter& location_router,
   if (location.body_max < request.content.size()) {
     return UpdateStatus(result, 413);  // Request Entity Too Large
   }
-  std::string path = location.root;
-  if ((location.methods & POST) == POST) {
-    path += location.upload_path.substr(1);
+  if (location.redirect_to.empty() == false) {
+    result.redirect_to = location.redirect_to;
+    result.status = 301;  // Moved Permanently
+    return;
   }
-  path += request.req.path.substr(1);
-  if (path_status == PathResolver::Status::kFile) {
-    path += path_resolver.get_file_name();
-  } else {
+  result.success_path =
+      "." + location.root +
+      (((location.methods & POST) == POST) ? location.upload_path.substr(1)
+                                           : "") +
+      request.req.path.substr(1);
+  if (*result.success_path.rbegin() == '/') {
     if (location.methods & (POST | DELETE)) {
       return UpdateStatus(result, 403);  // Forbidden
     }
-    path += ((location.index.size() == 0 && location.autoindex == false)
-                 ? "index.html"
-                 : location.index);
+    result.success_path +=
+        ((location.index.size() == 0 && location.autoindex == false)
+             ? "index.html"
+             : location.index);
   }
-  result.method = location.methods;
-  result.success_path = "." + path;
 }
 
 void Router::RouteToCgi(Result& result, Request& request,
@@ -98,13 +95,13 @@ void Router::RouteToCgi(Result& result, Request& request,
                         const ConnectionInfo& connection_info) {
   const std::string& cgi_ext = cgi_discriminator.first.first;
   const Location& cgi_location = cgi_discriminator.first.second;
+  result.methods = cgi_location.methods;
   if ((cgi_location.methods & request.req.method) == 0) {
     return UpdateStatus(result, 405);  // Method Not Allowed
   }
   result.success_path =
       "." + cgi_location.root +
       request.req.path.substr(1, cgi_discriminator.second + cgi_ext.size() - 1);
-  result.method = cgi_location.methods;
   if (result.cgi_env.SetMetaVariables(request, cgi_location.root, cgi_ext,
                                       connection_info) == false) {
     result.status = 500;  // INTERNAL SERVER ERROR
@@ -125,7 +122,6 @@ bool Router::GetHostAddr(std::string& server_addr) const {
 
 void Router::UpdateStatus(Result& result, int status) {
   result.success_path = result.error_path;
-  result.method = GET;
   result.status = status;
 }
 
@@ -141,7 +137,7 @@ Location::Location(void)
       redirect_to("") {}
 
 Location::Location(bool is_error, std::string error_path)
-    : error(is_error), index(error_path) {}
+    : error(is_error), methods(GET), index(error_path) {}
 
 // SECTION : LocationRouter
 LocationRouter::LocationRouter(void) : error(true, "/error.html") {}

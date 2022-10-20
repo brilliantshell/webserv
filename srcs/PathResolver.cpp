@@ -19,7 +19,7 @@ PathResolver::Status PathResolver::Resolve(std::string &path, Purpose purpose) {
     return kFailure;
   }
   if (file_name_.size() > 0) {
-    if (purpose != kRouter) {
+    if (purpose != kHttpParser) {
       path += file_name_;
       file_name_.clear();
     }

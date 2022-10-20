@@ -11,10 +11,12 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g3 -fsanitize=address")
 
 include(FetchContent)
 FetchContent_Declare(
-  googletest
+	googletest
+	googlemock
   GIT_REPOSITORY https://github.com/google/googletest.git
   GIT_TAG release-1.12.1
 )
+
 # For Windows: Prevent overriding the parent project's compiler/linker settings
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(googletest)
@@ -31,6 +33,7 @@ add_executable(
 	tests/test_path_resolver.cpp
 	tests/test_resource_manager.cpp
 	tests/test_cgi_manager.cpp
+	tests/test_response_formatter.cpp
 	srcs/Validator.cpp
 	srcs/PassiveSockets.cpp
 	srcs/Connection.cpp
@@ -42,33 +45,35 @@ add_executable(
 	srcs/ResourceManager.cpp
 	srcs/CgiEnv.cpp
 	srcs/CgiManager.cpp
+	srcs/ResponseFormatter.cpp
 )
 
-add_executable(
-	client
-	tests/test_client_io.cpp
-	srcs/Validator.cpp
-	srcs/Router.cpp
-	srcs/ClientConnection.cpp
-	srcs/PathResolver.cpp
-	srcs/CgiEnv.cpp
-)
+# add_executable(
+# 	client
+# 	tests/test_client_io.cpp
+# 	srcs/Validator.cpp
+# 	srcs/Router.cpp
+# 	srcs/ClientConnection.cpp
+# 	srcs/PathResolver.cpp
+# 	srcs/CgiEnv.cpp
+# )
 
 add_executable(
 	server
 	tests/test_server_io.cpp
 	srcs/Validator.cpp
-	srcs/HttpServer.cpp
 	srcs/PassiveSockets.cpp
+	srcs/HttpServer.cpp
 	srcs/Connection.cpp
 	srcs/HttpParser.cpp
+	srcs/UriParser.cpp
 	srcs/HeaderParser.cpp
 	srcs/Router.cpp
-	srcs/UriParser.cpp
 	srcs/PathResolver.cpp
 	srcs/ResourceManager.cpp
 	srcs/CgiEnv.cpp
 	srcs/CgiManager.cpp
+	srcs/ResponseFormatter.cpp
 )
 
 add_executable(
@@ -96,10 +101,10 @@ target_include_directories(
 	PUBLIC ${CMAKE_SOURCE_DIR}/includes
 )
 
-target_include_directories(
-	client
-	PUBLIC ${CMAKE_SOURCE_DIR}/includes
-)
+# target_include_directories(
+# 	client
+# 	PUBLIC ${CMAKE_SOURCE_DIR}/includes
+# )
 
 target_include_directories(
 	server
@@ -109,10 +114,12 @@ target_include_directories(
 target_link_libraries(
 	test_webserv
 	GTest::gtest
+	GTest::gmock
 )
 
 execute_process(
 	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/tests/ResourceManager ${CMAKE_SOURCE_DIR}/build/resources
+	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/tests/ResponseFormatter ${CMAKE_SOURCE_DIR}/build/rf_resources
 	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/build/cgi.php ${CMAKE_SOURCE_DIR}/build/resources/cgi/cgi.php
 	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/build/cgi_max.php ${CMAKE_SOURCE_DIR}/build/resources/cgi/cgi_max.php
 	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/build/cgi_cwd.php ${CMAKE_SOURCE_DIR}/build/resources/cgi/cgi_cwd.php

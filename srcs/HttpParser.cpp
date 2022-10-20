@@ -96,12 +96,10 @@ void HttpParser::ParseRequestLine(void) {
 
 void HttpParser::TokenizeMethod(size_t& pos) {
   if (pos == std::string::npos) {
-    UpdateStatus(400, kClose);  // BAD REQUEST
-    return;
+    return UpdateStatus(400, kClose);  // BAD REQUEST
   }
   if (pos > METHOD_MAX) {
-    UpdateStatus(501, kComplete);  // NOT IMPLEMENTED
-    return;
+    return UpdateStatus(501, kComplete);  // NOT IMPLEMENTED
   }
   std::string token = request_line_buf_.substr(0, pos);
 
@@ -126,24 +124,30 @@ void HttpParser::TokenizePath(size_t& pos) {
   }
   size_t pos_back = request_line_buf_.find(SP, ++pos);
   if (pos_back == std::string::npos) {
-    UpdateStatus(400, kClose);  // BAD REQUEST
-    return;
+    return UpdateStatus(400, kClose);  // BAD REQUEST
   }
   if (pos_back - pos > REQUEST_PATH_MAX) {
-    UpdateStatus(414, kRLLenErr);  // URI TOO LONG
-    return;
+    return UpdateStatus(414, kRLLenErr);  // URI TOO LONG
   }
   UriParser uri_parser;
   UriParser::Result uri_result =
       uri_parser.ParseTarget(request_line_buf_.substr(pos, pos_back - pos));
   if (uri_result.is_valid == false) {
-    UpdateStatus(400, kClose);  // BAD REQUEST
-    return;
+    return UpdateStatus(400, kClose);  // BAD REQUEST
+  }
+  PathResolver path_resolver;
+  PathResolver::Status path_status = path_resolver.Resolve(
+      uri_result.path, PathResolver::Purpose::kHttpParser);
+  if (path_status == PathResolver::kFailure) {
+    return UpdateStatus(400, kClose);  // BAD REQUEST
   }
   std::transform(uri_result.host.begin(), uri_result.host.end(),
                  uri_result.host.begin(), ::tolower);
   result_.request.req.host = uri_result.host;
-  result_.request.req.path = uri_result.path;
+  result_.request.req.path =
+      uri_result.path + ((path_status == PathResolver::kFile)
+                             ? path_resolver.get_file_name()
+                             : "");
   result_.request.req.query = uri_result.query;
   pos = pos_back + 1;
 }
@@ -153,16 +157,16 @@ void HttpParser::TokenizeVersion(size_t& pos) {
     return;
   }
   if (request_line_buf_.find(SP, pos) != std::string::npos) {
-    UpdateStatus(400, kClose);  // BAD REQUEST
-    return;
+    return UpdateStatus(400, kClose);  // BAD REQUEST
   }
   std::string version = request_line_buf_.substr(pos);
-  if (version == "HTTP/1.1") {
-    result_.request.req.version = kHttp1_1;
-  } else if (version == "HTTP/1.0") {
-    result_.request.req.version = kHttp1_0;
+  if (version.size() != 8) {
+    UpdateStatus(400, kClose);  // BAD REQUEST
+  } else if (version.compare(0, 7, "HTTP/1.") == 0 && '0' <= version[7] &&
+             version[7] <= '9') {
+    result_.request.req.version = version[7] == '0' ? kHttp1_0 : kHttp1_1;
   } else {
-    UpdateStatus(505, kComplete);  // HTTP VERSION NOT SUPPORTED
+    UpdateStatus(505, kClose);  // HTTP VERSION NOT SUPPORTED
   }
 }
 
@@ -174,7 +178,6 @@ void HttpParser::ReceiveContent(std::string& segment) {
   }
   if (body_length_ == CHUNKED) {
     DecodeChunkedContent(segment);
-    // status_ = kComplete;  // FIXME
     return;
   }
 
@@ -192,9 +195,9 @@ void HttpParser::ReceiveContent(std::string& segment) {
 }
 
 void HttpParser::DecodeChunkedContent(std::string& segment) {
-  chunked_buf_.append(segment);  // segment가 \r에서 끊기면?
+  chunked_buf_.append(segment);
 
-  while (true) {  // FIXME
+  while (true) {
     if (is_data_ == kChunkData) {
       if (ParseChunkData() == false) {
         return;
@@ -204,8 +207,7 @@ void HttpParser::DecodeChunkedContent(std::string& segment) {
         return;
       }
     } else if (is_data_ == kChunkEnd) {
-      ParseChunkEnd();
-      return;
+      return ParseChunkEnd();
     }
     if (status_ >= kComplete) {
       return;
@@ -262,8 +264,7 @@ bool HttpParser::ParseChunkSize(void) {
 void HttpParser::ParseChunkEnd(void) {
   if (chunked_buf_.size() >= 2) {
     if (chunked_buf_.compare(0, 2, CRLF)) {
-      UpdateStatus(400, kClose);  // BAD REQUEST
-      return;
+      return UpdateStatus(400, kClose);  // BAD REQUEST
     }
     status_ = kComplete;
     backup_buf_ = chunked_buf_.substr(2);

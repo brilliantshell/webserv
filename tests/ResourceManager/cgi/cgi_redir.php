@@ -1,1 +1,1 @@
-/goinfre/ghan/webserv/build/cgi_redir.php
+/Users/jiskim/webserv/build/cgi_redir.php

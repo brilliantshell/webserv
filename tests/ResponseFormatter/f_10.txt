@@ -1,0 +1,3 @@
+DELETE /cgi.php HTTP/1.1
+Host: this_is_forbidden
+

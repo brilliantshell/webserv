@@ -1,0 +1,4 @@
+GET /s_02.png HTTP/1.1
+host: ghan:4242
+Connection: close
+

@@ -43,6 +43,7 @@ CgiManager::Result CgiManager::Execute(Router::Result& router_result,
     if (ReceiveCgiResponse(result, header, out_fd[0]) == false ||
         ParseCgiHeader(result, header) == false) {
       result.status = 500;
+      result.is_local_redir = false;
       result.content.clear();
       header.clear();
     }
@@ -114,6 +115,7 @@ void CgiManager::ExecuteScript(int in_fd[], int out_fd[],
       argv[i + 1] = arg_vector[i].c_str();
     }
     execve(script_path, const_cast<char* const*>(argv), env);
+    // TODO : error handling(404, 403, 500)
     exit(EXIT_FAILURE);
   } catch (const std::exception& e) {
     exit(EXIT_FAILURE);
@@ -261,6 +263,12 @@ bool CgiManager::ParseCgiHeader(Result& result, ResponseHeaderMap& header) {
     if (result.status < 100 || result.status > 999) {
       return false;
     }
+  }
+  if (response_type == kLocalRedir) {
+    result.is_local_redir = true;
+  }
+  if (response_type == kClientRedir || response_type == kClientRedirDoc) {
+    result.status = 302;
   }
   std::vector<std::string> field_names;
   for (ResponseHeaderMap::const_iterator it = header.begin();
