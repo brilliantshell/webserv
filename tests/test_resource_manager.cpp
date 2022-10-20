@@ -53,7 +53,7 @@ TEST(ResourceManager, GETMethod) {
                      ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/s_00.html");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
@@ -84,7 +84,7 @@ TEST(ResourceManager, GETMethod) {
                      ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/f_00.html");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
@@ -116,7 +116,7 @@ TEST(ResourceManager, GETMethod) {
                      ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/f_01.html");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
@@ -148,7 +148,7 @@ TEST(ResourceManager, GETMethod) {
                      ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/f_02.html");
     EXPECT_EQ(router_result.error_path, "./resources/sinnarisyeos.sinna");
 
@@ -178,7 +178,7 @@ TEST(ResourceManager, GETMethod) {
                      ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/f_03.html");
     EXPECT_EQ(router_result.error_path, "./resources");
 
@@ -208,7 +208,7 @@ TEST(ResourceManager, GETMethod) {
                      ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./_deps/");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
@@ -246,7 +246,7 @@ pre><hr></body></html>");
                      ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./_deps/googletest-build/");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
@@ -287,7 +287,7 @@ pre><hr></body></html>");
                      ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/s_03.html");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
@@ -318,7 +318,7 @@ pre><hr></body></html>");
                      ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(
         router_result.success_path,
         "./resources/"
@@ -358,7 +358,7 @@ TEST(ResourceManager, POSTMethod) {
                      ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/post/s_04.txt");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
@@ -392,7 +392,7 @@ TEST(ResourceManager, POSTMethod) {
                      ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path,
               "./resources/post/unauthorized/f_05.html");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
@@ -428,7 +428,7 @@ TEST(ResourceManager, POSTMethod) {
                      ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/post/s_05.txt");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
@@ -461,7 +461,7 @@ TEST(ResourceManager, POSTMethod) {
                      ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/post/s_06.txt");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
@@ -496,7 +496,7 @@ TEST(ResourceManager, DELETEMethod) {
                      ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/delete/s_07.txt");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
     {
@@ -531,7 +531,7 @@ TEST(ResourceManager, DELETEMethod) {
                      ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/delete/f_06.txt");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
     {
@@ -570,7 +570,7 @@ TEST(ResourceManager, DELETEMethod) {
                      ConnectionInfo(80, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/delete/f_07.txt");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
     ASSERT_EQ(access("./resources/delete/f_07.txt", F_OK), -1);

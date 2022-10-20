@@ -51,9 +51,11 @@ void ResourceManager::HandleStaticRequest(Result& result,
     default:
       break;
   }
-  result.ext = (result.status == 201)
-                   ? "html"
-                   : ParseExtension(router_result.success_path);
+  result.ext =
+      (result.status == 201 ||
+       ((request.req.method & DELETE) == DELETE && result.status == 200))
+          ? "html"
+          : ParseExtension(router_result.success_path);
 }
 
 // GET
@@ -191,7 +193,9 @@ void ResourceManager::Delete(Result& result, Router::Result& router_result) {
     return;
   }
   result.status = 200;  // OK
-  result.content = router_result.success_path.substr(1) + " is removed!\r\n";
+  result.content =
+      "<!DOCTYPE html><html><title>Deleted</title><body><h1>200 OK</h1><p>" +
+      router_result.success_path.substr(1) + " is removed!</p></body></html>";
 }
 
 // Utils
@@ -289,6 +293,7 @@ void ResourceManager::HandleCgiRequest(Result& result,
   if (result.status < 400) {
     result.status = cgi_result.status;
     result.content = cgi_result.content;
+    result.is_local_redir = cgi_result.is_local_redir;
   } else {
     result.header.clear();
   }

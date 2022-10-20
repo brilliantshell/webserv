@@ -58,7 +58,7 @@ TEST(RouteTest, ServerRouter) {
                      ConnectionInfo(4242, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./normal/index.html");
     EXPECT_EQ(router_result.error_path, "./error.html");
     EXPECT_FALSE(router_result.is_cgi);
@@ -83,7 +83,7 @@ TEST(RouteTest, ServerRouter) {
                      ConnectionInfo(4242, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path,
               "./root_inside/test/index.html/index.html");
     EXPECT_EQ(router_result.error_path, "./blah/404.html");
@@ -108,7 +108,7 @@ TEST(RouteTest, ServerRouter) {
                      ConnectionInfo(4242, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 404);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./blah/404.html");
     EXPECT_EQ(router_result.error_path, "./blah/404.html");
   }
@@ -132,7 +132,7 @@ TEST(RouteTest, ServerRouter) {
                      ConnectionInfo(2424, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./ghan/index.html");
     EXPECT_EQ(router_result.error_path, "./ghan.error.html");
   }
@@ -156,7 +156,7 @@ TEST(RouteTest, ServerRouter) {
                      ConnectionInfo(2424, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./yongjule/index.html");
     EXPECT_EQ(router_result.error_path, "./yongjule.error.html");
   }
@@ -180,7 +180,7 @@ TEST(RouteTest, ServerRouter) {
                      ConnectionInfo(4242, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 400);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./f_01.html");
     EXPECT_EQ(router_result.error_path, "./f_01.html");
   }
@@ -204,7 +204,7 @@ TEST(RouteTest, ServerRouter) {
                      ConnectionInfo(2424, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./yongjule/index.html");
     EXPECT_EQ(router_result.error_path, "./yongjule.error.html");
   }
@@ -230,7 +230,7 @@ TEST(RouterTest, LocationRouter) {
                      ConnectionInfo(2424, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 405);
-    EXPECT_TRUE((router_result.method & GET) == 0);
+    EXPECT_TRUE((router_result.methods & GET) == 0);
     EXPECT_EQ(router_result.success_path, "./yongjule.error.html");
     EXPECT_EQ(router_result.error_path, "./yongjule.error.html");
   }
@@ -254,7 +254,7 @@ TEST(RouterTest, LocationRouter) {
                      ConnectionInfo(4242, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 405);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) == 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) == 0);
     EXPECT_EQ(router_result.success_path, "./merong_jiskim");
     EXPECT_EQ(router_result.error_path, "./merong_jiskim");
   }
@@ -278,7 +278,7 @@ TEST(RouterTest, LocationRouter) {
                      ConnectionInfo(4242, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 413);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./body_max.html");
     EXPECT_EQ(router_result.error_path, "./body_max.html");
   }
@@ -302,7 +302,7 @@ TEST(RouterTest, LocationRouter) {
                      ConnectionInfo(4242, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./a/b/a/b/zjj");
     EXPECT_EQ(router_result.error_path, "./f/irst/error.html");
   }
@@ -326,7 +326,7 @@ TEST(RouterTest, LocationRouter) {
                      ConnectionInfo(4242, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./path/to/php/index.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
     EXPECT_TRUE(router_result.is_cgi);
@@ -351,7 +351,7 @@ TEST(RouterTest, LocationRouter) {
                      ConnectionInfo(4242, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./root/upload_path/upload/file.txt");
     EXPECT_EQ(router_result.error_path, "./error.html");
   }
@@ -375,7 +375,7 @@ TEST(RouterTest, LocationRouter) {
                      ConnectionInfo(4242, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 403);  // FORBIDDEN
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./error.html");
     EXPECT_EQ(router_result.error_path, "./error.html");
   }
@@ -400,7 +400,7 @@ TEST(RouterTest, LocationRouter) {
                      ConnectionInfo(4242, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 403);  // FORBIDDEN
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./error.html");
     EXPECT_EQ(router_result.error_path, "./error.html");
   }
@@ -427,7 +427,7 @@ TEST(RouterTest, CgiMetaVariables) {
                      ConnectionInfo(4242, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./index.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -492,7 +492,7 @@ TEST(RouterTest, CgiMetaVariables) {
                      ConnectionInfo(4242, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./index.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -557,7 +557,7 @@ TEST(RouterTest, CgiMetaVariables) {
                      ConnectionInfo(4242, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./root/after_root/script.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -623,7 +623,7 @@ TEST(RouterTest, CgiMetaVariables) {
                      ConnectionInfo(4242, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./script.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -688,7 +688,7 @@ TEST(RouterTest, CgiMetaVariables) {
                      ConnectionInfo(4242, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./index.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -753,7 +753,7 @@ TEST(RouterTest, CgiMetaVariables) {
                      ConnectionInfo(4242, "127.0.0.1"));
 
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./index.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 

@@ -76,7 +76,7 @@ TEST(ResourceFormatterTest, GETResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./rf_resources/s_00.html");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -89,7 +89,7 @@ TEST(ResourceFormatterTest, GETResponse) {
     ResponseFormatter rf;
     std::string response =
         rf.Format(rm_result, parse_result.request.req.version,
-                  router_result.method, parse_status);
+                  router_result.methods, parse_status);
     std::string expected[7] = {"HTTP/1.1 200 OK",
                                "server: BrilliantServer/1.0",
                                "date: ",
@@ -120,7 +120,7 @@ TEST(ResourceFormatterTest, GETResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./rf_resources/s_01.css");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -133,7 +133,7 @@ TEST(ResourceFormatterTest, GETResponse) {
     ResponseFormatter rf;
     std::string response =
         rf.Format(rm_result, parse_result.request.req.version,
-                  router_result.method, parse_status);
+                  router_result.methods, parse_status);
     std::string expected[7] = {"HTTP/1.1 200 OK",
                                "server: BrilliantServer/1.0",
                                "date: ",
@@ -164,7 +164,7 @@ TEST(ResourceFormatterTest, GETResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./rf_resources/s_02.png");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
@@ -177,7 +177,7 @@ TEST(ResourceFormatterTest, GETResponse) {
     ResponseFormatter rf;
     std::string response =
         rf.Format(rm_result, parse_result.request.req.version,
-                  router_result.method, parse_status);
+                  router_result.methods, parse_status);
     std::string expected[7] = {"HTTP/1.1 200 OK",
                                "server: BrilliantServer/1.0",
                                "date: ",
@@ -208,7 +208,7 @@ TEST(ResourceFormatterTest, GETResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./rf_resources/s_03.jiskim");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
@@ -221,7 +221,7 @@ TEST(ResourceFormatterTest, GETResponse) {
     ResponseFormatter rf;
     std::string response =
         rf.Format(rm_result, parse_result.request.req.version,
-                  router_result.method, parse_status);
+                  router_result.methods, parse_status);
     std::string expected[6] = {"HTTP/1.1 200 OK",
                                "server: BrilliantServer/1.0",
                                "date: ",
@@ -251,7 +251,7 @@ TEST(ResourceFormatterTest, GETResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./rf_resources/f_00.html");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
@@ -264,15 +264,14 @@ TEST(ResourceFormatterTest, GETResponse) {
     ResponseFormatter rf;
     std::string response =
         rf.Format(rm_result, parse_result.request.req.version,
-                  router_result.method, parse_status);
-    std::string expected[7] = {"HTTP/1.1 404 Not Found",
+                  router_result.methods, parse_status);
+    std::string expected[6] = {"HTTP/1.1 404 Not Found",
                                "server: BrilliantServer/1.0",
                                "date: ",
-                               "allow: GET, POST, DELETE",
                                "connection: keep-alive",
                                "content-length: 92",
                                "content-type: text/html"};
-    ValidateResponse("f_00", expected, response, 7,
+    ValidateResponse("f_00", expected, response, 6,
                      FileToString(RF_REQ_PATH_PREFIX "error.html"));
   }
 
@@ -295,7 +294,7 @@ TEST(ResourceFormatterTest, GETResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./rf_resources/f_01.html");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
@@ -309,7 +308,7 @@ TEST(ResourceFormatterTest, GETResponse) {
     ResponseFormatter rf;
     std::string response =
         rf.Format(rm_result, parse_result.request.req.version,
-                  router_result.method, parse_status);
+                  router_result.methods, parse_status);
     std::string expected[7] = {"HTTP/1.1 403 Forbidden",
                                "server: BrilliantServer/1.0",
                                "date: ",
@@ -341,7 +340,7 @@ TEST(ResourceFormatterTest, GETResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 405);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) == 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) == 0);
     EXPECT_EQ(router_result.success_path, "./rf_resources/error.html");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
@@ -354,7 +353,7 @@ TEST(ResourceFormatterTest, GETResponse) {
     ResponseFormatter rf;
     std::string response =
         rf.Format(rm_result, parse_result.request.req.version,
-                  router_result.method, parse_status);
+                  router_result.methods, parse_status);
 
     std::string expected[7] = {
         "HTTP/1.1 405 Method Not Allowed",
@@ -388,7 +387,7 @@ TEST(ResourceFormatterTest, GETResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 505);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./rf_resources/error.html");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
@@ -401,18 +400,17 @@ TEST(ResourceFormatterTest, GETResponse) {
     ResponseFormatter rf;
     std::string response =
         rf.Format(rm_result, parse_result.request.req.version,
-                  router_result.method, parse_status);
+                  router_result.methods, parse_status);
     // split by CRLF
-    std::string expected[7] = {
+    std::string expected[6] = {
         "HTTP/1.1 505 HTTP Version Not Supported",
         "server: BrilliantServer/1.0",
         "date: ",
-        "allow: GET",
         "connection: close",
         "content-length: 92",
         "content-type: text/html",
     };
-    ValidateResponse("f_03", expected, response, 7,
+    ValidateResponse("f_03", expected, response, 6,
                      FileToString(RF_REQ_PATH_PREFIX "error.html"));
   }
 
@@ -436,7 +434,7 @@ TEST(ResourceFormatterTest, GETResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 400);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./rf_resources/error.html");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
@@ -449,18 +447,17 @@ TEST(ResourceFormatterTest, GETResponse) {
     ResponseFormatter rf;
     std::string response =
         rf.Format(rm_result, parse_result.request.req.version,
-                  router_result.method, parse_status);
+                  router_result.methods, parse_status);
     // split by CRLF
-    std::string expected[7] = {
+    std::string expected[6] = {
         "HTTP/1.1 400 Bad Request",
         "server: BrilliantServer/1.0",
         "date: ",
-        "allow: GET",
         "connection: close",
         "content-length: 92",
         "content-type: text/html",
     };
-    ValidateResponse("f_04", expected, response, 7,
+    ValidateResponse("f_04", expected, response, 6,
                      FileToString(RF_REQ_PATH_PREFIX "error.html"));
   }
 
@@ -484,7 +481,7 @@ TEST(ResourceFormatterTest, GETResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./_deps/");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
@@ -497,7 +494,7 @@ TEST(ResourceFormatterTest, GETResponse) {
     ResponseFormatter rf;
     std::string response =
         rf.Format(rm_result, parse_result.request.req.version,
-                  router_result.method, parse_status);
+                  router_result.methods, parse_status);
     // split by CRLF
     std::string expected[7] = {
         "HTTP/1.1 200 OK",
@@ -532,7 +529,7 @@ TEST(ResourceFormatterTest, GETResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./rf_resources/s_05.html");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
@@ -545,7 +542,7 @@ TEST(ResourceFormatterTest, GETResponse) {
     ResponseFormatter rf;
     std::string response =
         rf.Format(rm_result, parse_result.request.req.version,
-                  router_result.method, parse_status);
+                  router_result.methods, parse_status);
     // split by CRLF
     std::string expected[7] = {
         "HTTP/1.1 200 OK",
@@ -581,7 +578,7 @@ TEST(ResourceFormatterTest, GETResponse) {
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 301);
     EXPECT_EQ(router_result.redirect_to, "/resources/s_00.html");
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
     ResourceManager rm;
@@ -593,7 +590,7 @@ TEST(ResourceFormatterTest, GETResponse) {
     ResponseFormatter rf;
     std::string response =
         rf.Format(rm_result, parse_result.request.req.version,
-                  router_result.method, parse_status);
+                  router_result.methods, parse_status);
     // split by CRLF
     std::string expected[7] = {
         "HTTP/1.1 301 Moved Permanently",
@@ -632,7 +629,7 @@ resource has been moved permanently to <a href='/resources/s_00.html'>\
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 301);
     EXPECT_EQ(router_result.redirect_to, "https://www.naver.com/");
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
     ResourceManager rm;
@@ -644,7 +641,7 @@ resource has been moved permanently to <a href='/resources/s_00.html'>\
     ResponseFormatter rf;
     std::string response =
         rf.Format(rm_result, parse_result.request.req.version,
-                  router_result.method, parse_status);
+                  router_result.methods, parse_status);
     // split by CRLF
     std::string expected[7] = {
         "HTTP/1.1 301 Moved Permanently",
@@ -684,7 +681,7 @@ https://www.naver.com/<a>.</p></body></html>");
     EXPECT_EQ(router_result.status, 301);
     EXPECT_EQ(router_result.redirect_to,
               "https://www.naver.com:8080/search?query=legacy");
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
     ResourceManager rm;
@@ -696,7 +693,7 @@ https://www.naver.com/<a>.</p></body></html>");
     ResponseFormatter rf;
     std::string response =
         rf.Format(rm_result, parse_result.request.req.version,
-                  router_result.method, parse_status);
+                  router_result.methods, parse_status);
     // split by CRLF
     std::string expected[7] = {
         "HTTP/1.1 301 Moved Permanently",
@@ -736,7 +733,7 @@ https://www.naver.com:8080/search?query=legacy<a>.</p></body></html>");
     EXPECT_EQ(router_result.status, 301);
     EXPECT_EQ(router_result.redirect_to,
               "/resources/login?user=yongjule&password=julejule");
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
     ResourceManager rm;
@@ -748,7 +745,7 @@ https://www.naver.com:8080/search?query=legacy<a>.</p></body></html>");
     ResponseFormatter rf;
     std::string response =
         rf.Format(rm_result, parse_result.request.req.version,
-                  router_result.method, parse_status);
+                  router_result.methods, parse_status);
     // split by CRLF
     std::string expected[7] = {
         "HTTP/1.1 301 Moved Permanently",
@@ -788,7 +785,7 @@ TEST(ResourceFormatterTest, POSTResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./rf_resources/post/s_10.txt");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
@@ -803,7 +800,7 @@ TEST(ResourceFormatterTest, POSTResponse) {
     ResponseFormatter rf;
     std::string response =
         rf.Format(rm_result, parse_result.request.req.version,
-                  router_result.method, parse_status);
+                  router_result.methods, parse_status);
     // split by CRLF
     std::string expected[8] = {
         "HTTP/1.1 201 Created",
@@ -843,7 +840,7 @@ Created</h1><p>YAY! The file is created at \
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./rf_resources/post/empty");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
@@ -858,7 +855,7 @@ Created</h1><p>YAY! The file is created at \
     ResponseFormatter rf;
     std::string response =
         rf.Format(rm_result, parse_result.request.req.version,
-                  router_result.method, parse_status);
+                  router_result.methods, parse_status);
     // split by CRLF
     std::string expected[8] = {
         "HTTP/1.1 201 Created",
@@ -878,7 +875,111 @@ Created</h1><p>YAY! The file is created at \
     EXPECT_NE(unlink("./rf_resources/post/empty_0"), -1);
   }
 
-  // s 12 post to unauthorized directory
+  // f 05 post to unauthorized directory
+  {
+    Validator::Result result =
+        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_05");
+    PortMap port_map = result.port_map;
+    EXPECT_EQ(port_map.size(), 1);
+    EXPECT_EQ(port_map.count(4242), 1);
+
+    HttpParser parser;
+    std::string req_buf = FileToString(RF_REQ_PATH_PREFIX "f_05.txt");
+    int parse_status = parser.Parse(req_buf);
+    EXPECT_EQ(parse_status, HttpParser::kComplete);
+    HttpParser::Result parse_result = parser.get_result();
+    EXPECT_EQ(parse_result.status, 200);
+
+    Router router(port_map[4242]);
+    Router::Result router_result =
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(4242, "127.0.0.1"));
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path,
+              "./rf_resources/post/unauthorized/empty");
+    EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
+
+    if (access("./rf_resources/post/unauthorized", F_OK) == -1) {
+      mkdir("./rf_resources/post/unauthorized", 0777);
+    }
+
+    EXPECT_NE(chmod("./rf_resources/post/unauthorized", 0555), -1);
+
+    ResourceManager rm;
+    ResourceManager::Result rm_result =
+        rm.ExecuteMethod(router_result, parse_result.request);
+    EXPECT_EQ(rm_result.status, 403);
+
+    ResponseFormatter rf;
+    std::string response =
+        rf.Format(rm_result, parse_result.request.req.version,
+                  router_result.methods, parse_status);
+    EXPECT_NE(chmod("./rf_resources/post/unauthorized", 0777), -1);
+
+    // split by CRLF
+    std::string expected[7] = {
+        "HTTP/1.1 403 Forbidden",
+        "server: BrilliantServer/1.0",
+        "date: ",
+        "allow: POST",
+        "connection: keep-alive",
+        "content-length: 92",
+        "content-type: text/html",
+    };
+    ValidateResponse("f_05", expected, response, 7,
+                     FileToString(RF_REQ_PATH_PREFIX "error.html"));
+  }
+
+  // f 06 post to out of root
+  {
+    Validator::Result result =
+        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_06");
+    PortMap port_map = result.port_map;
+    EXPECT_EQ(port_map.size(), 1);
+    EXPECT_EQ(port_map.count(4242), 1);
+
+    HttpParser parser;
+    std::string req_buf = FileToString(RF_REQ_PATH_PREFIX "f_06.txt");
+    int parse_status = parser.Parse(req_buf);
+    EXPECT_EQ(parse_status, HttpParser::kClose);
+    HttpParser::Result parse_result = parser.get_result();
+    EXPECT_EQ(parse_result.status, 400);
+
+    Router router(port_map[4242]);
+    Router::Result router_result =
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(4242, "127.0.0.1"));
+    EXPECT_EQ(router_result.status, 400);
+    EXPECT_EQ(router_result.success_path, "./rf_resources/error.html");
+    EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
+
+    ResourceManager rm;
+    ResourceManager::Result rm_result =
+        rm.ExecuteMethod(router_result, parse_result.request);
+    EXPECT_EQ(rm_result.status, 400);
+
+    ResponseFormatter rf;
+    std::string response =
+        rf.Format(rm_result, parse_result.request.req.version,
+                  router_result.methods, parse_status);
+
+    // split by CRLF
+    std::string expected[6] = {
+        "HTTP/1.1 400 Bad Request",
+        "server: BrilliantServer/1.0",
+        "date: ",
+        "connection: close",
+        "content-length: 92",
+        "content-type: text/html",
+    };
+    ValidateResponse("f_06", expected, response, 6,
+                     FileToString(RF_REQ_PATH_PREFIX "error.html"));
+  }
+}
+
+TEST(ResourceFormatterTest, DELETEResponse) {
+  //   s 12 Delete a file
   {
     Validator::Result result =
         TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_12");
@@ -898,16 +999,159 @@ Created</h1><p>YAY! The file is created at \
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
-    EXPECT_EQ(router_result.success_path,
-              "./rf_resources/post/unauthorized/empty");
+    {
+      std::ofstream ofs("./rf_resources/delete/yongjule");
+      ofs << "I'm gonna suicide\n";
+    }
+    EXPECT_EQ(access("./rf_resources/delete/yongjule", F_OK), 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
+    EXPECT_EQ(router_result.success_path, "./rf_resources/delete/yongjule");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    if (access("./rf_resources/post/unauthorized", F_OK) == -1) {
-      mkdir("./rf_resources/post/unauthorized", 0777);
-    }
+    ResourceManager rm;
+    ResourceManager::Result rm_result =
+        rm.ExecuteMethod(router_result, parse_result.request);
+    ASSERT_EQ(access("./rf_resources/delete/yongjule", F_OK), -1);
+    EXPECT_EQ(rm_result.status, 200);
 
-    EXPECT_NE(chmod("./rf_resources/post/unauthorized", 0555), -1);
+    ResponseFormatter rf;
+    std::string response =
+        rf.Format(rm_result, parse_result.request.req.version,
+                  router_result.methods, parse_status);
+    // split by CRLF
+    std::string expected[7] = {
+        "HTTP/1.1 200 OK",
+        "server: BrilliantServer/1.0",
+        "date: ",
+        "allow: DELETE",
+        "connection: keep-alive",
+        "content-length: 126",
+        "content-type: text/html",
+    };
+    ValidateResponse(
+        "s_12", expected, response, 7,
+        "<!DOCTYPE html><html><title>Deleted</title><body><h1>200 OK</h1><p>" +
+            router_result.success_path.substr(1) +
+            " is removed!</p></body></html>");
+  }
+
+  // f 07 deleting a file that doesn't exist
+  {
+    Validator::Result result =
+        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_07");
+    PortMap port_map = result.port_map;
+    EXPECT_EQ(port_map.size(), 1);
+    EXPECT_EQ(port_map.count(4242), 1);
+
+    HttpParser parser;
+    std::string req_buf = FileToString(RF_REQ_PATH_PREFIX "f_07.txt");
+    int parse_status = parser.Parse(req_buf);
+    EXPECT_EQ(parse_status, HttpParser::kComplete);
+    HttpParser::Result parse_result = parser.get_result();
+    EXPECT_EQ(parse_result.status, 200);
+
+    Router router(port_map[4242]);
+    Router::Result router_result =
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(4242, "127.0.0.1"));
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_EQ(router_result.success_path, "./rf_resources/delete/undefined");
+    EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
+
+    ResourceManager rm;
+    ResourceManager::Result rm_result =
+        rm.ExecuteMethod(router_result, parse_result.request);
+    EXPECT_EQ(rm_result.status, 404);
+
+    ResponseFormatter rf;
+    std::string response =
+        rf.Format(rm_result, parse_result.request.req.version,
+                  router_result.methods, parse_status);
+
+    // split by CRLF
+    std::string expected[6] = {
+        "HTTP/1.1 404 Not Found",
+        "server: BrilliantServer/1.0",
+        "date: ",
+        "connection: keep-alive",
+        "content-length: 92",
+        "content-type: text/html",
+    };
+    ValidateResponse("f_07", expected, response, 6,
+                     FileToString(RF_REQ_PATH_PREFIX "error.html"));
+  }
+
+  // f 08 405 method not allowed
+  {
+    Validator::Result result =
+        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_08");
+    PortMap port_map = result.port_map;
+    EXPECT_EQ(port_map.size(), 1);
+    EXPECT_EQ(port_map.count(4242), 1);
+
+    HttpParser parser;
+    std::string req_buf = FileToString(RF_REQ_PATH_PREFIX "f_08.txt");
+    int parse_status = parser.Parse(req_buf);
+    EXPECT_EQ(parse_status, HttpParser::kComplete);
+    HttpParser::Result parse_result = parser.get_result();
+    EXPECT_EQ(parse_result.status, 200);
+
+    Router router(port_map[4242]);
+    Router::Result router_result =
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(4242, "127.0.0.1"));
+    EXPECT_EQ(router_result.status, 405);
+    EXPECT_EQ(router_result.success_path, "./rf_resources/error.html");
+    EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
+
+    ResourceManager rm;
+    ResourceManager::Result rm_result =
+        rm.ExecuteMethod(router_result, parse_result.request);
+    EXPECT_EQ(rm_result.status, 405);
+
+    ResponseFormatter rf;
+    std::string response =
+        rf.Format(rm_result, parse_result.request.req.version,
+                  router_result.methods, parse_status);
+
+    // split by CRLF
+    std::string expected[7] = {
+        "HTTP/1.1 405 Method Not Allowed",
+        "server: BrilliantServer/1.0",
+        "date: ",
+        "allow: GET, POST",
+        "connection: keep-alive",
+        "content-length: 92",
+        "content-type: text/html",
+    };
+    ValidateResponse("f_08", expected, response, 7,
+                     FileToString(RF_REQ_PATH_PREFIX "error.html"));
+  }
+
+  // f 09 method not allowed
+  {
+    Validator::Result result =
+        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_09");
+    PortMap port_map = result.port_map;
+    EXPECT_EQ(port_map.size(), 1);
+    EXPECT_EQ(port_map.count(4242), 1);
+
+    HttpParser parser;
+    std::string req_buf = FileToString(RF_REQ_PATH_PREFIX "f_09.txt");
+    int parse_status = parser.Parse(req_buf);
+    EXPECT_EQ(parse_status, HttpParser::kComplete);
+    HttpParser::Result parse_result = parser.get_result();
+    EXPECT_EQ(parse_result.status, 200);
+
+    Router router(port_map[4242]);
+    Router::Result router_result =
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(4242, "127.0.0.1"));
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_EQ(router_result.success_path, "./rf_resources/delete/dummy");
+    EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
+
+    chmod("./rf_resources/delete/dummy", 0444);
 
     ResourceManager rm;
     ResourceManager::Result rm_result =
@@ -917,24 +1161,288 @@ Created</h1><p>YAY! The file is created at \
     ResponseFormatter rf;
     std::string response =
         rf.Format(rm_result, parse_result.request.req.version,
-                  router_result.method, parse_status);
-    EXPECT_NE(chmod("./rf_resources/post/unauthorized", 0777), -1);
+                  router_result.methods, parse_status);
 
     // split by CRLF
     std::string expected[7] = {
         "HTTP/1.1 403 Forbidden",
         "server: BrilliantServer/1.0",
         "date: ",
-        "allow: POST",
+        "allow: GET, POST, DELETE",
         "connection: keep-alive",
         "content-length: 92",
         "content-type: text/html",
     };
-    ValidateResponse("s_12", expected, response, 7,
+    ValidateResponse("f_09", expected, response, 7,
                      FileToString(RF_REQ_PATH_PREFIX "error.html"));
+    chmod("./rf_resources/delete/dummy", 0777);
   }
 }
 
-TEST(ResourceFormatterTest, DELETEResponse) {}
+TEST(ResourceFormatterTest, CGIResponse) {
+  // f 10 DELETE CGI request 405
+  {
+    Validator::Result result =
+        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_10");
+    PortMap port_map = result.port_map;
+    EXPECT_EQ(port_map.size(), 1);
+    EXPECT_EQ(port_map.count(4242), 1);
 
-TEST(ResourceFormatterTest, CGIResponse) {}
+    HttpParser parser;
+    std::string req_buf = FileToString(RF_REQ_PATH_PREFIX "f_10.txt");
+    int parse_status = parser.Parse(req_buf);
+    EXPECT_EQ(parse_status, HttpParser::kComplete);
+    HttpParser::Result parse_result = parser.get_result();
+    EXPECT_EQ(parse_result.status, 200);
+
+    Router router(port_map[4242]);
+    Router::Result router_result =
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(4242, "127.0.0.1"));
+    EXPECT_EQ(router_result.status, 405);
+    EXPECT_EQ(router_result.success_path, "./rf_resources/error.html");
+    EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
+
+    ResourceManager rm;
+    ResourceManager::Result rm_result =
+        rm.ExecuteMethod(router_result, parse_result.request);
+    EXPECT_EQ(rm_result.status, 405);
+
+    ResponseFormatter rf;
+    std::string response =
+        rf.Format(rm_result, parse_result.request.req.version,
+                  router_result.methods, parse_status);
+
+    // split by CRLF
+    std::string expected[7] = {
+        "HTTP/1.1 405 Method Not Allowed",
+        "server: BrilliantServer/1.0",
+        "date: ",
+        "allow: GET, POST",
+        "connection: keep-alive",
+        "content-length: 92",
+        "content-type: text/html",
+    };
+    ValidateResponse("f_10", expected, response, 7,
+                     FileToString(RF_REQ_PATH_PREFIX "error.html"));
+  }
+
+  // s 13 CGI GET Document
+  {
+    Validator::Result result =
+        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_13");
+    PortMap port_map = result.port_map;
+    EXPECT_EQ(port_map.size(), 1);
+    EXPECT_EQ(port_map.count(4242), 1);
+
+    HttpParser parser;
+    std::string req_buf = FileToString(RF_REQ_PATH_PREFIX "s_13.txt");
+    int parse_status = parser.Parse(req_buf);
+    EXPECT_EQ(parse_status, HttpParser::kComplete);
+    HttpParser::Result parse_result = parser.get_result();
+    EXPECT_EQ(parse_result.status, 200);
+
+    Router router(port_map[4242]);
+    Router::Result router_result =
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(4242, "127.0.0.1"));
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
+    EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
+
+    ResourceManager rm;
+    ResourceManager::Result rm_result =
+        rm.ExecuteMethod(router_result, parse_result.request);
+    EXPECT_EQ(rm_result.status, 200);
+
+    const char** cgi_env = router_result.cgi_env.get_env();
+    std::stringstream ss;
+    for (int i = 0; cgi_env[i]; ++i)
+      ss << "envp [" << i << "] : " << cgi_env[i] << "\n";
+    std::string decoded_query(parse_result.request.req.query);
+    UriParser uri_parser;
+    for (size_t i = 0; i < decoded_query.size(); ++i) {
+      if (decoded_query[i] == '%') {
+        uri_parser.DecodeHexToAscii(decoded_query, i);
+      }
+    }
+
+    ResponseFormatter rf;
+    std::string response =
+        rf.Format(rm_result, parse_result.request.req.version,
+                  router_result.methods, parse_status);
+
+    // split by CRLF
+    std::string expected[8] = {
+        "HTTP/1.1 200 OK",
+        "server: BrilliantServer/1.0",
+        "date: ",
+        "allow: GET, POST",
+        "connection: keep-alive",
+        "content-length: 734",
+        "content-type: text/plain",
+        "access-control-allow-origin: *",
+    };
+    ValidateResponse(
+        "s_13", expected, response, 8,
+        ss.str() + "\n" + parse_result.request.content +
+            ((!parse_result.request.req.query.empty() &&
+              parse_result.request.req.query.find("=") == std::string::npos)
+                 ? ("\n" + decoded_query.substr(1))
+                 : ""));
+  }
+
+  // s 14 CGI GET Client Redirection 302 - no content
+  {
+    Validator::Result result =
+        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_14");
+    PortMap port_map = result.port_map;
+    EXPECT_EQ(port_map.size(), 1);
+    EXPECT_EQ(port_map.count(4242), 1);
+
+    HttpParser parser;
+    std::string req_buf = FileToString(RF_REQ_PATH_PREFIX "s_14.txt");
+    int parse_status = parser.Parse(req_buf);
+    EXPECT_EQ(parse_status, HttpParser::kComplete);
+    HttpParser::Result parse_result = parser.get_result();
+    EXPECT_EQ(parse_result.status, 200);
+
+    Router router(port_map[4242]);
+    Router::Result router_result =
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(4242, "127.0.0.1"));
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
+    EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
+
+    ResourceManager rm;
+    ResourceManager::Result rm_result =
+        rm.ExecuteMethod(router_result, parse_result.request);
+    EXPECT_EQ(rm_result.status, 302);
+
+    EXPECT_EQ(rm_result.is_local_redir, false);
+
+    ResponseFormatter rf;
+    std::string response =
+        rf.Format(rm_result, parse_result.request.req.version,
+                  router_result.methods, parse_status);
+
+    // split by CRLF
+    std::string expected[6] = {
+        "HTTP/1.1 302 Found",
+        "server: BrilliantServer/1.0",
+        "date: ",
+        "allow: GET, POST",
+        "connection: keep-alive",
+        "location: https://www.naver.com/",
+    };
+    ValidateResponse("s_14", expected, response, 6, "");
+  }
+
+  // s 15 CGI GET Client Redirection 302 - no content
+  {
+    Validator::Result result =
+        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_15");
+    PortMap port_map = result.port_map;
+    EXPECT_EQ(port_map.size(), 1);
+    EXPECT_EQ(port_map.count(4242), 1);
+
+    HttpParser parser;
+    std::string req_buf = FileToString(RF_REQ_PATH_PREFIX "s_15.txt");
+    int parse_status = parser.Parse(req_buf);
+    EXPECT_EQ(parse_status, HttpParser::kComplete);
+    HttpParser::Result parse_result = parser.get_result();
+    EXPECT_EQ(parse_result.status, 200);
+
+    Router router(port_map[4242]);
+    Router::Result router_result =
+        router.Route(parse_result.status, parse_result.request,
+                     ConnectionInfo(4242, "127.0.0.1"));
+    EXPECT_EQ(router_result.status, 200);
+    EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
+    EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
+
+    ResourceManager rm;
+    ResourceManager::Result rm_result =
+        rm.ExecuteMethod(router_result, parse_result.request);
+    EXPECT_EQ(rm_result.status, 302);
+
+    EXPECT_EQ(rm_result.is_local_redir, false);
+
+    ResponseFormatter rf;
+    std::string response =
+        rf.Format(rm_result, parse_result.request.req.version,
+                  router_result.methods, parse_status);
+
+    // split by CRLF
+    std::string expected[] = {
+        "HTTP/1.1 302 Found",
+        "server: BrilliantServer/1.0",
+        "date: ",
+        "allow: GET, POST",
+        "connection: keep-alive",
+        "content-length: 10",
+        "content-type: text/plain",
+        "location: https://www.our42vent.42cadet.kr",
+        "x-brilliantserver-a: blah",
+        "x-brilliantserver-b: blahblah",
+    };
+    ValidateResponse("s_15", expected, response,
+                     sizeof(expected) / sizeof(std::string), "aaaaaaaaaa");
+  }
+
+  // TODO : connection 구현 후 테스트
+  //   // f 11 CGI no permission 403
+  //   {
+  //     Validator::Result result =
+  //         TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_11");
+  //     PortMap port_map = result.port_map;
+  //     EXPECT_EQ(port_map.size(), 1);
+  //     EXPECT_EQ(port_map.count(4242), 1);
+
+  //     HttpParser parser;
+  //     std::string req_buf = FileToString(RF_REQ_PATH_PREFIX "f_11.txt");
+  //     int parse_status = parser.Parse(req_buf);
+  //     EXPECT_EQ(parse_status, HttpParser::kComplete);
+  //     HttpParser::Result parse_result = parser.get_result();
+  //     EXPECT_EQ(parse_result.status, 200);
+
+  //     Router router(port_map[4242]);
+  //     Router::Result router_result =
+  //         router.Route(parse_result.status, parse_result.request,
+  //                      ConnectionInfo(4242, "127.0.0.1"));
+  //     EXPECT_EQ(router_result.status, 200);
+  //     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_two.php");
+  //     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
+
+  //     std::ifstream orig("resources/cgi/cgi.php");
+  //     std::ofstream copy("resources/cgi/cgi_two.php", 0666);
+  //     copy << orig.rdbuf();
+
+  //     ResourceManager rm;
+  //     ResourceManager::Result rm_result =
+  //         rm.ExecuteMethod(router_result, parse_result.request);
+  //     EXPECT_EQ(rm_result.status, 403);
+
+  //     EXPECT_EQ(rm_result.is_local_redir, false);
+
+  //     ResponseFormatter rf;
+  //     std::string response =
+  //         rf.Format(rm_result, parse_result.request.req.version,
+  //                   router_result.methods, parse_status);
+
+  //     // split by CRLF
+  //     std::string expected[] = {
+  //         "HTTP/1.1 403 Internal Server Error",
+  //         "server: BrilliantServer/1.0",
+  //         "date: ",
+  //         "connection: close",
+  //         "content-length: 92",
+  //         "content-type: text/html",
+  //     };
+  //     ValidateResponse("f_11", expected, response,
+  //                      sizeof(expected) / sizeof(std::string),
+  //                      FileToString(RF_REQ_PATH_PREFIX "error.html"));
+  //     unlink("resources/cgi/cgi_two.php");
+  //   }
+}

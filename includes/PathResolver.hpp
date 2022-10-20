@@ -19,7 +19,7 @@ class PathResolver {
     kLocation = 0,
     kRedirectTo,
     kErrorPage,
-    kRouter,
+    kHttpParser,
   };
 
   enum Status {

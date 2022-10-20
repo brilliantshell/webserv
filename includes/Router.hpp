@@ -68,7 +68,7 @@ class Router {
   struct Result {
     bool is_cgi;
     int status;
-    uint8_t method;
+    uint8_t methods;
     std::string success_path;
     std::string error_path;
     std::string redirect_to;
@@ -77,7 +77,7 @@ class Router {
     Result(int parse_status)
         : is_cgi(false),
           status(parse_status),
-          method(GET),
+          methods(GET),
           success_path(""),
           error_path(""),
           redirect_to("") {}

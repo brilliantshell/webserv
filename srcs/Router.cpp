@@ -58,14 +58,8 @@ Router::CgiDiscriminator Router::GetCgiLocation(
 
 void Router::RouteToLocation(Result& result, LocationRouter& location_router,
                              Request& request) {
-  PathResolver path_resolver;
-  PathResolver::Status path_status =
-      path_resolver.Resolve(request.req.path, PathResolver::Purpose::kRouter);
-  if (path_status == PathResolver::Status::kFailure) {
-    return UpdateStatus(result, 404);  // Path Not Found
-  }
   Location& location = location_router[request.req.path];
-  result.method = location.methods;
+  result.methods = location.methods;
   if (location.error == true) {
     return UpdateStatus(result, 404);  // Page Not Found
   }
@@ -80,22 +74,20 @@ void Router::RouteToLocation(Result& result, LocationRouter& location_router,
     result.status = 301;  // Moved Permanently
     return;
   }
-  std::string path = location.root;
-  if ((location.methods & POST) == POST) {
-    path += location.upload_path.substr(1);
-  }
-  path += request.req.path.substr(1);
-  if (path_status == PathResolver::Status::kFile) {
-    path += path_resolver.get_file_name();
-  } else {
+  result.success_path =
+      "." + location.root +
+      (((location.methods & POST) == POST) ? location.upload_path.substr(1)
+                                           : "") +
+      request.req.path.substr(1);
+  if (*result.success_path.rbegin() == '/') {
     if (location.methods & (POST | DELETE)) {
       return UpdateStatus(result, 403);  // Forbidden
     }
-    path += ((location.index.size() == 0 && location.autoindex == false)
-                 ? "index.html"
-                 : location.index);
+    result.success_path +=
+        ((location.index.size() == 0 && location.autoindex == false)
+             ? "index.html"
+             : location.index);
   }
-  result.success_path = "." + path;
 }
 
 void Router::RouteToCgi(Result& result, Request& request,
@@ -103,7 +95,7 @@ void Router::RouteToCgi(Result& result, Request& request,
                         const ConnectionInfo& connection_info) {
   const std::string& cgi_ext = cgi_discriminator.first.first;
   const Location& cgi_location = cgi_discriminator.first.second;
-  result.method = cgi_location.methods;
+  result.methods = cgi_location.methods;
   if ((cgi_location.methods & request.req.method) == 0) {
     return UpdateStatus(result, 405);  // Method Not Allowed
   }

@@ -1,0 +1,3 @@
+GET /resources/cgi/cgi_redir.php?location+https://www.naver.com/+0 HTTP/1.1
+Host: client_redirection_cgi
+

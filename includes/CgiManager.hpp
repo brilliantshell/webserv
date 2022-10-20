@@ -27,10 +27,11 @@
 class CgiManager {
  public:
   struct Result {
+    bool is_local_redir;
     int status;
     std::string content;
 
-    Result(int status) : status(status) {}
+    Result(int status) : is_local_redir(false), status(status) {}
   };
 
   CgiManager(void);

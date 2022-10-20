@@ -17,19 +17,26 @@ std::string ResponseFormatter::Format(ResourceManager::Result& resource_result,
      << resource_result.status << " " << g_status_map[resource_result.status]
      << CRLF << "server: BrilliantServer/1.0" << CRLF
      << "date: " + FormatCurrentTime() << CRLF
-     << ((resource_result.status == 301)
+     << ((resource_result.status == 301 || resource_result.status == 400 ||
+          resource_result.status == 404 || resource_result.status >= 500)
              ? ""
              : ("allow: " + FormatAllowedMethods(allowed_methods) + CRLF))
      << "connection: "
-     << ((keep_alive == HttpParser::kComplete) ? "keep-alive" : "close") << CRLF
-     << "content-length: " << resource_result.content.size() << CRLF;
+     << ((resource_result.status < 500 && keep_alive == HttpParser::kComplete)
+             ? "keep-alive"
+             : "close")
+     << CRLF;
+
+  if (resource_result.content.empty() == false) {
+    ss << "content-length: " << resource_result.content.size() << CRLF;
+  }
   std::string content_type =
       FormatContentType(resource_result.is_autoindex, resource_result.ext,
                         resource_result.header);
   if (content_type.empty() == false) {
     ss << "content-type: " << content_type << CRLF;
   }
-  if (resource_result.location.empty() == false) {  // 201 || 301
+  if (resource_result.location.empty() == false) {  // 201 || 301 || 302
     ss << "location: " << resource_result.location << CRLF;
   }
   ResolveConflicts(resource_result.header);

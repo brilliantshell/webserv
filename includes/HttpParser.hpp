@@ -12,7 +12,7 @@
 
 #include <iostream>
 
-#include "ParseUtils.hpp"
+#include "PathResolver.hpp"
 #include "Types.hpp"
 #include "UriParser.hpp"
 

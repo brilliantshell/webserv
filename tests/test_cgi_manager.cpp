@@ -37,7 +37,7 @@ TEST(CgiManagerTest, InputOutput) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -89,7 +89,7 @@ TEST(CgiManagerTest, InputOutput) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -141,7 +141,7 @@ TEST(CgiManagerTest, InputOutput) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -193,7 +193,7 @@ TEST(CgiManagerTest, InputOutput) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -247,7 +247,7 @@ TEST(CgiManagerTest, ParseCgiResponse) {
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -293,7 +293,7 @@ Request</h1></body></html>");
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -346,7 +346,7 @@ Request</h1></body></html>");
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_max.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -376,7 +376,7 @@ Request</h1></body></html>");
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_max.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -406,7 +406,7 @@ Request</h1></body></html>");
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_max.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -436,7 +436,7 @@ Request</h1></body></html>");
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_max.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -466,7 +466,7 @@ Request</h1></body></html>");
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -496,7 +496,7 @@ Request</h1></body></html>");
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_cwd.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -546,7 +546,7 @@ Request</h1></body></html>");
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -579,7 +579,7 @@ Request</h1></body></html>");
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -609,7 +609,7 @@ Request</h1></body></html>");
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -642,7 +642,7 @@ Request</h1></body></html>");
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -672,7 +672,7 @@ Request</h1></body></html>");
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -680,7 +680,7 @@ Request</h1></body></html>");
     ResourceManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
-    ASSERT_EQ(rm_result.status, 200);
+    ASSERT_EQ(rm_result.status, 302);
     EXPECT_EQ(rm_result.header.size(), 1);
     EXPECT_EQ(rm_result.header.count("location"), 1);
     EXPECT_EQ(rm_result.header["location"],
@@ -706,7 +706,7 @@ Request</h1></body></html>");
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -714,7 +714,7 @@ Request</h1></body></html>");
     ResourceManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
-    ASSERT_EQ(rm_result.status, 200);
+    ASSERT_EQ(rm_result.status, 302);
     EXPECT_EQ(rm_result.header.size(), 1);
     EXPECT_EQ(rm_result.header.count("location"), 1);
     EXPECT_EQ(rm_result.header["location"],
@@ -740,7 +740,7 @@ Request</h1></body></html>");
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -770,7 +770,7 @@ Request</h1></body></html>");
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -800,7 +800,7 @@ Request</h1></body></html>");
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -830,7 +830,7 @@ Request</h1></body></html>");
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(4242, "127.0.0.1"));
     EXPECT_EQ(router_result.status, 200);
-    EXPECT_TRUE((router_result.method & parse_result.request.req.method) > 0);
+    EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
@@ -846,5 +846,7 @@ Request</h1></body></html>");
     EXPECT_EQ(rm_result.header["content-type"], "text/html");
     EXPECT_EQ(rm_result.header.count("allow"), 1);
     EXPECT_EQ(rm_result.header["allow"], "GET, POST");
+
+    EXPECT_EQ(rm_result.content, "abc");
   }
 }

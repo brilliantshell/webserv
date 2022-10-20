@@ -30,6 +30,7 @@ class ResourceManager {
  public:
   struct Result {
     bool is_autoindex;
+    bool is_local_redir;
     int status;
     std::string content;
     std::string location;  // success or error path
@@ -37,7 +38,10 @@ class ResourceManager {
     ResponseHeaderMap header;
 
     Result(int router_result_status)
-        : is_autoindex(false), status(router_result_status), location("") {}
+        : is_autoindex(false),
+          is_local_redir(false),
+          status(router_result_status),
+          location("") {}
   };
 
   Result ExecuteMethod(Router::Result& router_result,
