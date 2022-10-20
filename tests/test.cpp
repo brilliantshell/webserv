@@ -1,8 +1,8 @@
-#include <gtest/gtest.h>
-
 #include <chrono>
 
 #include "ResponseData.hpp"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 StatusMap g_status_map;
 MimeMap g_mime_map;
@@ -17,6 +17,7 @@ void printNow(void) {
 
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
+  ::testing::InitGoogleMock(&argc, argv);
   atexit(printNow);
   return RUN_ALL_TESTS();
 }

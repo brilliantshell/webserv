@@ -30,6 +30,7 @@
 *.exe
 *.out
 *.app
+*.php
 
 # Other files
 .DS_Store

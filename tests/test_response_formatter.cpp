@@ -1,5 +1,3 @@
-#include <gtest/gtest.h>
-
 #include <fstream>
 #include <iostream>
 
@@ -12,9 +10,15 @@
 #include "Router.hpp"
 #include "Types.hpp"
 #include "Validator.hpp"
+#include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 #define RF_CONFIG_PATH_PREFIX "../configs/tests/ResponseFormatter/"
 #define RF_REQ_PATH_PREFIX "../tests/ResponseFormatter/"
+
+using ::testing::HasSubstr;
+using ::testing::MatchesRegex;
+using ::testing::StartsWith;
 
 std::string FileToString(const std::string& file_path);
 Validator::Result TestValidatorSuccess(const std::string& case_id);
@@ -43,7 +47,7 @@ void ValidateResponse(const std::string& test_id, const std::string* expected,
   ASSERT_EQ(header_lines.size(), header_cnt);
   for (size_t i = 0; i < header_lines.size(); ++i) {
     if (i == 2) {
-      EXPECT_TRUE(header_lines[i].compare(0, 6, expected[i]) == 0);
+      EXPECT_THAT(header_lines[i], StartsWith(expected[i]));
     } else {
       EXPECT_EQ(header_lines[i], expected[i]);
     }
@@ -898,6 +902,10 @@ Created</h1><p>YAY! The file is created at \
     EXPECT_EQ(router_result.success_path,
               "./rf_resources/post/unauthorized/empty");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
+
+    if (access("./rf_resources/post/unauthorized", F_OK) == -1) {
+      mkdir("./rf_resources/post/unauthorized", 0777);
+    }
 
     EXPECT_NE(chmod("./rf_resources/post/unauthorized", 0555), -1);
 
