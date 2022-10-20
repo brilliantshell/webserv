@@ -6,7 +6,7 @@ project(
 
 # GoogleTest requires at least C++14
 set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_FLAGS "-pedantic -std=c++98")
+set(CMAKE_CXX_FLAGS "-pedantic -std=c++98 -O0")
 set(CMAKE_CXX_FLAGS_DEBUG "-g3 -fsanitize=address")
 
 include(FetchContent)
@@ -34,6 +34,7 @@ add_executable(
 	tests/test_resource_manager.cpp
 	tests/test_cgi_manager.cpp
 	tests/test_response_formatter.cpp
+	tests/test_connection.cpp
 	srcs/Validator.cpp
 	srcs/PassiveSockets.cpp
 	srcs/Connection.cpp
@@ -46,6 +47,7 @@ add_executable(
 	srcs/CgiEnv.cpp
 	srcs/CgiManager.cpp
 	srcs/ResponseFormatter.cpp
+	srcs/ClientConnection.cpp
 )
 
 # add_executable(
@@ -118,8 +120,11 @@ target_link_libraries(
 )
 
 execute_process(
+	# symlink
 	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/tests/ResourceManager ${CMAKE_SOURCE_DIR}/build/resources
 	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/tests/ResponseFormatter ${CMAKE_SOURCE_DIR}/build/rf_resources
+	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/tests/Connection ${CMAKE_SOURCE_DIR}/build/cn_resources
+
 	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/build/cgi.php ${CMAKE_SOURCE_DIR}/build/resources/cgi/cgi.php
 	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/build/cgi_max.php ${CMAKE_SOURCE_DIR}/build/resources/cgi/cgi_max.php
 	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/build/cgi_cwd.php ${CMAKE_SOURCE_DIR}/build/resources/cgi/cgi_cwd.php

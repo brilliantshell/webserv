@@ -37,7 +37,6 @@ void PassiveSockets::InitializeSockAddr(const uint16_t port,
 
 int PassiveSockets::OpenSocket(const uint16_t port) {
   sockaddr_in addr;
-
   InitializeSockAddr(port, &addr);
   int fd = socket(AF_INET, SOCK_STREAM, 0);  // NOTE : 0 맞나?
   if (fd < 0) {

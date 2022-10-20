@@ -461,7 +461,7 @@ TEST(ResourceFormatterTest, GETResponse) {
                      FileToString(RF_REQ_PATH_PREFIX "error.html"));
   }
 
-  // s 04 HTTP/1.2 GET request 200
+  // s 04 HTTP/1.1 autoindex GET request
   {
     Validator::Result result =
         TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_04");
