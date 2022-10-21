@@ -1,1 +1,1 @@
-/Users/jiskim/webserv/build/cgi_max.php
+/Users/danielgyoungminhan/dev/webserv/build/cgi_max.php

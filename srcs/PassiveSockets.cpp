@@ -37,7 +37,6 @@ void PassiveSockets::InitializeSockAddr(const uint16_t port,
 
 int PassiveSockets::OpenSocket(const uint16_t port) {
   sockaddr_in addr;
-
   InitializeSockAddr(port, &addr);
   int fd = socket(AF_INET, SOCK_STREAM, 0);  // NOTE : 0 맞나?
   if (fd < 0) {
@@ -53,6 +52,13 @@ int PassiveSockets::BindSocket(int fd, const uint16_t port) {
 
   if (fd != -1) {
     InitializeSockAddr(port, &addr);
+    int opt = 1;
+    if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
+      std::cerr << "webserv : " << strerror(errno)
+                << " : address cannot be reused" << '\n';
+      close(fd);
+      return -1;
+    }
     if (bind(fd, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
       std::cerr << "webserv : " << strerror(errno) << " : "
                 << "socket for " << port << " cannot be bound" << '\n';

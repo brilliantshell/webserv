@@ -27,8 +27,8 @@
 class HttpServer {
  public:
   HttpServer(const PortSet& port_set);
-  void Run(void);
   ~HttpServer(void);
+  void Run(void);
 
  private:
   typedef std::vector<Connection> ConnectionVector;

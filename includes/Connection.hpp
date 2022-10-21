@@ -12,6 +12,7 @@
 
 #define KEEP_ALIVE 0
 #define CLOSE 1
+#define CONNECTION_ERROR 2
 
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -23,6 +24,9 @@
 #include <string>
 
 #include "HttpParser.hpp"
+#include "ResourceManager.hpp"
+#include "ResponseFormatter.hpp"
+#include "Router.hpp"
 
 class Connection {
  public:
@@ -32,21 +36,25 @@ class Connection {
   void Reset(void);
   void HandleRequest(void);
 
-  void set_fd(int fd);
   const int get_status(void) const;
 
-  void set_client_addr(std::string client_addr);
-  const std::string& get_client_addr(void) const;
+  void SetAttributes(const int fd, const std::string& client_addr,
+                     const uint16_t port, ServerRouter& server_router);
 
  private:
   int fd_;
   int status_;
+  uint16_t port_;
   std::string buffer_;
   std::string client_addr_;
+
   HttpParser parser_;
+  Router* router_;
+  ResourceManager resource_manager_;
+  ResponseFormatter response_formatter_;
 
   void Receive(void);
-  void Send(void);
+  void Send(const std::string& response);
 };
 
 #endif  // INCLUDES_CONNECTION_HPP_

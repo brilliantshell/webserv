@@ -65,8 +65,9 @@ void HttpServer::AcceptConnection(struct kevent* sock_ev, int socket_fd) {
     return;
   }
   fcntl(fd, F_SETFL, O_NONBLOCK);
-  connections_[fd].set_fd(fd);
-  connections_[fd].set_client_addr(inet_ntoa(addr.sin_addr));
+  // connections_[fd].set_fd(fd);
+  // connections_[fd].set_client_addr(inet_ntoa(addr.sin_addr));
+  // connections_[fd].SetAttributes(fd, inet_ntoa(addr.sin_addr), );
   UpdateKqueue(sock_ev, fd, EVFILT_READ, EV_ADD);
 }
 

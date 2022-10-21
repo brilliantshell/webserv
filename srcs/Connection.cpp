@@ -12,7 +12,12 @@
 Connection::Connection(void)
     : fd_(-1), status_(KEEP_ALIVE), buffer_(BUFFER_SIZE, 0) {}
 
-Connection::~Connection(void) { close(fd_); }
+Connection::~Connection(void) {
+  shutdown(fd_, SHUT_RD);
+  if (router_ != NULL) {
+    delete router_;
+  }
+}
 
 void Connection::Reset(void) {
   fd_ = -1;
@@ -23,28 +28,36 @@ void Connection::Reset(void) {
 // 여기서 serverRouter를 아는 채로 옴
 void Connection::HandleRequest(void) {
   Receive();
-  // parse
-  // *.route에서 진행
-  // server_router[server_name] -> 찾으면 locationRouter, 못찾으면 default 리턴
-  // locationRouter[path] -> 찾으면 location, 못찾으면 error_page 리턴
-  //  => 최종적으로 location class 리턴
-  /*
-  result{
-      status_code
-      method
-      success_path root/index.html
-      error_path
-  }
-  */
-  Send();
+  int req_status = parser_.Parse(buffer_);
+  HttpParser::Result req_data = parser_.get_result();
+  Request& request = req_data.request;
+  Router::Result location_data = router_->Route(
+      req_data.status, request, ConnectionInfo(port_, client_addr_));
+  ResourceManager::Result exec_result =
+      resource_manager_.ExecuteMethod(location_data, request);
+  std::string response = response_formatter_.Format(
+      exec_result, request.req.version, location_data.methods, req_status);
+  status_ = (exec_result.status < 500 && req_status == HttpParser::kComplete)
+                ? KEEP_ALIVE
+                : CLOSE;
+  Send(response);
+  shutdown(fd_, SHUT_WR);  // TODO : 테스트에 dependent
 }
-
-void Connection::set_fd(int fd) { fd_ = fd; }
 
 const int Connection::get_status(void) const { return status_; }
 
-void Connection::set_client_addr(std::string client_addr) {
+void Connection::SetAttributes(const int fd, const std::string& client_addr,
+                               const uint16_t port,
+                               ServerRouter& server_router) {
+  fd_ = fd;
   client_addr_ = client_addr;
+  port_ = port;
+  try {
+    router_ = new Router(server_router);
+  } catch (std::exception& e) {
+    std::cerr << "Connection : Router memory allocation failure\n";
+    status_ = CONNECTION_ERROR;
+  }
 }
 
 // SECTION : private
@@ -56,8 +69,8 @@ void Connection::Receive(void) {
   }
 }
 
-void Connection::Send(void) {
-  if (send(fd_, &buffer_[0], BUFFER_SIZE - 1, 0) == -1) {
+void Connection::Send(const std::string& response) {
+  if (send(fd_, response.c_str(), BUFFER_SIZE - 1, 0) == -1) {
     std::cerr << "Connection : send failed for fd " << fd_ << " : "
               << strerror(errno) << '\n';
     if (status_ == KEEP_ALIVE) {

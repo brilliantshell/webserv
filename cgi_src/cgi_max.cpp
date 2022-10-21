@@ -8,7 +8,7 @@
 
 #define CGI_MAX 134217728  // 2 ^ 27
 
-#define GOINFRE_PATH "/Users/jiskim/goinfre/"
+#define GOINFRE_PATH "/Users/danielgyoungminhan/goinfre/"
 
 int main(int argc, char **argv, char **envp) {
   try {

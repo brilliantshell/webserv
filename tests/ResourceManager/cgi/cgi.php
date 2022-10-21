@@ -1,1 +1,1 @@
-/Users/jiskim/webserv/build/cgi.php
+/Users/danielgyoungminhan/dev/webserv/build/cgi.php
