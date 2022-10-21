@@ -9,8 +9,9 @@
 
 #include "HttpServer.hpp"
 
-HttpServer::HttpServer(const PortSet& port_set)
-    : passive_sockets_(PassiveSockets(port_set)),
+HttpServer::HttpServer(const ServerConfig& config)
+    : passive_sockets_(PassiveSockets(config.port_set)),
+      port_map_(config.port_map),
       connections_(MAX_CONNECTIONS) {}
 
 HttpServer::~HttpServer() { close(kq_); }
@@ -56,19 +57,26 @@ void HttpServer::UpdateKqueue(struct kevent* sock_ev, int socket_fd,
   }
 }
 
-void HttpServer::AcceptConnection(struct kevent* sock_ev, int socket_fd) {
+bool HttpServer::AcceptConnection(struct kevent* sock_ev, int socket_fd) {
   sockaddr_in addr;
   socklen_t addr_len = sizeof(addr);
   int fd = accept(socket_fd, reinterpret_cast<sockaddr*>(&addr), &addr_len);
   if (fd == -1) {
     std::cerr << "HttpServer : accept failed : " << strerror(errno) << '\n';
-    return;
+    return false;
   }
   fcntl(fd, F_SETFL, O_NONBLOCK);
-  // connections_[fd].set_fd(fd);
-  // connections_[fd].set_client_addr(inet_ntoa(addr.sin_addr));
-  // connections_[fd].SetAttributes(fd, inet_ntoa(addr.sin_addr), );
-  UpdateKqueue(sock_ev, fd, EVFILT_READ, EV_ADD);
+  const uint16_t port = passive_sockets_[socket_fd];
+  connections_[fd].SetAttributes(fd, inet_ntoa(addr.sin_addr), port,
+                                 port_map_[port]);
+  if (connections_[fd].get_status() == CONNECTION_ERROR) {
+    std::cerr << "HttpServer : connection attributes set up failed : "
+              << strerror(errno) << '\n';
+    connections_[fd].Reset();
+    return false;
+  }
+  UpdateKqueue(sock_ev, fd, EVFILT_READ, EV_ADD | EV_ONESHOT);
+  return true;
 }
 
 void HttpServer::Run(void) {
@@ -79,29 +87,51 @@ void HttpServer::Run(void) {
   while (true) {
     int number_of_events = kevent(kq_, NULL, 0, events, MAX_EVENTS, NULL);
     if (number_of_events == -1) {
+      // FIXME
       std::cerr << "HttpServer : kevent failed : " << strerror(errno) << '\n';
       return;
     }
     for (int i = 0; i < number_of_events; ++i) {
+      std::cerr << "HttpServer : index : " << i << "(" << number_of_events
+                << ")"
+                << "\n";
       if (passive_sockets_.count(events[i].ident) == 1) {
-        AcceptConnection(&sock_ev, events[i].ident);
-        UpdateKqueue(&sock_ev, events[i].ident, EVFILT_READ, EV_ADD);
+        if (AcceptConnection(&sock_ev, events[i].ident) == true) {
+          UpdateKqueue(&sock_ev, events[i].ident, EVFILT_READ,
+                       EV_ADD | EV_ONESHOT);
+          std::cerr << "Connection Accepted\n";
+        }
       } else if (events[i].flags & EV_EOF) {
+        std::cerr << "Connection Closed\n";
         close(events[i].ident);
         connections_[events[i].ident].Reset();
       } else if (events[i].filter == EVFILT_READ) {
+        std::cerr << "Request received\n";
         connections_[events[i].ident].HandleRequest();
-        if (connections_[events[i].ident].get_status() != KEEP_ALIVE) {
-          // shutdown(events[i].ident, SHUT_RD);
+        if (connections_[events[i].ident].get_status() == KEEP_READING) {
+          UpdateKqueue(&sock_ev, events[i].ident, EVFILT_READ,
+                       EV_ADD | EV_ONESHOT);
+          continue;
         }
         UpdateKqueue(&sock_ev, events[i].ident, EVFILT_WRITE,
                      EV_ADD | EV_ONESHOT);
       } else if (events[i].filter == EVFILT_WRITE) {
+        if (connections_[events[i].ident].get_status() == NEXT_REQUEST_EXISTS) {
+          connections_[events[i].ident].HandleRequest();
+          if (connections_[events[i].ident].get_status() == KEEP_READING) {
+            UpdateKqueue(&sock_ev, events[i].ident, EVFILT_READ,
+                         EV_ADD | EV_ONESHOT);
+            continue;
+          }
+          UpdateKqueue(&sock_ev, events[i].ident, EVFILT_WRITE,
+                       EV_ADD | EV_ONESHOT);
+          std::cerr << "Server sends data\n";
+          continue;
+        }
         if (connections_[events[i].ident].get_status() == KEEP_ALIVE) {
           UpdateKqueue(&sock_ev, events[i].ident, EVFILT_READ,
                        EV_ADD | EV_ONESHOT);
         } else {
-          // shutdown(events[i].ident, SHUT_WR);
           close(events[i].ident);
           connections_[events[i].ident].Reset();
         }

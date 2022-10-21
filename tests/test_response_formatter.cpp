@@ -21,7 +21,7 @@ using ::testing::MatchesRegex;
 using ::testing::StartsWith;
 
 std::string FileToString(const std::string& file_path);
-Validator::Result TestValidatorSuccess(const std::string& case_id);
+ServerConfig TestValidatorSuccess(const std::string& case_id);
 
 void ValidateResponse(const std::string& test_id, const std::string* expected,
                       std::string& response, size_t header_cnt,
@@ -59,8 +59,7 @@ void ValidateResponse(const std::string& test_id, const std::string* expected,
 TEST(ResourceFormatterTest, GETResponse) {
   // s 00 general case - GET
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_00");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_00");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -103,8 +102,7 @@ TEST(ResourceFormatterTest, GETResponse) {
 
   // s 01 general case - GET
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_01");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_01");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -147,8 +145,7 @@ TEST(ResourceFormatterTest, GETResponse) {
 
   // s 02 general case - GET
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_02");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_02");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -191,8 +188,7 @@ TEST(ResourceFormatterTest, GETResponse) {
 
   // s 03 general case - GET
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_03");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_03");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -234,8 +230,7 @@ TEST(ResourceFormatterTest, GETResponse) {
 
   // f 00 GET 404
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_00");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_00");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -277,8 +272,7 @@ TEST(ResourceFormatterTest, GETResponse) {
 
   // f 01 GET 403
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_01");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_01");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -323,8 +317,7 @@ TEST(ResourceFormatterTest, GETResponse) {
 
   // f 02 GET 405
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_02");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_02");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -370,8 +363,7 @@ TEST(ResourceFormatterTest, GETResponse) {
 
   // f 03 GET 505
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_03");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_03");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -416,8 +408,7 @@ TEST(ResourceFormatterTest, GETResponse) {
 
   // f 04 GET 400
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_04");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_04");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -463,8 +454,7 @@ TEST(ResourceFormatterTest, GETResponse) {
 
   // s 04 HTTP/1.1 autoindex GET request
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_04");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_04");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -511,8 +501,7 @@ TEST(ResourceFormatterTest, GETResponse) {
 
   // s 05 HTTP/1.2 GET request
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_05");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_05");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -559,8 +548,7 @@ TEST(ResourceFormatterTest, GETResponse) {
 
   // s 06 redirection 301 (local redirection)
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_06");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_06");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -610,8 +598,7 @@ resource has been moved permanently to <a href='/resources/s_00.html'>\
 
   // s 07 redirection 301 (redirect by absolute URI)
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_07");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_07");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -661,8 +648,7 @@ https://www.naver.com/<a>.</p></body></html>");
 
   // s 08 redirection 301 (redirect by absolute URI)
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_08");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_08");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -713,8 +699,7 @@ https://www.naver.com:8080/search?query=legacy<a>.</p></body></html>");
 
   // s 09 redirection 301 (redirect by local uri with query)
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_09");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_09");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -767,8 +752,7 @@ resource has been moved permanently to <a href='/resources/login?user=yongjule&p
 TEST(ResourceFormatterTest, POSTResponse) {
   // s 10 POST
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_10");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_10");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -822,8 +806,7 @@ Created</h1><p>YAY! The file is created at \
 
   // s 11 upload already existing filename
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_11");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_11");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -877,8 +860,7 @@ Created</h1><p>YAY! The file is created at \
 
   // f 05 post to unauthorized directory
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_05");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_05");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -933,8 +915,7 @@ Created</h1><p>YAY! The file is created at \
 
   // f 06 post to out of root
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_06");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_06");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -981,8 +962,7 @@ Created</h1><p>YAY! The file is created at \
 TEST(ResourceFormatterTest, DELETEResponse) {
   //   s 12 Delete a file
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_12");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_12");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -1037,8 +1017,7 @@ TEST(ResourceFormatterTest, DELETEResponse) {
 
   // f 07 deleting a file that doesn't exist
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_07");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_07");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -1083,8 +1062,7 @@ TEST(ResourceFormatterTest, DELETEResponse) {
 
   // f 08 405 method not allowed
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_08");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_08");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -1130,8 +1108,7 @@ TEST(ResourceFormatterTest, DELETEResponse) {
 
   // f 09 method not allowed
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_09");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_09");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -1182,8 +1159,7 @@ TEST(ResourceFormatterTest, DELETEResponse) {
 TEST(ResourceFormatterTest, CGIResponse) {
   // f 10 DELETE CGI request 405
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_10");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_10");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -1229,8 +1205,7 @@ TEST(ResourceFormatterTest, CGIResponse) {
 
   // s 13 CGI GET Document
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_13");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_13");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -1294,8 +1269,7 @@ TEST(ResourceFormatterTest, CGIResponse) {
 
   // s 14 CGI GET Client Redirection 302 - no content
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_14");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_14");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -1341,8 +1315,7 @@ TEST(ResourceFormatterTest, CGIResponse) {
 
   // s 15 CGI GET Client Redirection 302 - no content
   {
-    Validator::Result result =
-        TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_15");
+    ServerConfig result = TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "s_15");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -1394,7 +1367,7 @@ TEST(ResourceFormatterTest, CGIResponse) {
   // TODO : connection 구현 후 테스트
   //   // f 11 CGI no permission 403
   //   {
-  //     Validator::Result result =
+  //     ServerConfig result =
   //         TestValidatorSuccess(RF_CONFIG_PATH_PREFIX "f_11");
   //     PortMap port_map = result.port_map;
   //     EXPECT_EQ(port_map.size(), 1);

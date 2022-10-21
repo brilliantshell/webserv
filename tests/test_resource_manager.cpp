@@ -23,7 +23,7 @@
 #define RM_REQ_PATH_PREFIX "../tests/ResourceManager/"
 
 std::string FileToString(const std::string& file_path);
-Validator::Result TestValidatorSuccess(const std::string& case_id);
+ServerConfig TestValidatorSuccess(const std::string& case_id);
 
 /*
 ResourceManager::Result {
@@ -35,8 +35,7 @@ ResourceManager::Result {
 TEST(ResourceManager, GETMethod) {
   // s 00 GET SUCCESS
   {
-    Validator::Result result =
-        TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_00");
+    ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_00");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(80), 1);
@@ -66,8 +65,7 @@ TEST(ResourceManager, GETMethod) {
 
   // f 00 GET FAIL 404
   {
-    Validator::Result result =
-        TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_00");
+    ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_00");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(80), 1);
@@ -97,8 +95,7 @@ TEST(ResourceManager, GETMethod) {
 
   // f 01 GET FAIL 403
   {
-    Validator::Result result =
-        TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_01");
+    ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_01");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(80), 1);
@@ -130,8 +127,7 @@ TEST(ResourceManager, GETMethod) {
 
   // f 02 GET FAIL 404 (ERROR, BUT NO ERROR PAGE, GET DEFAULT ERROR PAGE)
   {
-    Validator::Result result =
-        TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_02");
+    ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_02");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(80), 1);
@@ -160,8 +156,7 @@ TEST(ResourceManager, GETMethod) {
 
   // f 03 ERROR PATH IS DIRECTORY - http1.1
   {
-    Validator::Result result =
-        TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_03");
+    ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_03");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(80), 1);
@@ -190,8 +185,7 @@ TEST(ResourceManager, GETMethod) {
 
   // s 01 AUTOINDEX
   {
-    Validator::Result result =
-        TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_01");
+    ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_01");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(80), 1);
@@ -228,8 +222,7 @@ pre><hr></body></html>");
 
   // s 02 AUTOINDEX with file
   {
-    Validator::Result result =
-        TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_02");
+    ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_02");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(80), 1);
@@ -269,8 +262,7 @@ pre><hr></body></html>");
 
   // s 03 AUTOINDEX off, response index file s_03.html
   {
-    Validator::Result result =
-        TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_03");
+    ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_03");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(80), 1);
@@ -300,8 +292,7 @@ pre><hr></body></html>");
 
   // f 04 GET file name too long
   {
-    Validator::Result result =
-        TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_04");
+    ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_04");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(80), 1);
@@ -340,8 +331,7 @@ pre><hr></body></html>");
 TEST(ResourceManager, POSTMethod) {
   // s 04 file upload
   {
-    Validator::Result result =
-        TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_04");
+    ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_04");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(80), 1);
@@ -374,8 +364,7 @@ TEST(ResourceManager, POSTMethod) {
 
   // f 05 file upload to read-only directory
   {
-    Validator::Result result =
-        TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_05");
+    ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_05");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(80), 1);
@@ -410,8 +399,7 @@ TEST(ResourceManager, POSTMethod) {
 
   // s 05 file already exist
   {
-    Validator::Result result =
-        TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_05");
+    ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_05");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(80), 1);
@@ -444,8 +432,7 @@ TEST(ResourceManager, POSTMethod) {
 
   // s 06 file already exist
   {
-    Validator::Result result =
-        TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_06");
+    ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_06");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(80), 1);
@@ -479,8 +466,7 @@ TEST(ResourceManager, POSTMethod) {
 TEST(ResourceManager, DELETEMethod) {
   // s 07 DELETE A FILE
   {
-    Validator::Result result =
-        TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_07");
+    ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_07");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(80), 1);
@@ -514,8 +500,7 @@ TEST(ResourceManager, DELETEMethod) {
 
   // f 06 DELETE A FILE, NO WRITE PERMISSION
   {
-    Validator::Result result =
-        TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_06");
+    ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_06");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(80), 1);
@@ -553,8 +538,7 @@ TEST(ResourceManager, DELETEMethod) {
 
   // f 07 DELETE file not exist
   {
-    Validator::Result result =
-        TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_07");
+    ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_07");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(80), 1);

@@ -23,7 +23,7 @@ void TestSyntaxException(const std::string& case_id) {
   EXPECT_THROW(validator.Validate(), Validator::SyntaxErrorException);
 }
 
-Validator::Result TestValidatorSuccess(const std::string& case_id) {
+ServerConfig TestValidatorSuccess(const std::string& case_id) {
   std::cout << "\033[1;32m" << case_id << "\033[0m" << std::endl;
   Validator validator(FileToString(case_id + ".config"));
   return validator.Validate();
@@ -33,7 +33,7 @@ TEST(ValidatorTest, ServerBlock) {
   TestSyntaxException("ServerBlock/CASE_00");
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_01");
     EXPECT_EQ(result.port_set.size(), 1);
 
@@ -49,7 +49,7 @@ TEST(ValidatorTest, ServerBlock) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_02");
     EXPECT_EQ(result.port_set.size(), 1);
 
@@ -65,7 +65,7 @@ TEST(ValidatorTest, ServerBlock) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_03");
     EXPECT_EQ(result.port_set.size(), 1);
     ASSERT_EQ(result.port_set.count(4242), 1);
@@ -80,7 +80,7 @@ TEST(ValidatorTest, ServerBlock) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_04");
     EXPECT_EQ(result.port_set.size(), 1);
 
@@ -97,7 +97,7 @@ TEST(ValidatorTest, ServerBlock) {
 
   TestSyntaxException("ServerBlock/CASE_05");
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_06");
     EXPECT_EQ(result.port_set.size(), 1);
 
@@ -113,7 +113,7 @@ TEST(ValidatorTest, ServerBlock) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_07");
     EXPECT_EQ(result.port_set.size(), 1);
 
@@ -134,7 +134,7 @@ TEST(ValidatorTest, ServerBlock) {
   TestSyntaxException("ServerBlock/CASE_11");
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_12");
     EXPECT_EQ(result.port_set.size(), 1);
 
@@ -157,7 +157,7 @@ TEST(ValidatorTest, ServerBlock) {
   TestSyntaxException("ServerBlock/CASE_17");
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_18");
 
     ASSERT_EQ(result.port_map.size(), 1);
@@ -179,7 +179,7 @@ TEST(ValidatorTest, ServerBlock) {
   TestSyntaxException("ServerBlock/CASE_20");
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_21");
     ASSERT_EQ(result.port_map.size(), 2);
 
@@ -212,7 +212,7 @@ TEST(ValidatorTest, ServerBlock) {
   TestSyntaxException("ServerBlock/CASE_24");
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_25");
     ASSERT_EQ(result.port_map.size(), 1);
 
@@ -232,7 +232,7 @@ TEST(ValidatorTest, ServerBlock) {
   TestSyntaxException("ServerBlock/CASE_26");
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_27");
     ASSERT_EQ(result.port_map.size(), 1);
 
@@ -257,7 +257,7 @@ TEST(ValidatorTest, ServerBlock) {
   TestSyntaxException("ServerBlock/CASE_28");
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_29");
     ASSERT_EQ(result.port_map.size(), 2);
     ASSERT_EQ(result.port_set.size(), 2);
@@ -293,7 +293,7 @@ TEST(ValidatorTest, ServerBlock) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "ServerBlock/CASE_30");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
@@ -314,7 +314,7 @@ TEST(ValidatorTest, ServerBlock) {
 
 TEST(ValidatorTest, RouteBlock) {
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_00");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
@@ -340,7 +340,7 @@ TEST(ValidatorTest, RouteBlock) {
   TestSyntaxException("RouteBlock/CASE_02");
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_03");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
@@ -366,7 +366,7 @@ TEST(ValidatorTest, RouteBlock) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_04");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
@@ -394,7 +394,7 @@ TEST(ValidatorTest, RouteBlock) {
   // TestSyntaxException("RouteBlock/CASE_05");
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_06");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
@@ -416,7 +416,7 @@ TEST(ValidatorTest, RouteBlock) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_06");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
@@ -438,7 +438,7 @@ TEST(ValidatorTest, RouteBlock) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_07");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
@@ -462,7 +462,7 @@ TEST(ValidatorTest, RouteBlock) {
   TestSyntaxException("RouteBlock/CASE_10");
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_11");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
@@ -486,7 +486,7 @@ TEST(ValidatorTest, RouteBlock) {
   TestSyntaxException("RouteBlock/CASE_12");
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_13");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
@@ -507,7 +507,7 @@ TEST(ValidatorTest, RouteBlock) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_14");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
@@ -532,7 +532,7 @@ TEST(ValidatorTest, RouteBlock) {
   TestSyntaxException("RouteBlock/CASE_17");
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_18");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
@@ -570,7 +570,7 @@ TEST(ValidatorTest, RouteBlock) {
   // TestSyntaxException("RouteBlock/CASE_19");
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_20");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);
@@ -594,7 +594,7 @@ TEST(ValidatorTest, RouteBlock) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(PATH_PREFIX "RouteBlock/CASE_21");
     ASSERT_EQ(result.port_map.size(), 1);
     ASSERT_EQ(result.port_set.size(), 1);

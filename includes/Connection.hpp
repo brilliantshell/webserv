@@ -13,6 +13,8 @@
 #define KEEP_ALIVE 0
 #define CLOSE 1
 #define CONNECTION_ERROR 2
+#define KEEP_READING 3
+#define NEXT_REQUEST_EXISTS 4
 
 #include <fcntl.h>
 #include <sys/socket.h>
@@ -45,8 +47,8 @@ class Connection {
   int fd_;
   int status_;
   uint16_t port_;
-  std::string buffer_;
   std::string client_addr_;
+  std::string buffer_;
 
   HttpParser parser_;
   Router* router_;

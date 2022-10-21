@@ -102,7 +102,4 @@ class Router {
   void UpdateStatus(Result& result, int status);
 };
 
-typedef std::map<uint16_t, ServerRouter> PortMap;
-typedef std::pair<uint16_t, ServerRouter> PortNode;
-
 #endif  // INCLUDES_SERVER_ROUTER_HPP_

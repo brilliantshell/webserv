@@ -30,7 +30,7 @@ int main(int argc, char* argv[]) {
     return 1;
   }
   Validator validator(FileToString(argv[1]));
-  Validator::Result ret = validator.Validate();
+  ServerConfig ret = validator.Validate();
 
   HttpServer server(ret.port_set);
   server.Run();

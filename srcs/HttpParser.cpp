@@ -39,6 +39,10 @@ int HttpParser::Parse(std::string& segment) {
   return status_;
 }
 
+bool HttpParser::DoesNextReqExist(void) {
+  return (status_ == kComplete && backup_buf_.empty() == false);
+}
+
 void HttpParser::Clear(void) {
   keep_alive_ = true;
   is_data_ = false;
@@ -49,6 +53,11 @@ void HttpParser::Clear(void) {
   header_buf_.clear();
   chunked_buf_.clear();
   result_ = Result();
+}
+
+void HttpParser::Reset(void) {
+  Clear();
+  backup_buf_.clear();
 }
 
 HttpParser::Result& HttpParser::get_result(void) { return result_; }

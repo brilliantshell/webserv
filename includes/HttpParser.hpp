@@ -64,7 +64,9 @@ class HttpParser {
   HttpParser(void);
 
   int Parse(std::string& segment);
+  bool DoesNextReqExist(void);
   void Clear(void);
+  void Reset(void);
   Result& get_result(void);
 
  private:

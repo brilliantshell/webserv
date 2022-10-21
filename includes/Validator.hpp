@@ -26,13 +26,8 @@
 // SECTION : Validator
 class Validator {
  public:
-  struct Result {
-    PortMap port_map;
-    PortSet port_set;
-  };
-
   Validator(const std::string& config);
-  Result Validate(void);
+  ServerConfig Validate(void);
 
   class SyntaxErrorException : public std::exception {
    public:
@@ -109,7 +104,8 @@ class Validator {
   LocationNode ValidateLocation(ConstIterator_& token, ServerDirective is_cgi);
 
   // PortMap 생성
-  void GeneratePortMap(Result& result, PortServerList_& port_server_list) const;
+  void GeneratePortMap(ServerConfig& result,
+                       PortServerList_& port_server_list) const;
 };
 
 #endif  // INCLUDES_VALIDATOR_HPP_

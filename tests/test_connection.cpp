@@ -22,7 +22,7 @@
 #define CN_REQ_PATH_PREFIX "../tests/connection/"
 
 std::string FileToString(const std::string& file_path);
-Validator::Result TestValidatorSuccess(const std::string& case_id);
+ServerConfig TestValidatorSuccess(const std::string& case_id);
 
 int listen_fd;
 
@@ -130,8 +130,7 @@ bool AcceptSetUpConnection(int listen_fd, Connection& connection,
 void TestConnection(const std::string& test_id, const uint16_t port,
                     std::vector<std::string>& expected_header,
                     const std::string& expected_response) {
-  Validator::Result result =
-      TestValidatorSuccess(CN_CONFIG_PATH_PREFIX + test_id);
+  ServerConfig result = TestValidatorSuccess(CN_CONFIG_PATH_PREFIX + test_id);
   PortMap port_map = result.port_map;
   if (listen_fd > 0) {
     pid_t client_pid = fork();

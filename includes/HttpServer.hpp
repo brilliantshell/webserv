@@ -26,20 +26,22 @@
 
 class HttpServer {
  public:
-  HttpServer(const PortSet& port_set);
+  HttpServer(const ServerConfig& config);
   ~HttpServer(void);
   void Run(void);
 
  private:
   typedef std::vector<Connection> ConnectionVector;
+
   int kq_;
+  PortMap port_map_;
   PassiveSockets passive_sockets_;
   ConnectionVector connections_;
 
   void InitKqueue(void);
   void UpdateKqueue(struct kevent* sock_ev, int socket_fd, int16_t ev_filt,
                     uint16_t ev_flag);
-  void AcceptConnection(struct kevent* sock_ev, int socket_fd);
+  bool AcceptConnection(struct kevent* sock_ev, int socket_fd);
 };
 
 #endif  // INCLUDES_HTTPSERVER_HPP_
