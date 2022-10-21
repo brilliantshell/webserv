@@ -13,8 +13,10 @@ Connection::Connection(void)
     : fd_(-1), status_(KEEP_ALIVE), buffer_(BUFFER_SIZE, 0) {}
 
 Connection::~Connection(void) {
-  close(fd_);
-  delete router_;
+  shutdown(fd_, SHUT_RD);
+  if (router_ != NULL) {
+    delete router_;
+  }
 }
 
 void Connection::Reset(void) {
@@ -26,46 +28,37 @@ void Connection::Reset(void) {
 // 여기서 serverRouter를 아는 채로 옴
 void Connection::HandleRequest(void) {
   Receive();
-  int parser_status = parser_.Parse(buffer_);
-  HttpParser::Result parser_result = parser_.get_result();
-
-  Router::Result router_result =
-      router_->Route(parser_result.status, parser_result.request,
-                     ConnectionInfo(port_, client_addr_));
-  ResourceManager::Result resource_manager_result =
-      ResourceManager().ExecuteMethod(router_result, parser_result.request);
-
-  std::string response = ResponseFormatter().Format(
-      resource_manager_result, parser_result.request.req.version,
-      router_result.methods, parser_status);
-  status_ = (resource_manager_result.status < 500 &&
-             parser_status == HttpParser::kComplete)
+  int req_status = parser_.Parse(buffer_);
+  HttpParser::Result req_data = parser_.get_result();
+  Request& request = req_data.request;
+  Router::Result location_data = router_->Route(
+      req_data.status, request, ConnectionInfo(port_, client_addr_));
+  ResourceManager::Result exec_result =
+      resource_manager_.ExecuteMethod(location_data, request);
+  std::string response = response_formatter_.Format(
+      exec_result, request.req.version, location_data.methods, req_status);
+  status_ = (exec_result.status < 500 && req_status == HttpParser::kComplete)
                 ? KEEP_ALIVE
                 : CLOSE;
   Send(response);
+  shutdown(fd_, SHUT_WR);  // TODO : 테스트에 dependent
 }
 
 const int Connection::get_status(void) const { return status_; }
 
-void Connection::set_fd(int fd) { fd_ = fd; }
-
-void Connection::set_client_addr(std::string client_addr) {
+void Connection::SetAttributes(const int fd, const std::string& client_addr,
+                               const uint16_t port,
+                               ServerRouter& server_router) {
+  fd_ = fd;
   client_addr_ = client_addr;
-}
-
-void set_port(uint16_t port);
-
-void Connection::set_router(ServerRouter& server_router) {
+  port_ = port;
   try {
     router_ = new Router(server_router);
   } catch (std::exception& e) {
-    std::cerr << e.what() << '\n';
-    std::cerr << "Memory allocation error";
-    // TODO : error handling
+    std::cerr << "Connection : Router memory allocation failure\n";
+    status_ = CONNECTION_ERROR;
   }
 }
-
-void Connection::set_port(uint16_t port) { port_ = port; }
 
 // SECTION : private
 void Connection::Receive(void) {
@@ -77,7 +70,7 @@ void Connection::Receive(void) {
 }
 
 void Connection::Send(const std::string& response) {
-  if (send(fd_, &response[0], BUFFER_SIZE - 1, 0) == -1) {
+  if (send(fd_, response.c_str(), BUFFER_SIZE - 1, 0) == -1) {
     std::cerr << "Connection : send failed for fd " << fd_ << " : "
               << strerror(errno) << '\n';
     if (status_ == KEEP_ALIVE) {

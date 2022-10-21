@@ -36,13 +36,10 @@ class Connection {
   void Reset(void);
   void HandleRequest(void);
 
-  void set_fd(int fd);
   const int get_status(void) const;
 
-  void set_client_addr(std::string client_addr);
-  void set_router(ServerRouter& router);
-  void set_port(uint16_t port);
-  const std::string& get_client_addr(void) const;
+  void SetAttributes(const int fd, const std::string& client_addr,
+                     const uint16_t port, ServerRouter& server_router);
 
  private:
   int fd_;
@@ -53,6 +50,8 @@ class Connection {
 
   HttpParser parser_;
   Router* router_;
+  ResourceManager resource_manager_;
+  ResponseFormatter response_formatter_;
 
   void Receive(void);
   void Send(const std::string& response);

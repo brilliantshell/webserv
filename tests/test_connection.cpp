@@ -24,6 +24,8 @@
 std::string FileToString(const std::string& file_path);
 Validator::Result TestValidatorSuccess(const std::string& case_id);
 
+int listen_fd;
+
 int SetUpPassiveSocket(uint16_t port) {
   sockaddr_in addr;
 
@@ -35,11 +37,20 @@ int SetUpPassiveSocket(uint16_t port) {
   if (fd < 0) {
     std::cerr << "Socket creation failed\n" << std::endl;
   }
+
+  int opt = 1;
+  if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
+    std::cerr << "webserv : " << strerror(errno)
+              << " : address cannot be reused" << '\n';
+    return -1;
+  }
+
   if (bind(fd, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
     std::cerr << "Socket for " << port << " cannot be bound" << '\n';
-    close(fd);
+    // close(fd);
+    return -1;
   }
-  listen(fd, 64);
+  listen(fd, 128);
   return fd;
 }
 
@@ -93,6 +104,7 @@ void HandleClient(uint16_t port, const std::string& test_id,
               << "\n\texpected: " << expected_content << "\n";
     _exit(EXIT_FAILURE);
   }
+  client_connection.~ClientConnection();
   _exit((response.compare(expected_content) == 0) ? EXIT_SUCCESS
                                                   : EXIT_FAILURE);
 }
@@ -105,15 +117,11 @@ bool AcceptSetUpConnection(int listen_fd, Connection& connection,
       accept(listen_fd, reinterpret_cast<sockaddr*>(&client_addr), &addr_len);
   if (fd == -1) {
     std::cerr << "Accept failed : " << strerror(errno) << '\n';
-    close(listen_fd);
     return false;
   }
-  connection.set_fd(fd);
-  connection.set_port(port);
-  connection.set_client_addr(inet_ntoa(client_addr.sin_addr));
-  connection.set_router(port_map[port]);
+  connection.SetAttributes(fd, inet_ntoa(client_addr.sin_addr), port,
+                           port_map[port]);
   if (connection.get_status() == CONNECTION_ERROR) {
-    std::cerr << "Router allocation failure\n";
     return false;
   }
   return true;
@@ -125,24 +133,16 @@ void TestConnection(const std::string& test_id, const uint16_t port,
   Validator::Result result =
       TestValidatorSuccess(CN_CONFIG_PATH_PREFIX + test_id);
   PortMap port_map = result.port_map;
-
-  int listen_fd = SetUpPassiveSocket(port);
   if (listen_fd > 0) {
     pid_t client_pid = fork();
-
     if (client_pid == 0) {
       HandleClient(port, test_id, expected_response, expected_header);
     } else if (client_pid == -1) {
       std::cerr << "Failed to fork child process :" << strerror(errno) << "\n";
-      close(listen_fd);
       return;
     }
-    // EXPECT_DEATH({ HandleClient(port, test_id + ".txt", expected_response);
-    // },
-    //              "Client Failed\n");
     Connection connection;
     if (AcceptSetUpConnection(listen_fd, connection, port_map, port) == false) {
-      close(listen_fd);
       kill(client_pid, SIGTERM);
     } else {
       connection.HandleRequest();
@@ -151,12 +151,14 @@ void TestConnection(const std::string& test_id, const uint16_t port,
       ASSERT_TRUE(WIFEXITED(status));
       EXPECT_EQ(static_cast<int>(WEXITSTATUS(status)), 0)
           << " >>> EXIT STATUS <<< \n";
-      close(listen_fd);
     }
+  } else {
+    std::cerr << "Listen fd is not valid\n";
   }
 }
 
 TEST(ConnectionTest, SingleRequestViaConnection) {
+  listen_fd = SetUpPassiveSocket(4242);
   // s_00 Connection general GET test
   {
     std::vector<std::string> expected_header = {
@@ -186,16 +188,17 @@ TEST(ConnectionTest, SingleRequestViaConnection) {
                    FileToString(CN_REQ_PATH_PREFIX "s_01.css"));
   }
 
-  // FIXME : 0203 imagefile (too large)
+  // NOTE : 0203 imagefile (too large)
   //// s 02 general case - GET
   //{
   //  std::vector<std::string> expected_header = {"HTTP/1.1 200 OK",
-  //                                              "server: BrilliantServer/1.0",
-  //                                              "date: ",
-  //                                              "allow: GET, POST, DELETE",
-  //                                              "connection: close",
-  //                                              "content-length: 8780",
-  //                                              "content-type: image/png"};
+  //                                              "server:
+  //                                              BrilliantServer/1.0", "date:
+  //                                              ", "allow: GET, POST,
+  //                                              DELETE", "connection:
+  //                                              close", "content-length:
+  //                                              8780", "content-type:
+  //                                              image/png"};
   //  TestConnection("s_02", 4242, expected_header,
   //                 FileToString(CN_REQ_PATH_PREFIX "s_02.png"));
   //}
@@ -203,11 +206,12 @@ TEST(ConnectionTest, SingleRequestViaConnection) {
   //// s 03 general case - GET
   //{
   //  std::vector<std::string> expected_header = {"HTTP/1.1 200 OK",
-  //                                              "server: BrilliantServer/1.0",
-  //                                              "date: ",
-  //                                              "allow: GET, POST, DELETE",
-  //                                              "connection: close",
-  //                                              "content-length: 8780"};
+  //                                              "server:
+  //                                              BrilliantServer/1.0", "date:
+  //                                              ", "allow: GET, POST,
+  //                                              DELETE", "connection:
+  //                                              close", "content-length:
+  //                                              8780"};
   //  TestConnection("s_03", 4242, expected_header,
   //                 FileToString(CN_REQ_PATH_PREFIX "s_03.jiskim"));
   //}
@@ -421,13 +425,13 @@ Created</h1><p>YAY! The file is created at \
         "<!DOCTYPE html><html><title>201 Created</title><body><h1>201 \
 Created</h1><p>YAY! The file is created at \
 /rf_resources/post/empty_0!</p><p>Have a nice day~</p></body></html>");
-    EXPECT_EQ(access("./rf_resources/post/empty_0", F_OK), 0);
-    EXPECT_NE(unlink("./rf_resources/post/empty_0"), -1);
+    EXPECT_EQ(access("./cn_resources/post/empty_0", F_OK), 0);
+    EXPECT_NE(unlink("./cn_resources/post/empty_0"), -1);
   }
 
   // f 05 post to unauthorized directory
   {
-    if (access("./rf_resources/post/unauthorized", F_OK) == -1) {
+    if (access("./cn_resources/post/unauthorized", F_OK) == -1) {
       mkdir("./rf_resources/post/unauthorized", 0777);
     }
     EXPECT_NE(chmod("./rf_resources/post/unauthorized", 0555), -1);
@@ -442,7 +446,7 @@ Created</h1><p>YAY! The file is created at \
     };
     TestConnection("f_05", 4242, expected_header,
                    FileToString(CN_REQ_PATH_PREFIX "error.html"));
-    EXPECT_NE(chmod("./rf_resources/post/unauthorized", 0777), -1);
+    EXPECT_NE(chmod("./cn_resources/post/unauthorized", 0777), -1);
   }
 
   // f 06 post to out of root
@@ -479,8 +483,9 @@ Created</h1><p>YAY! The file is created at \
         "<!DOCTYPE html><html><title>Deleted</title><body><h1>200 OK</h1><p>"
         "/rf_resources/delete/yongjule"
         " is removed!</p></body></html>");
-    ASSERT_EQ(access("./rf_resources/delete/yongjule", F_OK), -1);
+    ASSERT_EQ(access("./cn_resources/delete/yongjule", F_OK), -1);
   }
+
   // f 07 deleting a file that doesn't exist
   {
     std::vector<std::string> expected_header = {
@@ -606,4 +611,6 @@ Content-type+text/plain+0+Connection+upgrade+0+X-cgi-yongjule+yongjule+0+Access-
     std::string expected_response = "aaaaaaaaaa";
     TestConnection("s_15", 4242, expected_header, expected_response);
   }
+
+  close(listen_fd);
 }
