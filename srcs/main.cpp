@@ -24,11 +24,17 @@ std::string FileToString(const std::string& file_path) {
   return ss.str();
 }
 
+void sigpipe_handler(int signo) {
+  std::cout << "\n\n\n\n\n\n\n>>>>>>>>>>>>SIGPIPE caught<<<<<<<<\n\n\n\n\n\n\n"
+            << std::endl;
+}
+
 int main(int argc, char* argv[]) {
   if (argc < 2) {
     std::cerr << "BrilliantServer : Usage: ./webserv [config file path]\n";
     return EXIT_FAILURE;
   }
+  signal(SIGPIPE, sigpipe_handler);
 
   std::string config_path = argv[1];
   size_t last_dot = config_path.rfind('.');
@@ -44,6 +50,8 @@ int main(int argc, char* argv[]) {
     HttpServer(validator.Validate()).Run();
   } catch (const std::exception& e) {
     std::cerr << "BrilliantServer : Validator : " << e.what() << '\n';
+  } catch (...) {
+    std::cerr << "BrilliantServer : Unknown error\n";
   }
   return EXIT_FAILURE;
 }

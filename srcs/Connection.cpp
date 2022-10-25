@@ -10,7 +10,12 @@
 #include "Connection.hpp"
 
 Connection::Connection(void)
-    : fd_(-1), status_(KEEP_ALIVE), buffer_(BUFFER_SIZE, 0), router_(NULL) {}
+    : fd_(-1),
+      connection_status_(KEEP_ALIVE),
+      send_status_(KEEP_SENDING_HEADER),
+      sent_bytes_(0),
+      buffer_(BUFFER_SIZE + 1, 0),
+      router_(NULL) {}
 
 Connection::~Connection(void) {
   // FIXME : 필요하냐...?
@@ -21,68 +26,110 @@ Connection::~Connection(void) {
   }
 }
 
-void Connection::Reset(void) {
-  close(fd_);
-  fd_ = -1;
-  status_ = KEEP_ALIVE;
-  uint16_t port_ = 0;
-  client_addr_.clear();
-  buffer_.assign(BUFFER_SIZE, 0);
-  parser_.Reset();
-  if (router_ != NULL) {
-    delete router_;
-    router_ = NULL;
+void Connection::Reset(bool does_next_req_exist) {
+  if (does_next_req_exist == kNextReq) {
+    connection_status_ = NEXT_REQUEST_EXISTS;
+    parser_.Clear();
+  } else {
+    close(fd_);
+    fd_ = -1;
+    connection_status_ = KEEP_ALIVE;
+    port_ = 0;
+    parser_.Reset();
+    client_addr_.clear();
+    if (router_ != NULL) {
+      delete router_;
+      router_ = NULL;
+    }
+    // NOTE : Queue clear or not thinking hagi
+    while (!response_queue_.empty()) {
+      response_queue_.pop();
+    }
   }
+  send_status_ = KEEP_SENDING_HEADER;
+  sent_bytes_ = 0;
+  buffer_.assign(BUFFER_SIZE + 1, 0);
 }
 
 void Connection::HandleRequest() {
-  if (status_ != NEXT_REQUEST_EXISTS) {
+  if (connection_status_ != NEXT_REQUEST_EXISTS) {
     Receive();
   }
-  std::cerr << ">>> Received Buffer_ Before Parse <<<\n " << buffer_ << '\n';
+  buffer_.erase(buffer_.find('\0'));
   int req_status = parser_.Parse(buffer_);
-  std::cerr << ">>>  parse status <<<\n" << (int)req_status << '\n';
   if (req_status < HttpParser::kComplete) {
-    status_ = KEEP_READING;
+    connection_status_ = KEEP_READING;
+    buffer_.assign(BUFFER_SIZE + 1, 0);
     return;
   }
   HttpParser::Result req_data = parser_.get_result();
   Request& request = req_data.request;
   {
-    std::cerr
-        << ">>> Request <<< \nMethods : 1 : (GET) 2 : (POST) 4 : (DELETE)\n"
-        << (int)request.req.method << "\nHost : " << request.req.host
-        << "\nPath : " << request.req.path << request.req.query << '\n';
+    std::cerr << ">>> Request <<< \nHost : " << request.req.host
+              << "\nPath : " << request.req.path << request.req.query << '\n';
   }
   Router::Result location_data = router_->Route(
       req_data.status, request, ConnectionInfo(port_, client_addr_));
-  {
-    std::cerr << ">>> Internal Server <<< \nsuccess_path: "
-              << location_data.success_path
-              << "\nstatus: " << location_data.status << '\n';
-
-    std::cerr << "Received Buffer_ : " << buffer_ << '\n';
-  }
+  response_queue_.push(ResponseBuffer());
+  ResponseBuffer& response = response_queue_.front();
   ResourceManager::Result exec_result =
-      resource_manager_.ExecuteMethod(location_data, request);
-  std::string response = response_formatter_.Format(
-      exec_result, request.req.version, location_data.methods, req_status);
-  status_ = (exec_result.status < 500 && req_status == HttpParser::kComplete)
-                ? KEEP_ALIVE
-                : CLOSE;
-  { std::cerr << ">>> Response <<< \n" << response << '\n'; }
-  Send(response);
-  if (status_ == KEEP_ALIVE && parser_.DoesNextReqExist() == true) {
-    parser_.Clear();
-    buffer_.clear();
-    status_ = NEXT_REQUEST_EXISTS;
-    return;
+      resource_manager_.ExecuteMethod(response.content, location_data, request);
+  response.header = response_formatter_.Format(
+      response.content.size(), exec_result, request.req.version,
+      location_data.methods, req_status);
+  connection_status_ =
+      (exec_result.status < 500 && req_status == HttpParser::kComplete)
+          ? KEEP_ALIVE
+          : CLOSE;
+  Send();
+  if (connection_status_ == KEEP_ALIVE && parser_.DoesNextReqExist() == true) {
+    Reset(kNextReq);
+  } else {
+    parser_.Reset();
+    buffer_.assign(BUFFER_SIZE + 1, 0);
   }
-  parser_.Reset();
-  // shutdown(fd_, SHUT_WR);  // TODO : 테스트에 dependent
 }
 
-const int Connection::get_status(void) const { return status_; }
+void Connection::Send(void) {
+  ssize_t sent;
+  ResponseBuffer& response = response_queue_.front();
+  if (send_status_ == KEEP_SENDING_HEADER) {
+    std::cerr << "header sending... size(" << sent_bytes_ << ")\n";
+    sent = send(fd_, response.header.c_str() + sent_bytes_,
+                response.header.size() < SND_BUFF_SIZE + sent_bytes_
+                    ? response.header.size() - sent_bytes_
+                    : SND_BUFF_SIZE,
+                0);
+  } else {
+    std::cerr << "content sending... size(" << sent_bytes_ << ")\n";
+    sent = send(
+        fd_, response.content.c_str() + sent_bytes_ - response.header.size(),
+        response.content.size() + response.header.size() <
+                SND_BUFF_SIZE + sent_bytes_
+            ? response.content.size() + response.header.size() - sent_bytes_
+            : SND_BUFF_SIZE,
+        0);
+  }
+  sent_bytes_ += sent;
+  if (sent_bytes_ < response.header.size()) {
+    send_status_ = KEEP_SENDING_HEADER;
+  } else if (sent_bytes_ < response.header.size() + response.content.size()) {
+    send_status_ = KEEP_SENDING_CONTENT;
+  } else {
+    // end sending
+    std::cerr << "sent bytes: " << sent_bytes_ << " header size "
+              << response.header.size() << " content size "
+              << response.content.size() << '\n';
+    response_queue_.pop();
+    send_status_ = SEND_FINISHED;
+    sent_bytes_ = 0;
+  }
+}
+
+const int Connection::get_send_status(void) const { return send_status_; }
+const int Connection::get_connection_status(void) const {
+  return connection_status_;
+}
 
 void Connection::SetAttributes(const int fd, const std::string& client_addr,
                                const uint16_t port,
@@ -94,25 +141,9 @@ void Connection::SetAttributes(const int fd, const std::string& client_addr,
     router_ = new Router(server_router);
   } catch (std::exception& e) {
     std::cerr << "Connection : Router memory allocation failure\n";
-    status_ = CONNECTION_ERROR;
+    connection_status_ = CONNECTION_ERROR;
   }
 }
 
 // SECTION : private
-void Connection::Receive(void) {
-  if (recv(fd_, &buffer_[0], BUFFER_SIZE - 1, 0) == -1) {
-    std::cerr << "Connection : recv failed for fd " << fd_ << " : "
-              << strerror(errno) << '\n';
-    status_ = CLOSE;
-  }
-}
-
-void Connection::Send(const std::string& response) {
-  if (send(fd_, response.c_str(), BUFFER_SIZE - 1, 0) == -1) {
-    std::cerr << "Connection : send failed for fd " << fd_ << " : "
-              << strerror(errno) << '\n';
-    if (status_ == KEEP_ALIVE) {
-      status_ = CLOSE;
-    }
-  }
-}
+void Connection::Receive(void) { recv(fd_, &buffer_[0], BUFFER_SIZE, 0); }

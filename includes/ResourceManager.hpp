@@ -33,7 +33,6 @@ class ResourceManager {
     bool is_autoindex;
     bool is_local_redir;
     int status;
-    std::string content;
     std::string location;  // success or error path
     std::string ext;
     ResponseHeaderMap header;
@@ -45,35 +44,46 @@ class ResourceManager {
           location("") {}
   };
 
-  Result ExecuteMethod(Router::Result& router_result,
+  Result ExecuteMethod(std::string& response_content,
+                       Router::Result& router_result,
                        const Request& request_content);
 
  private:
-  void HandleStaticRequest(Result& result, Router::Result& router_result,
+  void HandleStaticRequest(std::string& response_content, Result& result,
+                           Router::Result& router_result,
                            const Request& request);
 
   // GET
-  void Get(Result& result, Router::Result& router_result);
-  void GetErrorPage(Result& result, Router::Result& router_result);
+  void Get(std::string& response_content, Result& result,
+           Router::Result& router_result);
+  void GetErrorPage(std::string& response_content, Result& result,
+                    Router::Result& router_result);
 
   // POST
-  void Post(Result& result, Router::Result& router_result,
-            const std::string& request_content);
+  void Post(std::string& response_content, Result& result,
+            Router::Result& router_result, const std::string& request_content);
   std::string FindValidOutputPath(Result& result, std::string& success_path);
 
   // DELETE
-  void Delete(Result& result, Router::Result& router_result);
+  void Delete(std::string& response_content, Result& result,
+              Router::Result& router_result);
 
   // Utils
   std::string ParseExtension(const std::string& success_path);
   std::string GenerateRedirectPage(const std::string& redirect_to);
-  void CheckFileMode(Result& result, Router::Result& router_result);
-  void GenerateAutoindex(Result& result, const std::string& path);
+  void CheckFileMode(std::string& response_content, Result& result,
+                     Router::Result& router_result);
+  void GenerateAutoindex(std::string& response_content, Result& result,
+                         const std::string& path);
+  bool DetermineFileType(const std::string& path, const dirent* ent,
+                         std::vector<std::string>& dir_vector,
+                         std::vector<std::string>& file_vector);
   void ListAutoindexFiles(std::string& content,
                           std::vector<std::string>& paths);
 
   // CGI
-  void HandleCgiRequest(Result& result, Router::Result& router_result,
+  void HandleCgiRequest(std::string& response_content, Result& result,
+                        Router::Result& router_result,
                         const std::string& request_content);
 };
 

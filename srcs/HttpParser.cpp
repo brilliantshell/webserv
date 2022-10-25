@@ -136,6 +136,7 @@ void HttpParser::TokenizePath(size_t& pos) {
     return UpdateStatus(400, kClose);  // BAD REQUEST
   }
   if (pos_back - pos > REQUEST_PATH_MAX) {
+    std::cerr << "두번째 414\n";
     return UpdateStatus(414, kRLLenErr);  // URI TOO LONG
   }
   UriParser uri_parser;

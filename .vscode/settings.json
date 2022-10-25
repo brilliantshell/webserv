@@ -84,7 +84,8 @@
 		"random": "cpp",
 		"memory_resource": "cpp",
 		"filesystem": "cpp",
-		"csignal": "cpp"
+		"csignal": "cpp",
+		"queue": "cpp"
 	},
 	"cmake.configureOnOpen": false
 }

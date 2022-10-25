@@ -21,7 +21,8 @@
 
 class ResponseFormatter {
  public:
-  std::string Format(ResourceManager::Result& resource_result, uint8_t version,
+  std::string Format(size_t content_length,
+                     ResourceManager::Result& resource_result, uint8_t version,
                      uint8_t allowed_methods, int keep_alive);
 
  private:
