@@ -95,7 +95,7 @@ TEST(ResourceFormatterTest, GETResponse) {
                                "allow: GET",
                                "connection: keep-alive",
                                "content-length: 88",
-                               "content-type: text/html"};
+                               "content-type: text/html;charset=utf-8"};
     ValidateResponse("s_00", expected, response, 7,
                      FileToString(RF_REQ_PATH_PREFIX "s_00.html"));
   }
@@ -138,7 +138,7 @@ TEST(ResourceFormatterTest, GETResponse) {
                                "allow: GET",
                                "connection: keep-alive",
                                "content-length: 38",
-                               "content-type: text/css"};
+                               "content-type: text/css;charset=utf-8"};
     ValidateResponse("s_01", expected, response, 7,
                      FileToString(RF_REQ_PATH_PREFIX "s_01.css"));
   }
@@ -265,7 +265,7 @@ TEST(ResourceFormatterTest, GETResponse) {
                                "date: ",
                                "connection: keep-alive",
                                "content-length: 92",
-                               "content-type: text/html"};
+                               "content-type: text/html;charset=utf-8"};
     ValidateResponse("f_00", expected, response, 6,
                      FileToString(RF_REQ_PATH_PREFIX "error.html"));
   }
@@ -309,7 +309,7 @@ TEST(ResourceFormatterTest, GETResponse) {
                                "allow: GET, POST, DELETE",
                                "connection: keep-alive",
                                "content-length: 92",
-                               "content-type: text/html"};
+                               "content-type: text/html;charset=utf-8"};
     ValidateResponse("f_01", expected, response, 7,
                      FileToString(RF_REQ_PATH_PREFIX "error.html"));
     chmod("./rf_resources/f_01.html", 0777);
@@ -355,7 +355,7 @@ TEST(ResourceFormatterTest, GETResponse) {
         "allow: POST",
         "connection: keep-alive",
         "content-length: 92",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     ValidateResponse("f_02", expected, response, 7,
                      FileToString(RF_REQ_PATH_PREFIX "error.html"));
@@ -400,7 +400,7 @@ TEST(ResourceFormatterTest, GETResponse) {
         "date: ",
         "connection: close",
         "content-length: 92",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     ValidateResponse("f_03", expected, response, 6,
                      FileToString(RF_REQ_PATH_PREFIX "error.html"));
@@ -446,7 +446,7 @@ TEST(ResourceFormatterTest, GETResponse) {
         "date: ",
         "connection: close",
         "content-length: 92",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     ValidateResponse("f_04", expected, response, 6,
                      FileToString(RF_REQ_PATH_PREFIX "error.html"));
@@ -493,7 +493,7 @@ TEST(ResourceFormatterTest, GETResponse) {
         "allow: GET",
         "connection: keep-alive",
         "content-length: 275",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     ValidateResponse("s_04", expected, response, 7,
                      FileToString(RF_REQ_PATH_PREFIX "autoindex.html"));
@@ -540,7 +540,7 @@ TEST(ResourceFormatterTest, GETResponse) {
         "allow: GET",
         "connection: keep-alive",
         "content-length: 117",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     ValidateResponse("s_05", expected, response, 7,
                      FileToString(RF_REQ_PATH_PREFIX "s_05.html"));
@@ -586,7 +586,7 @@ TEST(ResourceFormatterTest, GETResponse) {
         "date: ",
         "connection: keep-alive",
         "content-length: 191",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
         "location: /resources/s_00.html",
     };
     ValidateResponse("s_06", expected, response, 7,
@@ -636,7 +636,7 @@ resource has been moved permanently to <a href='/resources/s_00.html'>\
         "date: ",
         "connection: keep-alive",
         "content-length: 195",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
         "location: https://www.naver.com/",
     };
     ValidateResponse("s_07", expected, response, 7,
@@ -687,7 +687,7 @@ https://www.naver.com/<a>.</p></body></html>");
         "date: ",
         "connection: keep-alive",
         "content-length: 243",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
         "location: https://www.naver.com:8080/search?query=legacy",
     };
     ValidateResponse("s_08", expected, response, 7,
@@ -738,7 +738,7 @@ https://www.naver.com:8080/search?query=legacy<a>.</p></body></html>");
         "date: ",
         "connection: keep-alive",
         "content-length: 247",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
         "location: /resources/login?user=yongjule&password=julejule",
     };
     ValidateResponse("s_09", expected, response, 7,
@@ -793,7 +793,7 @@ TEST(ResourceFormatterTest, POSTResponse) {
         "allow: POST",
         "connection: keep-alive",
         "content-length: 173",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
         "location: /rf_resources/post/s_10.txt",
     };
     ValidateResponse(
@@ -847,7 +847,7 @@ Created</h1><p>YAY! The file is created at \
         "allow: POST",
         "connection: keep-alive",
         "content-length: 172",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
         "location: /rf_resources/post/empty_0",
     };
     ValidateResponse(
@@ -907,7 +907,7 @@ Created</h1><p>YAY! The file is created at \
         "allow: POST",
         "connection: keep-alive",
         "content-length: 92",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     ValidateResponse("f_05", expected, response, 7,
                      FileToString(RF_REQ_PATH_PREFIX "error.html"));
@@ -952,7 +952,7 @@ Created</h1><p>YAY! The file is created at \
         "date: ",
         "connection: close",
         "content-length: 92",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     ValidateResponse("f_06", expected, response, 6,
                      FileToString(RF_REQ_PATH_PREFIX "error.html"));
@@ -1006,7 +1006,7 @@ TEST(ResourceFormatterTest, DELETEResponse) {
         "allow: DELETE",
         "connection: keep-alive",
         "content-length: 126",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     ValidateResponse(
         "s_12", expected, response, 7,
@@ -1054,7 +1054,7 @@ TEST(ResourceFormatterTest, DELETEResponse) {
         "date: ",
         "connection: keep-alive",
         "content-length: 92",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     ValidateResponse("f_07", expected, response, 6,
                      FileToString(RF_REQ_PATH_PREFIX "error.html"));
@@ -1100,7 +1100,7 @@ TEST(ResourceFormatterTest, DELETEResponse) {
         "allow: GET, POST",
         "connection: keep-alive",
         "content-length: 92",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     ValidateResponse("f_08", expected, response, 7,
                      FileToString(RF_REQ_PATH_PREFIX "error.html"));
@@ -1148,7 +1148,7 @@ TEST(ResourceFormatterTest, DELETEResponse) {
         "allow: GET, POST, DELETE",
         "connection: keep-alive",
         "content-length: 92",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     ValidateResponse("f_09", expected, response, 7,
                      FileToString(RF_REQ_PATH_PREFIX "error.html"));
@@ -1197,7 +1197,7 @@ TEST(ResourceFormatterTest, CGIResponse) {
         "allow: GET, POST",
         "connection: keep-alive",
         "content-length: 92",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     ValidateResponse("f_10", expected, response, 7,
                      FileToString(RF_REQ_PATH_PREFIX "error.html"));
@@ -1411,7 +1411,7 @@ TEST(ResourceFormatterTest, CGIResponse) {
   //         "date: ",
   //         "connection: close",
   //         "content-length: 92",
-  //         "content-type: text/html",
+  //         "content-type: text/html;charset=utf-8",
   //     };
   //     ValidateResponse("f_11", expected, response,
   //                      sizeof(expected) / sizeof(std::string),

@@ -32,15 +32,17 @@ const std::string &PathResolver::get_file_name(void) const {
   return file_name_;
 }
 
+#include <iostream>
 // private
 bool PathResolver::ReserveFileName(std::string &path, Purpose purpose) {
   if ((purpose == kErrorPage) && path[0] != '/') {
     path.insert(0, "/");
   }
-  if (path[path.size() - 1] != '/') {
-    size_t not_dot = path.rfind('.');
-    if (purpose == kLocation || not_dot == path.size() - 2 ||
-        not_dot == path.size() - 3) {
+  std::cerr << "Path resolver path : " << path << '\n';
+  if (*path.rbegin() != '/') {
+    // size_t not_dot = path.find_last_not_of('.');
+    if (purpose == kLocation || path.compare(path.size() - 2, 2, "/.") == 0 ||
+        path.compare(path.size() - 3, 3, "/..") == 0) {
       path += '/';
     } else {
       size_t last_slash_pos = path.rfind('/');
@@ -51,6 +53,8 @@ bool PathResolver::ReserveFileName(std::string &path, Purpose purpose) {
       path.erase(last_slash_pos + 1);
     }
   }
+  std::cerr << "after Path resolver path : " << path << '\n';
+  std::cerr << "after Path resolver filename : " << file_name_ << '\n';
   return !((purpose == kErrorPage) && file_name_.size() == 0);
 }
 

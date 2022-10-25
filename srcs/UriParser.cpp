@@ -44,6 +44,23 @@ bool UriParser::DecodeHexToAscii(std::string& uri, const size_t pos) {
   return false;
 }
 
+// RESERVED n cycle
+void UriParser::EncodeAsciiToHex(std::string& path) {
+  IsCharSet is_reserved(RESERVED, true);
+  for (size_t i = 0; i < path.size(); ++i) {
+    if (is_reserved(path[i]) == true) {
+      std::stringstream ss;
+      ss << std::hex << (int)path[i];
+      std::string hex = ss.str();
+      if (hex.size() == 1) {
+        hex = "0" + hex;
+      }
+      path.replace(i, 1, "%" + hex);
+      i += 2;
+    }
+  }
+}
+
 std::string UriParser::GetFullPath(void) {
   if (result_.scheme.empty() == true) {
     return result_.path + result_.query;

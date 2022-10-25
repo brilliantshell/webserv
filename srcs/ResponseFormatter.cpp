@@ -35,6 +35,8 @@ std::string ResponseFormatter::Format(ResourceManager::Result& resource_result,
                         resource_result.header);
   if (content_type.empty() == false) {
     ss << "content-type: " << content_type << CRLF;
+  } else {
+    // ss << "content-type: text/plain;charset=utf-8" << CRLF;
   }
   if (resource_result.location.empty() == false) {  // 201 || 301 || 302
     ss << "location: " << resource_result.location << CRLF;
@@ -74,7 +76,7 @@ std::string ResponseFormatter::FormatContentType(bool is_autoindex,
                                                  const std::string& ext,
                                                  ResponseHeaderMap& header) {
   if (is_autoindex == true) {
-    return "text/html";
+    return "text/html;charset=utf-8";
   }
   std::string content_type = "";
   ResponseHeaderMap::iterator content_type_it = header.find("content-type");

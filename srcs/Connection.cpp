@@ -27,7 +27,7 @@ void Connection::Reset(void) {
   status_ = KEEP_ALIVE;
   uint16_t port_ = 0;
   client_addr_.clear();
-  buffer_.erase();
+  buffer_.assign(BUFFER_SIZE, 0);
   parser_.Reset();
   if (router_ != NULL) {
     delete router_;
@@ -35,14 +35,13 @@ void Connection::Reset(void) {
   }
 }
 
-// 여기서 serverRouter를 아는 채로 옴
 void Connection::HandleRequest() {
   if (status_ != NEXT_REQUEST_EXISTS) {
     Receive();
   }
   std::cerr << ">>> Received Buffer_ Before Parse <<<\n " << buffer_ << '\n';
   int req_status = parser_.Parse(buffer_);
-  std::cerr << ">>>  parse status <<<" << (int)req_status << '\n';
+  std::cerr << ">>>  parse status <<<\n" << (int)req_status << '\n';
   if (req_status < HttpParser::kComplete) {
     status_ = KEEP_READING;
     return;
@@ -75,7 +74,7 @@ void Connection::HandleRequest() {
   Send(response);
   if (status_ == KEEP_ALIVE && parser_.DoesNextReqExist() == true) {
     parser_.Clear();
-    buffer_.erase();
+    buffer_.clear();
     status_ = NEXT_REQUEST_EXISTS;
     return;
   }

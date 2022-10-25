@@ -21,6 +21,7 @@
 #include "ResponseData.hpp"
 #include "Router.hpp"
 #include "Types.hpp"
+#include "UriParser.hpp"
 
 #define LAST_ERROR_DOCUMENT                                               \
   "<!DOCTYPE html><title>500 Internal Server Error</title><body><h1>500 " \
@@ -69,7 +70,7 @@ class ResourceManager {
   void CheckFileMode(Result& result, Router::Result& router_result);
   void GenerateAutoindex(Result& result, const std::string& path);
   void ListAutoindexFiles(std::string& content,
-                          std::vector<std::string>& files);
+                          std::vector<std::string>& paths);
 
   // CGI
   void HandleCgiRequest(Result& result, Router::Result& router_result,

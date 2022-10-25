@@ -275,10 +275,12 @@ void ResourceManager::GenerateAutoindex(Result& result,
 }
 
 void ResourceManager::ListAutoindexFiles(std::string& content,
-                                         std::vector<std::string>& files) {
-  std::sort(files.begin(), files.end());
-  for (size_t i = 0; i < files.size(); ++i) {
-    content += "<a href='./" + files[i] + "'>" + files[i] + "</a>\n";
+                                         std::vector<std::string>& paths) {
+  std::sort(paths.begin(), paths.end());
+  for (size_t i = 0; i < paths.size(); ++i) {
+    std::string encoded_path(paths[i]);
+    UriParser().EncodeAsciiToHex(encoded_path);
+    content += "<a href='./" + encoded_path + "'>" + paths[i] + "</a>\n";
   }
 }
 

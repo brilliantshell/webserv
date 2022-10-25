@@ -79,7 +79,9 @@ fclean			:	clean
 					@echo $(RED) Remove🧹 $(NAME) 📣 $(RESET)
 
 .PHONY			:	re
-re				:	fclean all
+re				:
+					@make fclean
+					@make all
 
 .PHONY			:	debug
 debug			: 
