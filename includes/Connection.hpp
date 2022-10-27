@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/uio.h>
 #include <unistd.h>
 
 #include <cstring>
@@ -33,23 +34,23 @@
 #define NEXT_REQUEST_EXISTS 4
 
 // send status
-#define KEEP_SENDING_HEADER 0
-#define KEEP_SENDING_CONTENT 1
-#define SEND_FINISHED 3
+#define KEEP_SENDING 0
+#define SEND_FINISHED 1
 
-#define SND_BUFF_SIZE 32768
+#define SEND_BUFF_SIZE 32768
 
 class Connection {
  public:
   enum {
-    kReset = 0,
+    kClose = 0,
+    kReset,
     kNextReq,
   };
 
   Connection(void);
   ~Connection(void);
 
-  void Reset(bool does_next_req_exist = kReset);
+  void Reset(bool does_next_req_exist = kClose);
   void HandleRequest(void);
   void Send(void);
 
@@ -61,8 +62,18 @@ class Connection {
 
  private:
   struct ResponseBuffer {
+    enum {
+      kHeader = 0,
+      kContent,
+    };
+
+    int current_buf;
+    size_t offset;
+    size_t total_len;
     std::string header;
     std::string content;
+
+    ResponseBuffer(void) : current_buf(kHeader), offset(0), total_len(0) {}
   };
 
   typedef std::queue<ResponseBuffer> ResponseQueue;
@@ -71,7 +82,6 @@ class Connection {
   int connection_status_;
   int send_status_;
   uint16_t port_;
-  ssize_t sent_bytes_;
   std::string client_addr_;
   std::string buffer_;
   ResponseQueue response_queue_;
@@ -82,6 +92,8 @@ class Connection {
   ResponseFormatter response_formatter_;
 
   void Receive(void);
+  void SetIov(struct iovec* iov, size_t& cnt, ResponseBuffer& res);
+  void UpdateRequestResult(bool is_keep_alive);
 };
 
 #endif  // INCLUDES_CONNECTION_HPP_

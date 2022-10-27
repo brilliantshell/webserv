@@ -41,7 +41,9 @@ class HttpServer {
   void InitKqueue(void);
   void UpdateKqueue(struct kevent* sock_ev, int socket_fd, int16_t ev_filt,
                     uint16_t ev_flag);
-  bool AcceptConnection(struct kevent* sock_ev, int socket_fd);
+  void AcceptConnection(int socket_fd);
+  void ReceiveRequests(int event_fd);
+  void SendResponses(int event_fd);
 };
 
 #endif  // INCLUDES_HTTPSERVER_HPP_

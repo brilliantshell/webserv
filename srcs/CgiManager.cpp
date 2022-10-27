@@ -118,6 +118,7 @@ void CgiManager::ExecuteScript(int in_fd[], int out_fd[],
     }
     execve(script_path, const_cast<char* const*>(argv), env);
     // TODO : error handling(404, 403, 500)
+    std::cerr << "execve error" << std::endl;
     exit(EXIT_FAILURE);
   } catch (const std::exception& e) {
     exit(EXIT_FAILURE);
@@ -159,7 +160,7 @@ bool CgiManager::ReceiveCgiHeaderFields(ResponseHeaderMap& header,
     if (end_of_line - start > FIELD_LINE_MAX) {
       return false;
     }
-    std::string field_line = header_buf.substr(start, end_of_line - start);
+    std::string field_line(header_buf, start, end_of_line - start);
     size_t colon_pos = field_line.find(":");
     if (colon_pos == std::string::npos) {
       return false;
@@ -216,6 +217,7 @@ bool CgiManager::ReceiveCgiResponse(std::string& response_content,
     }
     memset(buf, 0, 2049);
   }
+  std::cerr << "read exit, read size : " << read_size << '\n';
   close(from_cgi_fd);
   return read_size >= 0;
 }

@@ -164,7 +164,7 @@ LocationRouter& ServerRouter::operator[](const std::string& host) {
   if (host.size() == 0) {
     return default_server;
   }
-  std::string server_name = host.substr(0, host.find(':'));
+  std::string server_name(host, 0, host.find(':'));
   return (location_router_map.count(server_name) == 1)
              ? location_router_map[server_name]
              : default_server;
