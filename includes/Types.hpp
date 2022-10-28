@@ -19,6 +19,7 @@
 #define GET 0b00000001
 #define POST 0b00000010
 #define DELETE 0b00000100
+#define HEAD 0b00001000
 
 struct ServerRouter;
 
