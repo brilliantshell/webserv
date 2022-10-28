@@ -11,10 +11,10 @@ int main(int argc, char **argv, char **envp) {
                 << ((strcmp(argv[i + 2], "0") == 0)
                         ? std::string("")
                         : (" " + std::string(argv[i + 2])))
-                << "\n";
+                << "\r\n";
     }
   }
-  std::cout << "\n";
+  std::cout << "\r\n";
   std::stringstream ss(getenv("CONTENT_LENGTH"));
   size_t len = 0;
   ss >> len;

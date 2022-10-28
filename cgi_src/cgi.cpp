@@ -10,20 +10,20 @@ int main(int argc, char **argv, char **envp) {
                 << ((strcmp(argv[i + 2], "0") == 0)
                         ? std::string("")
                         : (" " + std::string(argv[i + 2])))
-                << "\n";
+                << "\r\n";
     }
   }
-  std::cout << "\n";
+  std::cout << "\r\n";
   for (int i = 0; envp[i]; ++i)
-    std::cout << "envp [" << i << "] : " << envp[i] << "\n";
+    std::cout << "envp [" << i << "] : " << envp[i] << "\r\n";
   ssize_t read_bytes;
   char buf[1024];
-  std::cout << "\n";
+  std::cout << "\r\n";
   while ((read_bytes = read(0, buf, sizeof(buf))) > 0) {
     std::cout.write(buf, read_bytes);
   }
   if (argc > 1) {
-    std::cout << "\n";
+    std::cout << "\r\n";
     for (size_t i = 0; i < argc - 1; ++i) {
       std::cout << argv[i + 1] << ((i + 2 == argc) ? "" : "+");
     }

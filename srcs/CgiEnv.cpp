@@ -35,7 +35,36 @@ const char **CgiEnv::get_env(void) const {
   return const_cast<const char **>(env_);
 }
 
-// private
+CgiEnv &CgiEnv::operator=(const CgiEnv &rhs) {
+  if (env_ != NULL) {
+    for (size_t i = 0; i < 18; ++i) {
+      if (env_[i] != NULL) {
+        delete[] env_[i];
+        env_[i] = NULL;
+      }
+    }
+  }
+  for (size_t i = 0; i < 17; ++i) {
+    if (rhs.env_[i] == NULL) {
+      env_[i] = NULL;
+    } else {
+      env_[i] = new (std::nothrow) char[strlen(rhs.env_[i]) + 1];
+      if (env_[i] == NULL) {
+        for (; i > 0; --i) {
+          if (env_[i - 1] != NULL) {
+            delete[] env_[i - 1];
+            env_[i - 1] = NULL;
+          }
+        }
+        delete[] env_;
+        env_ = NULL;
+        return *this;
+      }
+      strcpy(env_[i], rhs.env_[i]);
+    }
+  }
+  return *this;
+}
 
 bool CgiEnv::SetMetaVariables(Request &request, const std::string &root,
                               const std::string &cgi_ext,
@@ -82,6 +111,7 @@ bool CgiEnv::SetMetaVariables(Request &request, const std::string &root,
   return true;
 }
 
+// SECTION: private
 bool CgiEnv::ParseScriptUriComponents(ScriptUri &script_uri,
                                       const std::string &req_uri,
                                       const std::string &root,

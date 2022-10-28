@@ -22,6 +22,7 @@
 #include <string>
 
 #include "HttpParser.hpp"
+#include "PathResolver.hpp"
 #include "ResourceManager.hpp"
 #include "ResponseFormatter.hpp"
 #include "Router.hpp"
@@ -92,8 +93,11 @@ class Connection {
   ResponseFormatter response_formatter_;
 
   void Receive(void);
+  void GenerateResponse(int status, int req_status, Request& request);
   void SetIov(struct iovec* iov, size_t& cnt, ResponseBuffer& res);
   void UpdateRequestResult(bool is_keep_alive);
+  int ValidateLocalRedirPath(std::string& loc, RequestLine& req,
+                             int& req_status);
 };
 
 #endif  // INCLUDES_CONNECTION_HPP_
