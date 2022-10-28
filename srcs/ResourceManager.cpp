@@ -316,10 +316,9 @@ void ResourceManager::HandleCgiRequest(std::string& response_content,
                                        Result& result,
                                        Router::Result& router_result,
                                        const std::string& request_content) {
-  CgiManager cgiManager;
   CgiManager::Result cgi_result =
-      cgiManager.Execute(response_content, router_result, result.header,
-                         request_content, result.status);
+      CgiManager().Execute(response_content, router_result, result.header,
+                           request_content, result.status);
   if (result.status < 400) {
     result.status = cgi_result.status;
     result.is_local_redir = cgi_result.is_local_redir;

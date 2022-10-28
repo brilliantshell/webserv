@@ -86,7 +86,8 @@
 		"filesystem": "cpp",
 		"csignal": "cpp",
 		"queue": "cpp",
-		"climits": "cpp"
+		"climits": "cpp",
+		"__functional_03": "cpp"
 	},
 	"cmake.configureOnOpen": false
 }
