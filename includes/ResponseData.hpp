@@ -66,22 +66,23 @@ struct StatusMap : public std::map<int, std::string> {
 
 struct MimeMap : public std::map<std::string, std::string> {
   MimeMap(void) {
-    this->operator[]("htm") = "text/html";
-    this->operator[]("html") = "text/html";
-    this->operator[]("shtml") = "text/html";
-    this->operator[]("css") = "text/css";
-    this->operator[]("xml") = "text/xml";
+    this->operator[]("htm") = "text/html;charset=utf-8";
+    this->operator[]("html") = "text/html;charset=utf-8";
+    this->operator[]("shtml") = "text/html;charset=utf-8";
+    this->operator[]("md") = "text/html;charset=utf-8";
+    this->operator[]("css") = "text/css;charset=utf-8";
+    this->operator[]("xml") = "text/xml;charset=utf-8";
+    this->operator[]("txt") = "text/plain;charset=utf-8";
+    this->operator[]("mml") = "text/mathml";
+    this->operator[]("jad") = "text/vnd.sun.j2me.app-descriptor";
+    this->operator[]("wml") = "text/vnd.wap.wml";
+    this->operator[]("htc") = "text/x-component";
     this->operator[]("gif") = "image/gif";
     this->operator[]("jpeg") = "image/jpeg";
     this->operator[]("jpg") = "image/jpeg";
     this->operator[]("js") = "application/javascript";
     this->operator[]("atom") = "application/atom+xml";
     this->operator[]("rss") = "application/rss+xml";
-    this->operator[]("mml") = "text/mathml";
-    this->operator[]("txt") = "text/plain";
-    this->operator[]("jad") = "text/vnd.sun.j2me.app-descriptor";
-    this->operator[]("wml") = "text/vnd.wap.wml";
-    this->operator[]("htc") = "text/x-component";
     this->operator[]("avif") = "image/avif";
     this->operator[]("png") = "image/png";
     this->operator[]("svg") = "image/svg+xml";

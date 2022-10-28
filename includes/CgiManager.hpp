@@ -29,7 +29,6 @@ class CgiManager {
   struct Result {
     bool is_local_redir;
     int status;
-    std::string content;
 
     Result(int status) : is_local_redir(false), status(status) {}
   };
@@ -37,8 +36,9 @@ class CgiManager {
   CgiManager(void);
   ~CgiManager(void);
 
-  Result Execute(Router::Result& router_result, ResponseHeaderMap& header,
-                 const std::string& request_content, int status);
+  Result Execute(std::string& response_content, Router::Result& router_result,
+                 ResponseHeaderMap& header, const std::string& request_content,
+                 int status);
 
  private:
   enum ResponseType {
@@ -62,9 +62,10 @@ class CgiManager {
                           int in_fd[2], int out_fd[2]);
   bool ReceiveCgiHeaderFields(ResponseHeaderMap& header,
                               const std::string& header_buf);
-  bool ReceiveCgiResponse(Result& result, ResponseHeaderMap& header,
-                          int from_cgi_fd);
-  bool ParseCgiHeader(Result& result, ResponseHeaderMap& header);
+  bool ReceiveCgiResponse(std::string& response_content, Result& result,
+                          ResponseHeaderMap& header, int from_cgi_fd);
+  bool ParseCgiHeader(std::string& response_content, Result& result,
+                      ResponseHeaderMap& header);
   int DetermineResponseType(const std::string& content,
                             ResponseHeaderMap& header);
 };

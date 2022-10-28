@@ -23,7 +23,7 @@
 #define ROUTER_REQ_PATH_PREFIX "../tests/router/"
 
 std::string FileToString(const std::string& file_path);
-Validator::Result TestValidatorSuccess(const std::string& case_id);
+ServerConfig TestValidatorSuccess(const std::string& case_id);
 
 // Route() 결과값
 /*
@@ -40,7 +40,7 @@ result{
 // .txt (request) , .config (config)
 TEST(RouteTest, ServerRouter) {
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "s_00");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
@@ -65,7 +65,7 @@ TEST(RouteTest, ServerRouter) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "s_01");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
@@ -90,7 +90,7 @@ TEST(RouteTest, ServerRouter) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "f_00");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
@@ -114,7 +114,7 @@ TEST(RouteTest, ServerRouter) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "s_02");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
@@ -138,7 +138,7 @@ TEST(RouteTest, ServerRouter) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "s_03");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
@@ -162,7 +162,7 @@ TEST(RouteTest, ServerRouter) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "f_01");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
@@ -186,7 +186,7 @@ TEST(RouteTest, ServerRouter) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "s_04");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
@@ -212,7 +212,7 @@ TEST(RouteTest, ServerRouter) {
 
 TEST(RouterTest, LocationRouter) {
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "f_02");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
@@ -236,7 +236,7 @@ TEST(RouterTest, LocationRouter) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "f_03");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
@@ -260,7 +260,7 @@ TEST(RouterTest, LocationRouter) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "f_04");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
@@ -284,7 +284,7 @@ TEST(RouterTest, LocationRouter) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "s_05");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
@@ -308,7 +308,7 @@ TEST(RouterTest, LocationRouter) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "s_06");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
@@ -333,7 +333,7 @@ TEST(RouterTest, LocationRouter) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "s_07");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
@@ -357,7 +357,7 @@ TEST(RouterTest, LocationRouter) {
   }
 
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "f_05");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
@@ -382,7 +382,7 @@ TEST(RouterTest, LocationRouter) {
 
   // f 06 directory delete
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "f_06");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
@@ -409,7 +409,7 @@ TEST(RouterTest, LocationRouter) {
 TEST(RouterTest, CgiMetaVariables) {
   // s 08 cgi meta-variable test
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "s_08");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
@@ -474,7 +474,7 @@ TEST(RouterTest, CgiMetaVariables) {
 
   // s 09 cgi meta-variable with content-type
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "s_09");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
@@ -539,7 +539,7 @@ TEST(RouterTest, CgiMetaVariables) {
 
   // s 10 cgi meta-variable check script-uri components
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "s_10");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
@@ -605,7 +605,7 @@ TEST(RouterTest, CgiMetaVariables) {
 
   // s 11 cgi meta-variable check script-uri components
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "s_11");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
@@ -670,7 +670,7 @@ TEST(RouterTest, CgiMetaVariables) {
   // s 12 cgi meta-variable check server_name (default server with
   // anonymous host name)
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "s_12");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
@@ -735,7 +735,7 @@ TEST(RouterTest, CgiMetaVariables) {
   // s 13 cgi meta-variable check server_name (default server with
   // default's host name)
   {
-    Validator::Result result =
+    ServerConfig result =
         TestValidatorSuccess(ROUTER_CONFIG_PATH_PREFIX "s_13");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);

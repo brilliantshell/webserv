@@ -27,7 +27,7 @@ void HttpParser::ReceiveHeader(std::string& segment) {
       return UpdateStatus(400, kHDLenErr);  // BAD REQUEST
     }
   } else {
-    header_buf_ = header_buf_.substr(0, pos + 2);
+    header_buf_.erase(pos + 2);
     ParseHeader();
     if (header_buf_.size() > HEADER_MAX) {
       return UpdateStatus(400, kHDLenErr);  // BAD REQUEST

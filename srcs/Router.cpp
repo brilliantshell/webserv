@@ -76,11 +76,10 @@ void Router::RouteToLocation(Result& result, LocationRouter& location_router,
   }
   result.success_path =
       "." + location.root +
-      (((location.methods & POST) == POST) ? location.upload_path.substr(1)
-                                           : "") +
+      ((request.req.method == POST) ? location.upload_path.substr(1) : "") +
       request.req.path.substr(1);
   if (*result.success_path.rbegin() == '/') {
-    if (location.methods & (POST | DELETE)) {
+    if (request.req.method & (POST | DELETE)) {
       return UpdateStatus(result, 403);  // Forbidden
     }
     result.success_path +=
@@ -165,7 +164,7 @@ LocationRouter& ServerRouter::operator[](const std::string& host) {
   if (host.size() == 0) {
     return default_server;
   }
-  std::string server_name = host.substr(0, host.find(':'));
+  std::string server_name(host, 0, host.find(':'));
   return (location_router_map.count(server_name) == 1)
              ? location_router_map[server_name]
              : default_server;

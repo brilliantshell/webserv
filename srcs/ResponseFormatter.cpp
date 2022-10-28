@@ -9,7 +9,8 @@
 
 #include "ResponseFormatter.hpp"
 
-std::string ResponseFormatter::Format(ResourceManager::Result& resource_result,
+std::string ResponseFormatter::Format(size_t content_length,
+                                      ResourceManager::Result& resource_result,
                                       uint8_t version, uint8_t allowed_methods,
                                       int keep_alive) {
   std::stringstream ss;
@@ -25,11 +26,7 @@ std::string ResponseFormatter::Format(ResourceManager::Result& resource_result,
      << ((resource_result.status < 500 && keep_alive == HttpParser::kComplete)
              ? "keep-alive"
              : "close")
-     << CRLF;
-
-  if (resource_result.content.empty() == false) {
-    ss << "content-length: " << resource_result.content.size() << CRLF;
-  }
+     << CRLF << "content-length: " << content_length << CRLF;
   std::string content_type =
       FormatContentType(resource_result.is_autoindex, resource_result.ext,
                         resource_result.header);
@@ -44,7 +41,7 @@ std::string ResponseFormatter::Format(ResourceManager::Result& resource_result,
        it != resource_result.header.end(); ++it) {
     ss << it->first << ": " << it->second << CRLF;
   }
-  ss << CRLF << resource_result.content;
+  ss << CRLF;  // << resource_result.content;
   return ss.str();
 }
 
@@ -74,7 +71,7 @@ std::string ResponseFormatter::FormatContentType(bool is_autoindex,
                                                  const std::string& ext,
                                                  ResponseHeaderMap& header) {
   if (is_autoindex == true) {
-    return "text/html";
+    return "text/html;charset=utf-8";
   }
   std::string content_type = "";
   ResponseHeaderMap::iterator content_type_it = header.find("content-type");

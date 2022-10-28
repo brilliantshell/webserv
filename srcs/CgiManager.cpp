@@ -13,7 +13,8 @@ CgiManager::CgiManager(void) {}
 
 CgiManager::~CgiManager(void) {}
 
-CgiManager::Result CgiManager::Execute(Router::Result& router_result,
+CgiManager::Result CgiManager::Execute(std::string& response_content,
+                                       Router::Result& router_result,
                                        ResponseHeaderMap& header,
                                        const std::string& request_content,
                                        int status) {
@@ -40,11 +41,12 @@ CgiManager::Result CgiManager::Execute(Router::Result& router_result,
       return result;
     }
     // TODO : kqueue 로 자식 프로세스 상태 확인
-    if (ReceiveCgiResponse(result, header, out_fd[0]) == false ||
-        ParseCgiHeader(result, header) == false) {
+    if (ReceiveCgiResponse(response_content, result, header, out_fd[0]) ==
+            false ||
+        ParseCgiHeader(response_content, result, header) == false) {
       result.status = 500;
       result.is_local_redir = false;
-      result.content.clear();
+      response_content.clear();
       header.clear();
     }
   }
@@ -116,6 +118,7 @@ void CgiManager::ExecuteScript(int in_fd[], int out_fd[],
     }
     execve(script_path, const_cast<char* const*>(argv), env);
     // TODO : error handling(404, 403, 500)
+    std::cerr << "execve error" << std::endl;
     exit(EXIT_FAILURE);
   } catch (const std::exception& e) {
     exit(EXIT_FAILURE);
@@ -157,7 +160,7 @@ bool CgiManager::ReceiveCgiHeaderFields(ResponseHeaderMap& header,
     if (end_of_line - start > FIELD_LINE_MAX) {
       return false;
     }
-    std::string field_line = header_buf.substr(start, end_of_line - start);
+    std::string field_line(header_buf, start, end_of_line - start);
     size_t colon_pos = field_line.find(":");
     if (colon_pos == std::string::npos) {
       return false;
@@ -179,7 +182,8 @@ bool CgiManager::ReceiveCgiHeaderFields(ResponseHeaderMap& header,
   return true;
 }
 
-bool CgiManager::ReceiveCgiResponse(Result& result, ResponseHeaderMap& header,
+bool CgiManager::ReceiveCgiResponse(std::string& response_content,
+                                    Result& result, ResponseHeaderMap& header,
                                     int from_cgi_fd) {
   bool is_header = true;
   ssize_t read_size;
@@ -202,17 +206,18 @@ bool CgiManager::ReceiveCgiResponse(Result& result, ResponseHeaderMap& header,
           return false;
         }
         is_header = false;
-        result.content += header_buf.substr(header_end + 2);
+        response_content += header_buf.substr(header_end + 2);
       }
     } else {
-      result.content.append(buf, read_size);
-      if (result.content.size() > CONTENT_MAX) {
+      response_content.append(buf, read_size);
+      if (response_content.size() > CONTENT_MAX) {
         close(from_cgi_fd);
         return false;
       }
     }
     memset(buf, 0, 2049);
   }
+  std::cerr << "read exit, read size : " << read_size << '\n';
   close(from_cgi_fd);
   return read_size >= 0;
 }
@@ -252,8 +257,9 @@ int CgiManager::DetermineResponseType(const std::string& content,
   return kError;
 }
 
-bool CgiManager::ParseCgiHeader(Result& result, ResponseHeaderMap& header) {
-  int response_type = DetermineResponseType(result.content, header);
+bool CgiManager::ParseCgiHeader(std::string& response_content, Result& result,
+                                ResponseHeaderMap& header) {
+  int response_type = DetermineResponseType(response_content, header);
   if (response_type == kError) {
     return false;
   }

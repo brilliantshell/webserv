@@ -60,23 +60,23 @@ add_executable(
 # 	srcs/CgiEnv.cpp
 # )
 
-add_executable(
-	server
-	tests/test_server_io.cpp
-	srcs/Validator.cpp
-	srcs/PassiveSockets.cpp
-	srcs/HttpServer.cpp
-	srcs/Connection.cpp
-	srcs/HttpParser.cpp
-	srcs/UriParser.cpp
-	srcs/HeaderParser.cpp
-	srcs/Router.cpp
-	srcs/PathResolver.cpp
-	srcs/ResourceManager.cpp
-	srcs/CgiEnv.cpp
-	srcs/CgiManager.cpp
-	srcs/ResponseFormatter.cpp
-)
+# add_executable(
+# 	server
+# 	tests/test_server_io.cpp
+# 	srcs/Validator.cpp
+# 	srcs/PassiveSockets.cpp
+# 	srcs/HttpServer.cpp
+# 	srcs/Connection.cpp
+# 	srcs/HttpParser.cpp
+# 	srcs/UriParser.cpp
+# 	srcs/HeaderParser.cpp
+# 	srcs/Router.cpp
+# 	srcs/PathResolver.cpp
+# 	srcs/ResourceManager.cpp
+# 	srcs/CgiEnv.cpp
+# 	srcs/CgiManager.cpp
+# 	srcs/ResponseFormatter.cpp
+# )
 
 add_executable(
 	cgi.php
@@ -108,10 +108,10 @@ target_include_directories(
 # 	PUBLIC ${CMAKE_SOURCE_DIR}/includes
 # )
 
-target_include_directories(
-	server
-	PUBLIC ${CMAKE_SOURCE_DIR}/includes
-)
+# target_include_directories(
+# 	server
+# 	PUBLIC ${CMAKE_SOURCE_DIR}/includes
+# )
 
 target_link_libraries(
 	test_webserv

@@ -75,12 +75,7 @@ class Router {
     CgiEnv cgi_env;
 
     Result(int parse_status)
-        : is_cgi(false),
-          status(parse_status),
-          methods(GET),
-          success_path(""),
-          error_path(""),
-          redirect_to("") {}
+        : is_cgi(false), status(parse_status), methods(GET) {}
   };
 
   Router(ServerRouter& server_router);
@@ -101,8 +96,5 @@ class Router {
   bool GetHostAddr(std::string& server_addr) const;
   void UpdateStatus(Result& result, int status);
 };
-
-typedef std::map<uint16_t, ServerRouter> PortMap;
-typedef std::pair<uint16_t, ServerRouter> PortNode;
 
 #endif  // INCLUDES_SERVER_ROUTER_HPP_

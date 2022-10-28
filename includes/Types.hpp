@@ -19,6 +19,9 @@
 #define GET 0b00000001
 #define POST 0b00000010
 #define DELETE 0b00000100
+#define HEAD 0b00001000
+
+struct ServerRouter;
 
 typedef signed char int8_t;
 typedef short int int16_t;
@@ -30,7 +33,14 @@ typedef unsigned short int uint16_t;
 typedef unsigned int uint32_t;
 
 // SECTION : Validator 파싱 구조체 typedef
+typedef std::map<uint16_t, ServerRouter> PortMap;
+typedef std::pair<uint16_t, ServerRouter> PortNode;
 typedef std::set<uint16_t> PortSet;
+
+struct ServerConfig {
+  PortMap port_map;
+  PortSet port_set;
+};
 
 // SECTION : GenerateSocket 파싱 구조체 typedef
 typedef std::map<int, uint16_t> ListenerMap;  // key: fd, value: port

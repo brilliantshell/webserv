@@ -39,6 +39,12 @@ int HttpParser::Parse(std::string& segment) {
   return status_;
 }
 
+bool HttpParser::DoesNextReqExist(void) {
+  std::cerr << "status : " << status_ << "\nback_up buf : " << backup_buf_
+            << '\n';
+  return (status_ == kComplete && backup_buf_.empty() == false);
+}
+
 void HttpParser::Clear(void) {
   keep_alive_ = true;
   is_data_ = false;
@@ -49,6 +55,11 @@ void HttpParser::Clear(void) {
   header_buf_.clear();
   chunked_buf_.clear();
   result_ = Result();
+}
+
+void HttpParser::Reset(void) {
+  Clear();
+  backup_buf_.clear();
 }
 
 HttpParser::Result& HttpParser::get_result(void) { return result_; }
@@ -77,7 +88,7 @@ void HttpParser::ReceiveRequestLine(std::string& segment) {
       UpdateStatus(414, kRLLenErr);  // BAD REQUEST
     }
   } else {
-    request_line_buf_ = request_line_buf_.substr(0, pos);
+    request_line_buf_.erase(pos);
     ParseRequestLine();
     if (status_ < kComplete) {
       status_ = kHeader;
@@ -101,7 +112,7 @@ void HttpParser::TokenizeMethod(size_t& pos) {
   if (pos > METHOD_MAX) {
     return UpdateStatus(501, kComplete);  // NOT IMPLEMENTED
   }
-  std::string token = request_line_buf_.substr(0, pos);
+  std::string token(request_line_buf_, 0, pos);
 
   // 대문자 검사
   if (token == "GET") {
@@ -111,8 +122,11 @@ void HttpParser::TokenizeMethod(size_t& pos) {
   } else if (token == "DELETE") {
     result_.request.req.method = DELETE;
   } else {
+    if (token == "HEAD") {
+      result_.request.req.method = HEAD;
+    }
     UpdateStatus((token.find_first_not_of(UPPER_ALPHA) == std::string::npos)
-                     ? 501   // NOT IMPLEMENTED
+                     ? 405   // NOT IMPLEMENTED
                      : 400,  // BAD REQUEST
                  kComplete);
   }
@@ -159,7 +173,7 @@ void HttpParser::TokenizeVersion(size_t& pos) {
   if (request_line_buf_.find(SP, pos) != std::string::npos) {
     return UpdateStatus(400, kClose);  // BAD REQUEST
   }
-  std::string version = request_line_buf_.substr(pos);
+  std::string version(request_line_buf_, pos);
   if (version.size() != 8) {
     UpdateStatus(400, kClose);  // BAD REQUEST
   } else if (version.compare(0, 7, "HTTP/1.") == 0 && '0' <= version[7] &&
@@ -174,13 +188,15 @@ void HttpParser::TokenizeVersion(size_t& pos) {
 void HttpParser::ReceiveContent(std::string& segment) {
   if (body_length_ == 0) {
     status_ = kComplete;
+    if (segment.size() > 0) {
+      backup_buf_.append(segment);
+    }
     return;
   }
   if (body_length_ == CHUNKED) {
     DecodeChunkedContent(segment);
     return;
   }
-
   size_t remaining_bytes = body_length_ - result_.request.content.size();
   if (segment.size() >= remaining_bytes) {
     if (segment.size() > remaining_bytes) {
@@ -245,7 +261,7 @@ bool HttpParser::ParseChunkSize(void) {
       UpdateStatus(400, kClose);  // BAD REQUEST
       return false;
     }
-    std::string chunk_size_line = chunked_buf_.substr(0, pos);
+    std::string chunk_size_line(chunked_buf_, 0, pos);
     chunked_buf_ = chunked_buf_.substr(pos + 2);
     if (IgnoreChunkExtension(chunk_size_line) == false) {
       return false;

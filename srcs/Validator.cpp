@@ -13,8 +13,8 @@
 // SECTION : public
 Validator::Validator(const std::string& config) : kConfig_(config) {}
 
-Validator::Result Validator::Validate(void) {
-  Result result;
+ServerConfig Validator::Validate(void) {
+  ServerConfig result;
   PortServerList_ port_server_list;
 
   for (cursor_ = std::find_if(kConfig_.begin(), kConfig_.end(),
@@ -422,7 +422,7 @@ LocationNode Validator::ValidateLocation(ConstIterator_& delim,
  * @param result <PortMap, Portset>
  * @param port_server_list <port, LocationRouterNode> 의 리스트
  */
-void Validator::GeneratePortMap(Result& result,
+void Validator::GeneratePortMap(ServerConfig& result,
                                 PortServerList_& port_server_list) const {
   for (PortSet::const_iterator it = result.port_set.begin();
        it != result.port_set.end(); ++it) {

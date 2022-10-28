@@ -12,7 +12,7 @@
 
 std::string FileToString(const std::string& file_path);
 
-Validator::Result TestHostVectors(const std::string& case_id) {
+ServerConfig TestHostVectors(const std::string& case_id) {
   std::cout << "\033[1;32m" << case_id << "\033[0m" << std::endl;
   Validator validator(FileToString(SOCKET_PATH_PREFIX + case_id + ".config"));
   return validator.Validate();
@@ -20,7 +20,7 @@ Validator::Result TestHostVectors(const std::string& case_id) {
 
 TEST(SocketGeneratorTest, SingleServer) {
   {
-    Validator::Result result = TestHostVectors("s_01");
+    ServerConfig result = TestHostVectors("s_01");
     PassiveSockets passive_sockets(result.port_set);
     ListenerMap::iterator it = passive_sockets.begin();
     sockaddr_in addr;
@@ -33,7 +33,7 @@ TEST(SocketGeneratorTest, SingleServer) {
 
 TEST(SocketGeneratorTest, MultipleServers) {
   {
-    Validator::Result result = TestHostVectors("s_02");
+    ServerConfig result = TestHostVectors("s_02");
     PassiveSockets passive_sockets(result.port_set);
     EXPECT_EQ(2, passive_sockets.size());
     sockaddr_in addr;
@@ -47,7 +47,7 @@ TEST(SocketGeneratorTest, MultipleServers) {
   }
 
   {
-    Validator::Result result = TestHostVectors("s_03");
+    ServerConfig result = TestHostVectors("s_03");
     PassiveSockets passive_sockets(result.port_set);
     EXPECT_EQ(8, passive_sockets.size());
     sockaddr_in addr;

@@ -22,7 +22,7 @@
 #define CN_REQ_PATH_PREFIX "../tests/connection/"
 
 std::string FileToString(const std::string& file_path);
-Validator::Result TestValidatorSuccess(const std::string& case_id);
+ServerConfig TestValidatorSuccess(const std::string& case_id);
 
 int listen_fd;
 
@@ -130,8 +130,7 @@ bool AcceptSetUpConnection(int listen_fd, Connection& connection,
 void TestConnection(const std::string& test_id, const uint16_t port,
                     std::vector<std::string>& expected_header,
                     const std::string& expected_response) {
-  Validator::Result result =
-      TestValidatorSuccess(CN_CONFIG_PATH_PREFIX + test_id);
+  ServerConfig result = TestValidatorSuccess(CN_CONFIG_PATH_PREFIX + test_id);
   PortMap port_map = result.port_map;
   if (listen_fd > 0) {
     pid_t client_pid = fork();
@@ -168,7 +167,7 @@ TEST(ConnectionTest, SingleRequestViaConnection) {
         "allow: GET",
         "connection: keep-alive",
         "content-length: 88",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     std::string expected_response =
         FileToString(CN_REQ_PATH_PREFIX "s_00.html");
@@ -177,13 +176,15 @@ TEST(ConnectionTest, SingleRequestViaConnection) {
 
   // s_01 general case - GET
   {
-    std::vector<std::string> expected_header = {"HTTP/1.1 200 OK",
-                                                "server: BrilliantServer/1.0",
-                                                "date: ",
-                                                "allow: GET",
-                                                "connection: keep-alive",
-                                                "content-length: 38",
-                                                "content-type: text/css"};
+    std::vector<std::string> expected_header = {
+        "HTTP/1.1 200 OK",
+        "server: BrilliantServer/1.0",
+        "date: ",
+        "allow: GET",
+        "connection: keep-alive",
+        "content-length: 38",
+        "content-type: text/css;charset=utf-8",
+    };
     TestConnection("s_01", 4242, expected_header,
                    FileToString(CN_REQ_PATH_PREFIX "s_01.css"));
   }
@@ -198,7 +199,7 @@ TEST(ConnectionTest, SingleRequestViaConnection) {
   //                                              DELETE", "connection:
   //                                              close", "content-length:
   //                                              8780", "content-type:
-  //                                              image/png"};
+  //                                              image/png",};
   //  TestConnection("s_02", 4242, expected_header,
   //                 FileToString(CN_REQ_PATH_PREFIX "s_02.png"));
   //}
@@ -211,19 +212,21 @@ TEST(ConnectionTest, SingleRequestViaConnection) {
   //                                              ", "allow: GET, POST,
   //                                              DELETE", "connection:
   //                                              close", "content-length:
-  //                                              8780"};
+  //                                              8780",};
   //  TestConnection("s_03", 4242, expected_header,
   //                 FileToString(CN_REQ_PATH_PREFIX "s_03.jiskim"));
   //}
 
   // f 00 GET 404
   {
-    std::vector<std::string> expected_header = {"HTTP/1.1 404 Not Found",
-                                                "server: BrilliantServer/1.0",
-                                                "date: ",
-                                                "connection: keep-alive",
-                                                "content-length: 92",
-                                                "content-type: text/html"};
+    std::vector<std::string> expected_header = {
+        "HTTP/1.1 404 Not Found",
+        "server: BrilliantServer/1.0",
+        "date: ",
+        "connection: keep-alive",
+        "content-length: 92",
+        "content-type: text/html;charset=utf-8",
+    };
     TestConnection("f_00", 4242, expected_header,
                    FileToString(CN_REQ_PATH_PREFIX "error.html"));
   }
@@ -231,13 +234,15 @@ TEST(ConnectionTest, SingleRequestViaConnection) {
   // f_01 GET 403
   {
     chmod("./rf_resources/f_01.html", 0222);
-    std::vector<std::string> expected_header = {"HTTP/1.1 403 Forbidden",
-                                                "server: BrilliantServer/1.0",
-                                                "date: ",
-                                                "allow: GET, POST, DELETE",
-                                                "connection: keep-alive",
-                                                "content-length: 92",
-                                                "content-type: text/html"};
+    std::vector<std::string> expected_header = {
+        "HTTP/1.1 403 Forbidden",
+        "server: BrilliantServer/1.0",
+        "date: ",
+        "allow: GET, POST, DELETE",
+        "connection: keep-alive",
+        "content-length: 92",
+        "content-type: text/html;charset=utf-8",
+    };
     TestConnection("f_01", 4242, expected_header,
                    FileToString(CN_REQ_PATH_PREFIX "error.html"));
     chmod("./rf_resources/f_01.html", 0777);
@@ -252,7 +257,7 @@ TEST(ConnectionTest, SingleRequestViaConnection) {
         "allow: POST",
         "connection: keep-alive",
         "content-length: 92",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     TestConnection("f_02", 4242, expected_header,
                    FileToString(CN_REQ_PATH_PREFIX "error.html"));
@@ -266,7 +271,7 @@ TEST(ConnectionTest, SingleRequestViaConnection) {
         "date: ",
         "connection: close",
         "content-length: 92",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     TestConnection("f_03", 4242, expected_header,
                    FileToString(CN_REQ_PATH_PREFIX "error.html"));
@@ -280,7 +285,7 @@ TEST(ConnectionTest, SingleRequestViaConnection) {
         "date: ",
         "connection: close",
         "content-length: 92",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     TestConnection("f_04", 4242, expected_header,
                    FileToString(CN_REQ_PATH_PREFIX "error.html"));
@@ -295,7 +300,7 @@ TEST(ConnectionTest, SingleRequestViaConnection) {
         "allow: GET",
         "connection: keep-alive",
         "content-length: 275",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     TestConnection("s_04", 4242, expected_header,
                    FileToString(CN_REQ_PATH_PREFIX "autoindex.html"));
@@ -310,7 +315,7 @@ TEST(ConnectionTest, SingleRequestViaConnection) {
         "allow: GET",
         "connection: keep-alive",
         "content-length: 117",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     TestConnection("s_05", 4242, expected_header,
                    FileToString(CN_REQ_PATH_PREFIX "s_05.html"));
@@ -324,7 +329,7 @@ TEST(ConnectionTest, SingleRequestViaConnection) {
         "date: ",
         "connection: keep-alive",
         "content-length: 191",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
         "location: /resources/s_00.html",
     };
     TestConnection("s_06", 4242, expected_header,
@@ -342,7 +347,7 @@ resource has been moved permanently to <a href='/resources/s_00.html'>\
         "date: ",
         "connection: keep-alive",
         "content-length: 195",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
         "location: https://www.naver.com/",
     };
     TestConnection("s_07", 4242, expected_header,
@@ -360,7 +365,7 @@ https://www.naver.com/<a>.</p></body></html>");
         "date: ",
         "connection: keep-alive",
         "content-length: 243",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
         "location: https://www.naver.com:8080/search?query=legacy",
     };
     TestConnection("s_08", 4242, expected_header,
@@ -378,7 +383,7 @@ https://www.naver.com:8080/search?query=legacy<a>.</p></body></html>");
         "date: ",
         "connection: keep-alive",
         "content-length: 247",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
         "location: /resources/login?user=yongjule&password=julejule",
     };
     TestConnection("s_09", 4242, expected_header,
@@ -397,7 +402,7 @@ resource has been moved permanently to <a href='/resources/login?user=yongjule&p
         "allow: POST",
         "connection: keep-alive",
         "content-length: 173",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
         "location: /rf_resources/post/s_10.txt",
     };
     TestConnection(
@@ -417,7 +422,7 @@ Created</h1><p>YAY! The file is created at \
         "allow: POST",
         "connection: keep-alive",
         "content-length: 172",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
         "location: /rf_resources/post/empty_0",
     };
     TestConnection(
@@ -442,7 +447,7 @@ Created</h1><p>YAY! The file is created at \
         "allow: POST",
         "connection: keep-alive",
         "content-length: 92",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     TestConnection("f_05", 4242, expected_header,
                    FileToString(CN_REQ_PATH_PREFIX "error.html"));
@@ -457,7 +462,7 @@ Created</h1><p>YAY! The file is created at \
         "date: ",
         "connection: close",
         "content-length: 92",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     TestConnection("f_06", 4242, expected_header,
                    FileToString(CN_REQ_PATH_PREFIX "error.html"));
@@ -476,7 +481,7 @@ Created</h1><p>YAY! The file is created at \
         "allow: DELETE",
         "connection: keep-alive",
         "content-length: 126",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     TestConnection(
         "s_12", 4242, expected_header,
@@ -494,7 +499,7 @@ Created</h1><p>YAY! The file is created at \
         "date: ",
         "connection: keep-alive",
         "content-length: 92",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     TestConnection("f_07", 4242, expected_header,
                    FileToString(CN_REQ_PATH_PREFIX "error.html"));
@@ -509,7 +514,7 @@ Created</h1><p>YAY! The file is created at \
         "allow: GET, POST",
         "connection: keep-alive",
         "content-length: 92",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     TestConnection("f_08", 4242, expected_header,
                    FileToString(CN_REQ_PATH_PREFIX "error.html"));
@@ -524,7 +529,7 @@ Created</h1><p>YAY! The file is created at \
         "allow: GET, POST, DELETE",
         "connection: keep-alive",
         "content-length: 92",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     TestConnection("f_09", 4242, expected_header,
                    FileToString(CN_REQ_PATH_PREFIX "error.html"));
@@ -540,7 +545,7 @@ Created</h1><p>YAY! The file is created at \
         "allow: GET, POST",
         "connection: keep-alive",
         "content-length: 92",
-        "content-type: text/html",
+        "content-type: text/html;charset=utf-8",
     };
     TestConnection("f_10", 4242, expected_header,
                    FileToString(CN_REQ_PATH_PREFIX "error.html"));

@@ -15,13 +15,12 @@
 #define CM_REQ_PATH_PREFIX "../tests/CgiManager/"
 
 std::string FileToString(const std::string& file_path);
-Validator::Result TestValidatorSuccess(const std::string& case_id);
+ServerConfig TestValidatorSuccess(const std::string& case_id);
 
 TEST(CgiManagerTest, InputOutput) {
   // s 00 general case
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_00");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_00");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -72,8 +71,7 @@ TEST(CgiManagerTest, InputOutput) {
 
   // s 01 general case with content
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_01");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_01");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -124,8 +122,7 @@ TEST(CgiManagerTest, InputOutput) {
 
   // s 02 cgi command line
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_02");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_02");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -176,8 +173,7 @@ TEST(CgiManagerTest, InputOutput) {
 
   // s 03 cgi command line - decoding encoded query
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_03");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_03");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -230,8 +226,7 @@ TEST(CgiManagerTest, InputOutput) {
 TEST(CgiManagerTest, ParseCgiResponse) {
   // s 04 successful document response
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_04");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_04");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -276,8 +271,7 @@ Request</h1></body></html>");
 
   // s 05 successful document response
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_05");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_05");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -329,8 +323,7 @@ Request</h1></body></html>");
 
   // f 00 cgi max content size exceed
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "f_00");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "f_00");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -359,8 +352,7 @@ Request</h1></body></html>");
 
   // f 01 cgi max header size exceed
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "f_01");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "f_01");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -389,8 +381,7 @@ Request</h1></body></html>");
 
   // f 02 cgi max field size exceed
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "f_02");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "f_02");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -419,8 +410,7 @@ Request</h1></body></html>");
 
   // f 02 cgi max field size exceed
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "f_02");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "f_02");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -449,8 +439,7 @@ Request</h1></body></html>");
 
   // f 03 document response, first header != content-type
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "f_03");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "f_03");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -479,8 +468,7 @@ Request</h1></body></html>");
 
   // s 06 child process correct cwd
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_06");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_06");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -529,8 +517,7 @@ Request</h1></body></html>");
 
   // s 07 cgi local redirection
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_07");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_07");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -562,8 +549,7 @@ Request</h1></body></html>");
 
   // f 04 cgi local redirection
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "f_04");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "f_04");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -592,8 +578,7 @@ Request</h1></body></html>");
 
   // s 08 cgi local redirection
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_08");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_08");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -625,8 +610,7 @@ Request</h1></body></html>");
 
   // f 05 cgi local redirection
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "f_05");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "f_05");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -655,8 +639,7 @@ Request</h1></body></html>");
 
   // s 09 cgi client redirection no body
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_09");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_09");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -689,8 +672,7 @@ Request</h1></body></html>");
 
   // s 10 cgi client redirection no body
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_10");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_10");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -723,8 +705,7 @@ Request</h1></body></html>");
 
   // f 06 cgi client redirection invalid field
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "f_06");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "f_06");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -753,8 +734,7 @@ Request</h1></body></html>");
 
   // f 07 cgi client redirection with body, lacking mandatory fields
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "f_07");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "f_07");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -783,8 +763,7 @@ Request</h1></body></html>");
 
   // f 08 cgi response with a repeated field name
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "f_08");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "f_08");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
@@ -813,8 +792,7 @@ Request</h1></body></html>");
 
   // s 11 cgi client redirection with body
   {
-    Validator::Result result =
-        TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_11");
+    ServerConfig result = TestValidatorSuccess(CM_CONFIG_PATH_PREFIX "s_11");
     PortMap port_map = result.port_map;
     EXPECT_EQ(port_map.size(), 1);
     EXPECT_EQ(port_map.count(4242), 1);
