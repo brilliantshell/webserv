@@ -30,6 +30,7 @@ class CgiEnv {
   CgiEnv(void);
   ~CgiEnv(void);
   const char** get_env(void) const;
+  CgiEnv& operator=(const CgiEnv& rhs);
   bool SetMetaVariables(Request& request, const std::string& root,
                         const std::string& cgi_ext,
                         const ConnectionInfo& connection_info);

@@ -62,28 +62,13 @@ void Connection::HandleRequest(void) {
   } else {
     HttpParser::Result req_data = parser_.get_result();
     Request& request = req_data.request;
-
     {
       std::cerr << "\n\n======================= 요청 시작 "
                    "===========================\n\n";
       std::cerr << ">>> Request <<< \nHost : " << request.req.host
                 << "\nPath : " << request.req.path << request.req.query << '\n';
     }
-
-    Router::Result location_data = router_->Route(
-        req_data.status, request, ConnectionInfo(port_, client_addr_));
-
-    response_queue_.push(ResponseBuffer());
-    ResponseBuffer& res = response_queue_.back();
-    ResourceManager::Result exec_result =
-        resource_manager_.ExecuteMethod(res.content, location_data, request);
-    bool is_keep_alive =
-        (exec_result.status < 500 && req_status == HttpParser::kComplete);
-    res.header = response_formatter_.Format(
-        res.content.size(), exec_result, request.req.version,
-        location_data.methods, is_keep_alive);
-    res.total_len = res.header.size() + res.content.size();
-    UpdateRequestResult(is_keep_alive);
+    GenerateResponse(req_data.status, req_status, request);
   }
 }
 
@@ -138,6 +123,32 @@ void Connection::SetAttributes(const int fd, const std::string& client_addr,
 // SECTION : private
 void Connection::Receive(void) { recv(fd_, &buffer_[0], BUFFER_SIZE, 0); }
 
+void Connection::GenerateResponse(int status, int req_status,
+                                  Request& request) {
+  Router::Result location_data =
+      router_->Route(status, request, ConnectionInfo(port_, client_addr_));
+
+  response_queue_.push(ResponseBuffer());
+  ResponseBuffer& res = response_queue_.back();
+  ResourceManager::Result exec_result =
+      resource_manager_.ExecuteMethod(res.content, location_data, request);
+  if (exec_result.is_local_redir == true) {
+    std::string redir_path = exec_result.header["location"];
+    status = ValidateLocalRedirPath(redir_path, request.req, req_status);
+    location_data =
+        router_->Route(status, request, ConnectionInfo(port_, client_addr_));
+    exec_result =
+        resource_manager_.ExecuteMethod(res.content, location_data, request);
+  }
+  bool is_keep_alive =
+      (exec_result.status < 500 && req_status == HttpParser::kComplete);
+  res.header = response_formatter_.Format(res.content.size(), exec_result,
+                                          request.req.version,
+                                          location_data.methods, is_keep_alive);
+  res.total_len = res.header.size() + res.content.size();
+  UpdateRequestResult(is_keep_alive);
+}
+
 void Connection::SetIov(struct iovec* iov, size_t& cnt, ResponseBuffer& res) {
   std::string& header = res.header;
   std::string& content = res.content;
@@ -170,4 +181,28 @@ void Connection::UpdateRequestResult(bool is_keep_alive) {
   (connection_status_ == KEEP_ALIVE && parser_.DoesNextReqExist() == true)
       ? Reset(kNextReq)
       : Reset(kReset);
+}
+
+int Connection::ValidateLocalRedirPath(std::string& path, RequestLine& req,
+                                       int& req_status) {
+  UriParser::Result uri_result = UriParser().ParseTarget(path);
+  if (uri_result.is_valid == false) {
+    req_status = HttpParser::kClose;
+    return 400;  // BAD REQUEST
+  }
+  PathResolver path_resolver;
+  PathResolver::Status path_status =
+      path_resolver.Resolve(uri_result.path, PathResolver::kHttpParser);
+  if (path_status == PathResolver::kFailure) {
+    req_status = HttpParser::kClose;
+    return 400;
+  }
+  std::transform(uri_result.host.begin(), uri_result.host.end(),
+                 uri_result.host.begin(), ::tolower);
+  req.host = uri_result.host;
+  req.path = uri_result.path + ((path_status == PathResolver::kFile)
+                                    ? path_resolver.get_file_name()
+                                    : "");
+  req.query = uri_result.query;
+  return 200;
 }

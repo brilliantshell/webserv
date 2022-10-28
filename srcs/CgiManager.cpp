@@ -95,6 +95,9 @@ void CgiManager::ParseScriptCommandLine(std::vector<std::string>& arg_vector,
 
 void CgiManager::ExecuteScript(const char* success_path, char* const* env) {
   // 1. ENAMETOOLONG, 2.ENOMEM(dirname)
+  if (env == NULL) {
+    exit(EXIT_FAILURE);
+  }
   char* new_cwd = dirname(const_cast<char*>(success_path));
   if (new_cwd == NULL || chdir(new_cwd) == -1) {
     exit(EXIT_FAILURE);
@@ -212,7 +215,7 @@ bool CgiManager::ReceiveCgiResponse(std::string& response_content,
       size_t header_end = header_buf.find(CRLF CRLF);
       if (header_end != std::string::npos) {
         if (ReceiveCgiHeaderFields(
-                header, header_buf.substr(0, header_end + 1)) == false) {
+                header, header_buf.substr(0, header_end + 2)) == false) {
           close(out_fd_[0]);
           return false;
         }

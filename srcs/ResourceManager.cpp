@@ -13,9 +13,6 @@ ResourceManager::Result ResourceManager::ExecuteMethod(
     std::string& response_content, Router::Result& router_result,
     const Request& request) {
   Result result(router_result.status);
-  if (request.req.method == HEAD) {
-    return result;
-  }
   if (router_result.status >= 400) {
     GetErrorPage(response_content, result, router_result);
     result.ext = ParseExtension(router_result.error_path);
