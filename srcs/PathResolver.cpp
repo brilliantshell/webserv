@@ -32,14 +32,12 @@ const std::string &PathResolver::get_file_name(void) const {
   return file_name_;
 }
 
-#include <iostream>
 // private
 bool PathResolver::ReserveFileName(std::string &path, Purpose purpose) {
   if ((purpose == kErrorPage) && path[0] != '/') {
     path.insert(0, "/");
   }
   if (*path.rbegin() != '/') {
-    // size_t not_dot = path.find_last_not_of('.');
     if (purpose == kLocation || path.compare(path.size() - 2, 2, "/.") == 0 ||
         path.compare(path.size() - 3, 3, "/..") == 0) {
       path += '/';

@@ -26,11 +26,7 @@ std::string ResponseFormatter::Format(size_t content_length,
      << ((resource_result.status < 500 && keep_alive == HttpParser::kComplete)
              ? "keep-alive"
              : "close")
-     << CRLF;
-
-  if (content_length != 0) {
-    ss << "content-length: " << content_length << CRLF;
-  }
+     << CRLF << "content-length: " << content_length << CRLF;
   std::string content_type =
       FormatContentType(resource_result.is_autoindex, resource_result.ext,
                         resource_result.header);

@@ -52,6 +52,7 @@ void Connection::HandleRequest(void) {
   if (connection_status_ != NEXT_REQUEST_EXISTS) {
     Receive();
   }
+  std::cerr << "요청 : " << buffer_ << "]\n\n";
   buffer_.erase(buffer_.find('\0'));
   int req_status = parser_.Parse(buffer_);
   if (req_status < HttpParser::kComplete) {
@@ -61,6 +62,8 @@ void Connection::HandleRequest(void) {
     HttpParser::Result req_data = parser_.get_result();
     Request& request = req_data.request;
     {
+      std::cerr << "\n\n======================= 요청 시작 "
+                   "===========================\n\n";
       std::cerr << ">>> Request <<< \nHost : " << request.req.host
                 << "\nPath : " << request.req.path << request.req.query << '\n';
     }
@@ -86,9 +89,10 @@ void Connection::Send(void) {
   size_t iov_cnt;
   SetIov(iovec, iov_cnt, response);
 
-  std::cerr << "\n\n=============== gkgk =============================\n\n";
+  std::cerr << "\n\n";
   writev(STDERR_FILENO, iovec, iov_cnt);
-  std::cerr << "\n\n=============== gkgk =============================\n\n";
+  std::cerr << "\n\n======================= 요청 끝 "
+               "=============================\n\n";
 
   response.offset += writev(fd_, iovec, iov_cnt);
   if (response.current_buf == ResponseBuffer::kHeader &&

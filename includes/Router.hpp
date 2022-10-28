@@ -75,12 +75,7 @@ class Router {
     CgiEnv cgi_env;
 
     Result(int parse_status)
-        : is_cgi(false),
-          status(parse_status),
-          methods(GET),
-          success_path(""),
-          error_path(""),
-          redirect_to("") {}
+        : is_cgi(false), status(parse_status), methods(GET) {}
   };
 
   Router(ServerRouter& server_router);
