@@ -24,6 +24,8 @@
 #define HEADER_MAX 16384       // 16KB
 #define CONTENT_MAX 134217728  // 128MB
 
+#define PIPE_BUF_SIZE 4096
+
 class CgiManager {
  public:
   struct Result {
@@ -49,21 +51,23 @@ class CgiManager {
     kClientRedirDoc,
   };
 
+  int in_fd_[2];
+  int out_fd_[2];
+
   // child
-  void DupFds(int in[2], int out[2]);
+  void DupFds(void);
   void ParseScriptCommandLine(std::vector<std::string>& arg_vector,
                               std::string query);
-  void ExecuteScript(int in_fd[], int out_fd[], const char* success_path,
-                     char* const* env);
+  void ExecuteScript(const char* success_path, char* const* env);
 
   // parent
-  bool OpenPipes(Result& result, int in[2], int out[2]);
-  void PassRequestContent(Result& result, const std::string& request_content,
-                          int in_fd[2], int out_fd[2]);
+  bool OpenPipes(Result& result);
+  bool CheckFileMode(Result& result, const char* path);
+  void PassContent(Result& result, const std::string& content);
   bool ReceiveCgiHeaderFields(ResponseHeaderMap& header,
                               const std::string& header_buf);
   bool ReceiveCgiResponse(std::string& response_content, Result& result,
-                          ResponseHeaderMap& header, int from_cgi_fd);
+                          ResponseHeaderMap& header);
   bool ParseCgiHeader(std::string& response_content, Result& result,
                       ResponseHeaderMap& header);
   int DetermineResponseType(const std::string& content,

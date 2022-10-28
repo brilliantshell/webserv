@@ -12,7 +12,7 @@
 std::string ResponseFormatter::Format(size_t content_length,
                                       ResourceManager::Result& resource_result,
                                       uint8_t version, uint8_t allowed_methods,
-                                      int keep_alive) {
+                                      bool is_keep_alive) {
   std::stringstream ss;
   ss << (version == HttpParser::kHttp1_1 ? "HTTP/1.1 " : "HTTP/1.0 ")
      << resource_result.status << " " << g_status_map[resource_result.status]
@@ -22,10 +22,7 @@ std::string ResponseFormatter::Format(size_t content_length,
           resource_result.status == 404 || resource_result.status >= 500)
              ? ""
              : ("allow: " + FormatAllowedMethods(allowed_methods) + CRLF))
-     << "connection: "
-     << ((resource_result.status < 500 && keep_alive == HttpParser::kComplete)
-             ? "keep-alive"
-             : "close")
+     << "connection: " << ((is_keep_alive == true) ? "keep-alive" : "close")
      << CRLF << "content-length: " << content_length << CRLF;
   std::string content_type =
       FormatContentType(resource_result.is_autoindex, resource_result.ext,

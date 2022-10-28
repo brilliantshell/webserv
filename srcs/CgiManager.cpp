@@ -11,7 +11,12 @@
 
 CgiManager::CgiManager(void) {}
 
-CgiManager::~CgiManager(void) {}
+CgiManager::~CgiManager(void) {
+  close(out_fd_[0]);
+  close(out_fd_[1]);
+  close(in_fd_[0]);
+  close(in_fd_[1]);
+}
 
 CgiManager::Result CgiManager::Execute(std::string& response_content,
                                        Router::Result& router_result,
@@ -19,54 +24,47 @@ CgiManager::Result CgiManager::Execute(std::string& response_content,
                                        const std::string& request_content,
                                        int status) {
   Result result(status);
-  int in_fd[2];
-  int out_fd[2];
-
-  if (OpenPipes(result, in_fd, out_fd) == false) {
+  if (CheckFileMode(result, router_result.success_path.c_str()) == false) {
+    return result;
+  }
+  if (OpenPipes(result) == false) {
     result.status = 500;  // INTERNAL SERVER ERROR
     return result;
   }
   pid_t pid = fork();
-  if (pid == -1) {
-    result.status = 500;  // INTERNAL SERVER ERROR
-    return result;
-  }
   if (pid == 0) {
-    ExecuteScript(in_fd, out_fd, router_result.success_path.c_str(),
+    ExecuteScript(router_result.success_path.c_str(),
                   const_cast<char* const*>(router_result.cgi_env.get_env()));
-  } else {
-    PassRequestContent(result, request_content, in_fd, out_fd);
+  } else if (pid > 0) {
+    PassContent(result, request_content);
     if (result.status == 500) {
       kill(pid, SIGTERM);
-      return result;
-    }
-    // TODO : kqueue 로 자식 프로세스 상태 확인
-    if (ReceiveCgiResponse(response_content, result, header, out_fd[0]) ==
-            false ||
-        ParseCgiHeader(response_content, result, header) == false) {
+    } else if (ReceiveCgiResponse(response_content, result, header) == false ||
+               ParseCgiHeader(response_content, result, header) == false) {
       result.status = 500;
       result.is_local_redir = false;
       response_content.clear();
       header.clear();
     }
+  } else {
+    result.status = 500;  // INTERNAL SERVER ERROR
   }
   return result;
 }
 
 // SECTION: private
 // child
-void CgiManager::DupFds(int in[2], int out[2]) {
-  if (dup2(out[1], STDOUT_FILENO) == -1) {
+void CgiManager::DupFds(void) {
+  if (dup2(out_fd_[1], STDOUT_FILENO) == -1) {
     exit(EXIT_FAILURE);
   }
-  close(out[1]);
-  close(out[0]);
-
-  if (dup2(in[0], STDIN_FILENO) == -1) {
+  close(out_fd_[1]);
+  close(out_fd_[0]);
+  if (dup2(in_fd_[0], STDIN_FILENO) == -1) {
     exit(EXIT_FAILURE);
   }
-  close(in[0]);
-  close(in[1]);
+  close(in_fd_[0]);
+  close(in_fd_[1]);
 }
 
 void CgiManager::ParseScriptCommandLine(std::vector<std::string>& arg_vector,
@@ -95,130 +93,142 @@ void CgiManager::ParseScriptCommandLine(std::vector<std::string>& arg_vector,
   }
 }
 
-void CgiManager::ExecuteScript(int in_fd[], int out_fd[],
-                               const char* success_path, char* const* env) {
-  try {
-    // 1. ENAMETOOLONG, 2.ENOMEM(dirname)
-    char* new_cwd = dirname(const_cast<char*>(success_path));
-    if (new_cwd == NULL || chdir(new_cwd) == -1) {
-      exit(EXIT_FAILURE);
-    }
-    char* script_path = basename(const_cast<char*>(success_path));
-    if (script_path == NULL) {
-      exit(EXIT_FAILURE);
-    }
-    DupFds(in_fd, out_fd);
-    std::vector<std::string> arg_vector;
-    ParseScriptCommandLine(arg_vector, env[6]);
-    const char** argv = new const char*[arg_vector.size() + 2];
-    memset(argv, 0, sizeof(char*) * (arg_vector.size() + 2));
-    argv[0] = script_path;
-    for (size_t i = 0; i < arg_vector.size(); ++i) {
-      argv[i + 1] = arg_vector[i].c_str();
-    }
-    execve(script_path, const_cast<char* const*>(argv), env);
-    // TODO : error handling(404, 403, 500)
-    std::cerr << "execve error" << std::endl;
-    exit(EXIT_FAILURE);
-  } catch (const std::exception& e) {
+void CgiManager::ExecuteScript(const char* success_path, char* const* env) {
+  // 1. ENAMETOOLONG, 2.ENOMEM(dirname)
+  char* new_cwd = dirname(const_cast<char*>(success_path));
+  if (new_cwd == NULL || chdir(new_cwd) == -1) {
     exit(EXIT_FAILURE);
   }
+  char* script_path = basename(const_cast<char*>(success_path));
+  if (script_path == NULL) {
+    exit(EXIT_FAILURE);
+  }
+  DupFds();
+  std::vector<std::string> arg_vector;
+  ParseScriptCommandLine(arg_vector, env[6]);
+  const char** argv = new (std::nothrow) const char*[arg_vector.size() + 2];
+  if (argv == NULL) {
+    exit(EXIT_FAILURE);
+  }
+  memset(argv, 0, sizeof(char*) * (arg_vector.size() + 2));
+  argv[0] = script_path;
+  for (size_t i = 0; i < arg_vector.size(); ++i) {
+    argv[i + 1] = arg_vector[i].c_str();
+  }
+  alarm(5);  // CGI script timeout
+  execve(script_path, const_cast<char* const*>(argv), env);
+  std::cerr << "execve error" << std::endl;
+  exit(EXIT_FAILURE);
 }
 
 // parent
-bool CgiManager::OpenPipes(Result& result, int in[2], int out[2]) {
-  if (pipe(out) == -1) {
+bool CgiManager::OpenPipes(Result& result) {
+  if (pipe(out_fd_) == -1) {
     return false;
   }
-  if (pipe(in) == -1) {
-    close(out[0]);
-    close(out[1]);
+  if (pipe(in_fd_) == -1) {
+    close(out_fd_[0]);
+    close(out_fd_[1]);
     return false;
   }
   return true;
 }
 
-void CgiManager::PassRequestContent(Result& result,
-                                    const std::string& request_content,
-                                    int in_fd[2], int out_fd[2]) {
-  // write 실패?
-  // TODO : non-blocking
-  if (write(in_fd[1], request_content.c_str(), request_content.size()) < 0) {
-    result.status = 500;  // INTERNAL SERVER ERROR
+bool CgiManager::CheckFileMode(Result& result, const char* path) {
+  if (access(path, X_OK) == -1) {
+    if (errno == ENOENT) {
+      result.status = 404;  // PAGE NOT FOUND
+    } else if (errno == EACCES) {
+      result.status = 403;  // FORBIDDEN
+    } else {
+      result.status = 500;  // INTERNAL_SERVER_ERROR
+    }
+    return false;
   }
-  close(out_fd[1]);
-  close(in_fd[0]);
-  close(in_fd[1]);
+  return true;
+}
+
+void CgiManager::PassContent(Result& result, const std::string& content) {
+  size_t offset = 0;
+  for (ssize_t sent_bytes = 0; offset < content.size(); offset += sent_bytes) {
+    size_t bytes = (content.size() < offset + PIPE_BUF_SIZE)
+                       ? content.size() - offset
+                       : PIPE_BUF_SIZE;
+    sent_bytes = write(in_fd_[1], &content[offset], bytes);
+    if (sent_bytes == -1) {
+      result.status = 500;  // INTERNAL SERVER ERROR
+      break;
+    }
+  }
+  close(out_fd_[1]);
+  close(in_fd_[0]);
+  close(in_fd_[1]);
 }
 
 bool CgiManager::ReceiveCgiHeaderFields(ResponseHeaderMap& header,
                                         const std::string& header_buf) {
   size_t start = 0;
-  for (size_t end_of_line = header_buf.find("\n");
+  for (size_t end_of_line = header_buf.find(CRLF);
        end_of_line < header_buf.size() && end_of_line != std::string::npos;
-       end_of_line = header_buf.find("\n", start)) {
+       end_of_line = header_buf.find(CRLF, start)) {
     if (end_of_line - start > FIELD_LINE_MAX) {
       return false;
     }
-    std::string field_line(header_buf, start, end_of_line - start);
-    size_t colon_pos = field_line.find(":");
+    std::string line(header_buf, start, end_of_line - start);
+    size_t colon_pos = line.find(":");
     if (colon_pos == std::string::npos) {
       return false;
     }
-    if (colon_pos + 1 < field_line.size()) {
-      size_t value_start = field_line.find_first_not_of(" \t", colon_pos + 1);
-      std::string field_name = field_line.substr(0, colon_pos);
-      std::transform(field_name.begin(), field_name.begin() + colon_pos,
-                     field_name.begin(), ::tolower);
-      if (header
-              .insert(
-                  std::make_pair(field_name, field_line.substr(value_start)))
+    if (colon_pos + 1 < line.size()) {
+      size_t value_start = line.find_first_not_of(" \t", colon_pos + 1);
+      std::string name(line, 0, colon_pos);
+      std::transform(name.begin(), name.begin() + colon_pos, name.begin(),
+                     ::tolower);
+      if (header.insert(std::make_pair(name, line.substr(value_start)))
               .second == false) {
         return false;
       }
     }
-    start = end_of_line + 1;
+    start = end_of_line + 2;
   }
   return true;
 }
 
 bool CgiManager::ReceiveCgiResponse(std::string& response_content,
-                                    Result& result, ResponseHeaderMap& header,
-                                    int from_cgi_fd) {
+                                    Result& result, ResponseHeaderMap& header) {
   bool is_header = true;
   ssize_t read_size;
-  char buf[2049];
+  char buf[PIPE_BUF_SIZE + 1];
   std::string header_buf;
 
-  memset(buf, 0, 2049);
-  while ((read_size = read(from_cgi_fd, buf, 2048)) > 0) {
+  memset(buf, 0, PIPE_BUF_SIZE + 1);
+  while ((read_size = read(out_fd_[0], buf, PIPE_BUF_SIZE)) > 0) {
     if (is_header == true) {
       header_buf += buf;
       if (header_buf.size() > HEADER_MAX) {
-        close(from_cgi_fd);
+        close(out_fd_[0]);
         return false;
       }
-      size_t header_end = header_buf.find("\n\n");
+      size_t header_end = header_buf.find(CRLF CRLF);
       if (header_end != std::string::npos) {
         if (ReceiveCgiHeaderFields(
                 header, header_buf.substr(0, header_end + 1)) == false) {
-          close(from_cgi_fd);
+          close(out_fd_[0]);
           return false;
         }
         is_header = false;
-        response_content += header_buf.substr(header_end + 2);
+        response_content.append(header_buf, header_end + 4);
       }
     } else {
       response_content.append(buf, read_size);
       if (response_content.size() > CONTENT_MAX) {
-        close(from_cgi_fd);
+        close(out_fd_[0]);
         return false;
       }
     }
-    memset(buf, 0, 2049);
+    memset(buf, 0, PIPE_BUF_SIZE + 1);
   }
-  std::cerr << "read exit, read size : " << read_size << '\n';
-  close(from_cgi_fd);
+  close(out_fd_[0]);
   return read_size >= 0;
 }
 

@@ -40,7 +40,6 @@ void Connection::Reset(bool does_next_req_exist) {
       delete router_;
       router_ = NULL;
     }
-    // NOTE : Queue clear or not thinking hagi
     while (!response_queue_.empty()) {
       response_queue_.pop();
     }
@@ -52,7 +51,9 @@ void Connection::HandleRequest(void) {
   if (connection_status_ != NEXT_REQUEST_EXISTS) {
     Receive();
   }
+
   std::cerr << "요청 : " << buffer_ << "]\n\n";
+
   buffer_.erase(buffer_.find('\0'));
   int req_status = parser_.Parse(buffer_);
   if (req_status < HttpParser::kComplete) {
@@ -61,24 +62,28 @@ void Connection::HandleRequest(void) {
   } else {
     HttpParser::Result req_data = parser_.get_result();
     Request& request = req_data.request;
+
     {
       std::cerr << "\n\n======================= 요청 시작 "
                    "===========================\n\n";
       std::cerr << ">>> Request <<< \nHost : " << request.req.host
                 << "\nPath : " << request.req.path << request.req.query << '\n';
     }
+
     Router::Result location_data = router_->Route(
         req_data.status, request, ConnectionInfo(port_, client_addr_));
+
     response_queue_.push(ResponseBuffer());
     ResponseBuffer& res = response_queue_.back();
     ResourceManager::Result exec_result =
         resource_manager_.ExecuteMethod(res.content, location_data, request);
-    res.header = response_formatter_.Format(res.content.size(), exec_result,
-                                            request.req.version,
-                                            location_data.methods, req_status);
+    bool is_keep_alive =
+        (exec_result.status < 500 && req_status == HttpParser::kComplete);
+    res.header = response_formatter_.Format(
+        res.content.size(), exec_result, request.req.version,
+        location_data.methods, is_keep_alive);
     res.total_len = res.header.size() + res.content.size();
-    UpdateRequestResult(
-        (exec_result.status < 500 && req_status == HttpParser::kComplete));
+    UpdateRequestResult(is_keep_alive);
   }
 }
 
