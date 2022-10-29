@@ -28,7 +28,9 @@
 class CgiEnv {
  public:
   CgiEnv(void);
+  CgiEnv(const CgiEnv& original);
   ~CgiEnv(void);
+
   const char** get_env(void) const;
   CgiEnv& operator=(const CgiEnv& rhs);
   bool SetMetaVariables(Request& request, const std::string& root,

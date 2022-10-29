@@ -11,7 +11,7 @@
 #include "ClientConnection.hpp"
 #include "Connection.hpp"
 #include "HttpParser.hpp"
-#include "ResourceManager.hpp"
+#include "ResponseManager.hpp"
 #include "Router.hpp"
 #include "Types.hpp"
 #include "Validator.hpp"

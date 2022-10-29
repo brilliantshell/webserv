@@ -20,6 +20,8 @@ CgiEnv::CgiEnv(void) {
   }
 }
 
+CgiEnv::CgiEnv(const CgiEnv &original) : env_(NULL) { *this = original; }
+
 CgiEnv::~CgiEnv(void) {
   if (env_ != NULL) {
     for (size_t i = 0; i < 18; ++i) {
@@ -42,6 +44,11 @@ CgiEnv &CgiEnv::operator=(const CgiEnv &rhs) {
         delete[] env_[i];
         env_[i] = NULL;
       }
+    }
+  } else {
+    env_ = new char *[18];
+    for (size_t i = 0; i < 18; ++i) {
+      env_[i] = NULL;
     }
   }
   for (size_t i = 0; i < 17; ++i) {

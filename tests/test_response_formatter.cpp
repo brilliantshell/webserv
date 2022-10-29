@@ -4,9 +4,9 @@
 #include "CgiManager.hpp"
 #include "Connection.hpp"
 #include "HttpParser.hpp"
-#include "ResourceManager.hpp"
 #include "ResponseData.hpp"
 #include "ResponseFormatter.hpp"
+#include "ResponseManager.hpp"
 #include "Router.hpp"
 #include "Types.hpp"
 #include "Validator.hpp"
@@ -79,8 +79,8 @@ TEST(ResourceFormatterTest, GETResponse) {
     EXPECT_EQ(router_result.success_path, "./rf_resources/s_00.html");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     EXPECT_EQ(rm_result.status, 200);
@@ -122,8 +122,8 @@ TEST(ResourceFormatterTest, GETResponse) {
     EXPECT_EQ(router_result.success_path, "./rf_resources/s_01.css");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     EXPECT_EQ(rm_result.status, 200);
@@ -165,8 +165,8 @@ TEST(ResourceFormatterTest, GETResponse) {
     EXPECT_EQ(router_result.success_path, "./rf_resources/s_02.png");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     EXPECT_EQ(rm_result.status, 200);
@@ -208,8 +208,8 @@ TEST(ResourceFormatterTest, GETResponse) {
     EXPECT_EQ(router_result.success_path, "./rf_resources/s_03.jiskim");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     EXPECT_EQ(rm_result.status, 200);
@@ -250,8 +250,8 @@ TEST(ResourceFormatterTest, GETResponse) {
     EXPECT_EQ(router_result.success_path, "./rf_resources/f_00.html");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     EXPECT_EQ(rm_result.status, 404);
@@ -293,8 +293,8 @@ TEST(ResourceFormatterTest, GETResponse) {
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
     chmod("./rf_resources/f_01.html", 0222);
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     EXPECT_EQ(rm_result.status, 403);
@@ -337,8 +337,8 @@ TEST(ResourceFormatterTest, GETResponse) {
     EXPECT_EQ(router_result.success_path, "./rf_resources/error.html");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     EXPECT_EQ(rm_result.status, 405);
@@ -383,8 +383,8 @@ TEST(ResourceFormatterTest, GETResponse) {
     EXPECT_EQ(router_result.success_path, "./rf_resources/error.html");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     EXPECT_EQ(rm_result.status, 505);
@@ -429,8 +429,8 @@ TEST(ResourceFormatterTest, GETResponse) {
     EXPECT_EQ(router_result.success_path, "./rf_resources/error.html");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     EXPECT_EQ(rm_result.status, 400);
@@ -475,8 +475,8 @@ TEST(ResourceFormatterTest, GETResponse) {
     EXPECT_EQ(router_result.success_path, "./_deps/");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     EXPECT_EQ(rm_result.status, 200);
@@ -522,8 +522,8 @@ TEST(ResourceFormatterTest, GETResponse) {
     EXPECT_EQ(router_result.success_path, "./rf_resources/s_05.html");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     EXPECT_EQ(rm_result.status, 200);
@@ -569,8 +569,8 @@ TEST(ResourceFormatterTest, GETResponse) {
     EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     EXPECT_EQ(rm_result.status, 301);
@@ -619,8 +619,8 @@ resource has been moved permanently to <a href='/resources/s_00.html'>\
     EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     EXPECT_EQ(rm_result.status, 301);
@@ -670,8 +670,8 @@ https://www.naver.com/<a>.</p></body></html>");
     EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     EXPECT_EQ(rm_result.status, 301);
@@ -721,8 +721,8 @@ https://www.naver.com:8080/search?query=legacy<a>.</p></body></html>");
     EXPECT_TRUE((router_result.methods & parse_result.request.req.method) > 0);
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     EXPECT_EQ(rm_result.status, 301);
@@ -773,8 +773,8 @@ TEST(ResourceFormatterTest, POSTResponse) {
     EXPECT_EQ(router_result.success_path, "./rf_resources/post/s_10.txt");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     EXPECT_EQ(access(router_result.success_path.c_str(), F_OK), 0);
@@ -827,8 +827,8 @@ Created</h1><p>YAY! The file is created at \
     EXPECT_EQ(router_result.success_path, "./rf_resources/post/empty");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     EXPECT_EQ(access("./rf_resources/post/empty_0", F_OK), 0);
@@ -888,8 +888,8 @@ Created</h1><p>YAY! The file is created at \
 
     EXPECT_NE(chmod("./rf_resources/post/unauthorized", 0555), -1);
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 403);
 
@@ -935,8 +935,8 @@ Created</h1><p>YAY! The file is created at \
     EXPECT_EQ(router_result.success_path, "./rf_resources/error.html");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 400);
 
@@ -988,8 +988,8 @@ TEST(ResourceFormatterTest, DELETEResponse) {
     EXPECT_EQ(router_result.success_path, "./rf_resources/delete/yongjule");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     ASSERT_EQ(access("./rf_resources/delete/yongjule", F_OK), -1);
     EXPECT_EQ(rm_result.status, 200);
@@ -1037,8 +1037,8 @@ TEST(ResourceFormatterTest, DELETEResponse) {
     EXPECT_EQ(router_result.success_path, "./rf_resources/delete/undefined");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 404);
 
@@ -1082,8 +1082,8 @@ TEST(ResourceFormatterTest, DELETEResponse) {
     EXPECT_EQ(router_result.success_path, "./rf_resources/error.html");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 405);
 
@@ -1130,8 +1130,8 @@ TEST(ResourceFormatterTest, DELETEResponse) {
 
     chmod("./rf_resources/delete/dummy", 0444);
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 403);
 
@@ -1179,8 +1179,8 @@ TEST(ResourceFormatterTest, CGIResponse) {
     EXPECT_EQ(router_result.success_path, "./rf_resources/error.html");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 405);
 
@@ -1225,8 +1225,8 @@ TEST(ResourceFormatterTest, CGIResponse) {
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 200);
 
@@ -1289,8 +1289,8 @@ TEST(ResourceFormatterTest, CGIResponse) {
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 302);
 
@@ -1335,8 +1335,8 @@ TEST(ResourceFormatterTest, CGIResponse) {
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./rf_resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 302);
 
@@ -1392,8 +1392,8 @@ TEST(ResourceFormatterTest, CGIResponse) {
   //     std::ofstream copy("resources/cgi/cgi_two.php", 0666);
   //     copy << orig.rdbuf();
 
-  //     ResourceManager rm;
-  //     ResourceManager::Result rm_result =
+  //     ResponseManager rm;
+  //     ResponseManager::Result rm_result =
   //         rm.ExecuteMethod(router_result, parse_result.request);
   //     EXPECT_EQ(rm_result.status, 403);
 

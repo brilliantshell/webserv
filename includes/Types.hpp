@@ -73,7 +73,25 @@ struct ConnectionInfo {
       : server_port(port), client_addr(addr) {}
 };
 
-// SECTION : ResourceManager 가 반환하는 응답 헤더 필드
+// SECTION : ResponseManager 가 반환하는 응답 헤더 필드
 typedef std::map<std::string, std::string> ResponseHeaderMap;
+
+// SECTION : ResponseBufferQueue node
+struct ResponseBuffer {
+  enum {
+    kHeader = 0,
+    kContent,
+  };
+
+  bool is_complete;
+  int current_buf;
+  size_t offset;
+  size_t total_len;
+  std::string header;
+  std::string content;
+
+  ResponseBuffer(void)
+      : is_complete(false), current_buf(kHeader), offset(0), total_len(0) {}
+};
 
 #endif  // INCLUDES_TYPES_HPP_

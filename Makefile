@@ -25,10 +25,11 @@ SRCS			= $(addprefix $(SRCS_DIR), \
 				  HeaderParser.cpp \
 				  Router.cpp \
 				  PathResolver.cpp \
-				  ResourceManager.cpp \
+				  ResponseManager.cpp \
 				  CgiEnv.cpp \
 				  CgiManager.cpp \
-				  ResponseFormatter.cpp \
+				  FileManager.cpp\
+				  HeaderFormatter.cpp \
 				  ClientConnection.cpp \
 				)
 

@@ -21,10 +21,11 @@
 #include <queue>
 #include <string>
 
+#include "CgiManager.hpp"
+#include "FileManager.hpp"
+#include "HeaderFormatter.hpp"
 #include "HttpParser.hpp"
 #include "PathResolver.hpp"
-#include "ResourceManager.hpp"
-#include "ResponseFormatter.hpp"
 #include "Router.hpp"
 
 // connection status
@@ -37,7 +38,6 @@
 // send status
 #define KEEP_SENDING 0
 #define SEND_FINISHED 1
-
 #define SEND_BUFF_SIZE 32768
 
 class Connection {
@@ -51,49 +51,43 @@ class Connection {
   Connection(void);
   ~Connection(void);
 
-  void Reset(bool does_next_req_exist = kClose);
-  void HandleRequest(void);
+  void Reset(int does_next_req_exist = kClose);
+  ResponseManager::IoFdPair HandleRequest(void);
+  ResponseManager::IoFdPair ExecuteMethod(int event_fd);
+  void FormatResponse(const int event_fd);
   void Send(void);
+
+  bool IsResponseBufferReady(void) const;
 
   const int get_send_status(void) const;
   const int get_connection_status(void) const;
+
+  const int get_fd(void) const { return fd_; }
 
   void SetAttributes(const int fd, const std::string& client_addr,
                      const uint16_t port, ServerRouter& server_router);
 
  private:
-  struct ResponseBuffer {
-    enum {
-      kHeader = 0,
-      kContent,
-    };
-
-    int current_buf;
-    size_t offset;
-    size_t total_len;
-    std::string header;
-    std::string content;
-
-    ResponseBuffer(void) : current_buf(kHeader), offset(0), total_len(0) {}
-  };
-
   typedef std::queue<ResponseBuffer> ResponseQueue;
+  typedef std::map<int, ResponseManager*> ResponseManagerMap;
 
-  int fd_;
+  int fd_;  // connected socket fd
   int connection_status_;
   int send_status_;
   uint16_t port_;
   std::string client_addr_;
   std::string buffer_;
   ResponseQueue response_queue_;
+  ResponseManagerMap resource_manager_map_;
 
   HttpParser parser_;
   Router* router_;
-  ResourceManager resource_manager_;
-  ResponseFormatter response_formatter_;
+  HeaderFormatter response_formatter_;
 
   void Receive(void);
-  void GenerateResponse(int status, int req_status, Request& request);
+  ResponseManager* GenerateResponseManager(int status, int req_status,
+                                           Request& request,
+                                           Router::Result& router_result);
   void SetIov(struct iovec* iov, size_t& cnt, ResponseBuffer& res);
   void UpdateRequestResult(bool is_keep_alive);
   int ValidateLocalRedirPath(std::string& loc, RequestLine& req,
