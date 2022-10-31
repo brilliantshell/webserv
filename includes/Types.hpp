@@ -86,12 +86,10 @@ struct ResponseBuffer {
   bool is_complete;
   int current_buf;
   size_t offset;
-  size_t total_len;
   std::string header;
   std::string content;
 
-  ResponseBuffer(void)
-      : is_complete(false), current_buf(kHeader), offset(0), total_len(0) {}
+  ResponseBuffer(void) : is_complete(false), current_buf(kHeader), offset(0) {}
 };
 
 #endif  // INCLUDES_TYPES_HPP_

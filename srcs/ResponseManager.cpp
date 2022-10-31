@@ -13,13 +13,16 @@ ResponseManager::ResponseManager(int type, bool is_keep_alive,
                                  ResponseBuffer& response_buffer,
                                  Router::Result& router_result,
                                  const Request& request)
-    : type_(type),
+    : is_keep_alive_(is_keep_alive),
+      type_(type),
       io_status_(IO_START),
-      is_keep_alive_(is_keep_alive),
+      err_fd_(-1),
       response_buffer_(response_buffer),
       router_result_(router_result),
       request_(request),
       result_(router_result.status) {}
+
+ResponseManager::~ResponseManager(void) { close(err_fd_); }
 
 void ResponseManager::FormatHeader(void) {
   std::stringstream ss;
@@ -54,7 +57,7 @@ void ResponseManager::FormatHeader(void) {
   ss << CRLF;
   response_buffer_.header = ss.str();
   response_buffer_.is_complete = true;
-  std::cerr << "header: " << response_buffer_.header << std::endl;
+  { std::cerr << "header: " << response_buffer_.header << std::endl; }
 }
 
 int ResponseManager::get_status(void) const { return io_status_; }
@@ -78,31 +81,74 @@ std::string ResponseManager::ParseExtension(const std::string& path) {
 }
 
 // Read error page
-void ResponseManager::GetErrorPage(std::string& response_content,
-                                   Result& result,
-                                   Router::Result& router_result) {
-  if (access(router_result.error_path.c_str(), F_OK) == -1) {
+ResponseManager::IoFdPair ResponseManager::GetErrorPage(void) {
+  if (access(router_result_.error_path.c_str(), F_OK) == -1) {
+    // no error page
     std::stringstream ss;
-    ss << result.status << " " << g_status_map[result.status];
-    response_content = "<!DOCTYPE html><title>" + ss.str() +
-                       "</title><body><h1>" + ss.str() + "</h1></body></html>";
-    router_result.error_path = "default_error.html";
-    return;
+    ss << result_.status << " " << g_status_map[result_.status];
+    response_buffer_.content = "<!DOCTYPE html><title>" + ss.str() +
+                               "</title><body><h1>" + ss.str() +
+                               "</h1></body></html>";
+    router_result_.error_path = "default_error.html";
+    io_status_ = SetIoComplete(IO_COMPLETE);
+  } else {
+    struct stat file_stat;
+    if (stat(router_result_.error_path.c_str(), &file_stat) == -1 ||
+        (file_stat.st_mode & S_IFMT) == S_IFDIR) {
+      HandleGetErrorFailure();
+    }
+    if (io_status_ == IO_START) {
+      err_fd_ = open(router_result_.error_path.c_str(), O_RDONLY);
+      if (err_fd_ == -1) {
+        HandleGetErrorFailure();
+      } else {
+        fcntl(err_fd_, F_SETFL, O_NONBLOCK);
+        io_status_ = ERROR_READ;
+      }
+    }
+    if (io_status_ == ERROR_READ) {
+      ReadFile(err_fd_);
+    }
   }
-  struct stat file_stat;
-  if (stat(router_result.error_path.c_str(), &file_stat) == -1 ||
-      (file_stat.st_mode & S_IFMT) == S_IFDIR) {
-    result.status = 500;  // INTERNAL_SERVER_ERROR
-    response_content = LAST_ERROR_DOCUMENT;
-    return;
+  if (io_status_ == ERROR_READ) {
+    return IoFdPair(err_fd_, -1);
   }
-  std::ifstream err_ifs(router_result.error_path);
-  if (err_ifs.fail()) {   // bad - io operation error, fail - logical error
-    result.status = 500;  // INTERNAL SERVER ERROR
-    response_content = LAST_ERROR_DOCUMENT;
-    return;
+  result_.ext = ParseExtension(router_result_.error_path);
+  return IoFdPair(-1, -1);
+}
+
+void ResponseManager::ReadFile(int fd) {
+  std::cerr << "ResponseManager Readfile\n";
+  char read_buf[READ_BUFFER_SIZE + 1];
+  memset(read_buf, 0, READ_BUFFER_SIZE + 1);
+  ssize_t read_bytes = read(fd, read_buf, READ_BUFFER_SIZE);
+  if (read_bytes > 0) {
+    response_buffer_.content.append(read_buf, read_bytes);
+    if (read_bytes < READ_BUFFER_SIZE) {
+      io_status_ = SetIoComplete(IO_COMPLETE);
+    } else if (io_status_ < ERROR_START) {
+      io_status_ = FILE_READ;
+    } else {
+      io_status_ = ERROR_READ;
+    }
+  } else {
+    if (read_bytes == -1) {
+      response_buffer_.content.clear();
+      result_.status = 500;  // INTERNAL SERVER ERROR
+    }
+    io_status_ = SetIoComplete(IO_COMPLETE);
   }
-  std::stringstream ss;
-  err_ifs >> ss.rdbuf();
-  response_content = ss.str();
+}
+
+int ResponseManager::SetIoComplete(int status) {
+  close(err_fd_);
+  err_fd_ = -1;
+  return status;
+}
+
+// private
+void ResponseManager::HandleGetErrorFailure(void) {
+  result_.status = 500;  // INTERNAL_SERVER_ERROR
+  response_buffer_.content = LAST_ERROR_DOCUMENT;
+  io_status_ = SetIoComplete(IO_COMPLETE);
 }

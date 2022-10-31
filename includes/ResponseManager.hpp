@@ -34,6 +34,8 @@
 #define PIPE_WRITE 3
 #define IO_START 4
 #define IO_COMPLETE 5
+#define ERROR_START 6
+#define ERROR_READ 7
 
 #define READ_BUFFER_SIZE 4096
 #define WRITE_BUFFER_SIZE 4096
@@ -66,13 +68,15 @@ class ResponseManager {
 
   ResponseManager(int type, bool is_keep_alive, ResponseBuffer& response_buffer,
                   Router::Result& router_result, const Request& request);
-  virtual ~ResponseManager(){};
+  virtual ~ResponseManager(void);
 
   void FormatHeader(void);
-  virtual IoFdPair Execute(void) = 0;
+  virtual IoFdPair Execute(bool is_eof = false) = 0;
 
   int get_status(void) const;
   bool get_is_keep_alive(void) const;
+
+  Result& get_result(void) { return result_; }
 
  protected:
   enum {
@@ -83,6 +87,7 @@ class ResponseManager {
   bool is_keep_alive_;
   int type_;
   int io_status_;
+  int err_fd_;
   Result result_;
   ResponseBuffer& response_buffer_;
   Router::Result router_result_;
@@ -90,8 +95,12 @@ class ResponseManager {
   HeaderFormatter header_formatter_;
 
   std::string ParseExtension(const std::string& success_path);
-  void GetErrorPage(std::string& response_content, Result& result,
-                    Router::Result& router_result);
+  IoFdPair GetErrorPage(void);
+  void ReadFile(int fd);
+  virtual int SetIoComplete(int status);
+
+ private:
+  void HandleGetErrorFailure(void);
 };
 
 #endif  // INCLUDES_RESPONSEMANAGER_HPP_

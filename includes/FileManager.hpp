@@ -7,8 +7,8 @@
  * @copyright Copyright (c) 2022
  */
 
-#ifndef INCLUDE_FILEMANAGER_HPP_
-#define INCLUDE_FILEMANAGER_HPP_
+#ifndef INCLUDES_FILEMANAGER_HPP_
+#define INCLUDES_FILEMANAGER_HPP_
 
 #include "ResponseManager.hpp"
 
@@ -17,7 +17,7 @@ class FileManager : public ResponseManager {
   FileManager(bool is_keep_alive, ResponseBuffer& response,
               Router::Result& router_result, const Request& request);
   virtual ~FileManager(void);
-  ResponseManager::IoFdPair Execute(void);
+  ResponseManager::IoFdPair Execute(bool is_eof = false);
   const int get_file_fd(void) const;
 
  private:
@@ -29,7 +29,6 @@ class FileManager : public ResponseManager {
 
   // GET
   void Get(void);
-  void ReadFile(void);
 
   // POST
   void Post(void);
@@ -40,13 +39,15 @@ class FileManager : public ResponseManager {
   void Delete(void);
 
   // Utils
-  std::string GenerateRedirectPage(const std::string& redirect_to);
+  ResponseManager::IoFdPair GenerateRedirectPage(void);
   void CheckFileMode(void);
   void GenerateAutoindex(const std::string& path);
   bool DetermineFileType(const std::string& path, const dirent* ent,
                          std::vector<std::string>& dir_vector,
                          std::vector<std::string>& file_vector);
   void ListAutoindexFiles(std::vector<std::string>& paths);
+  ResponseManager::IoFdPair DetermineSuccessFileExt(void);
+  int SetIoComplete(int status);
 };
 
-#endif  // INCLUDE_FILEMANAGER_HPP_
+#endif  // INCLUDES_FILEMANAGER_HPP_

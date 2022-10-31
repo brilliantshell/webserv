@@ -48,6 +48,7 @@ class HttpServer {
   void SendResponses(int event_fd);
   void HandleIOEvent(struct kevent& event);
   void HandleConnectionEvent(struct kevent& event);
+  void RegisterIoEvents(ResponseManager::IoFdPair io_fds, int socket_fd = -1);
 };
 
 #endif  // INCLUDES_HTTPSERVER_HPP_

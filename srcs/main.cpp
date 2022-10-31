@@ -45,13 +45,13 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
-  try {
-    Validator validator(FileToString(config_path));
-    HttpServer(validator.Validate()).Run();
-  } catch (const std::exception& e) {
-    std::cerr << "BrilliantServer : Validator : " << e.what() << '\n';
-  } catch (...) {
-    std::cerr << "BrilliantServer : Unknown error\n";
-  }
+  // try {
+  Validator validator(FileToString(config_path));
+  HttpServer(validator.Validate()).Run();
+  // } catch (const std::exception& e) {
+  //   std::cerr << "BrilliantServer : Validator : " << e.what() << '\n';
+  // } catch (...) {
+  //   std::cerr << "BrilliantServer : Unknown error\n";
+  // }
   return EXIT_FAILURE;
 }

@@ -38,8 +38,7 @@ Router::Result Router::Route(int status, Request& request,
   return result;
 }
 
-// private
-
+// SECTION: private
 Router::CgiDiscriminator Router::GetCgiLocation(
     LocationRouter::CgiVector& cgi_vector, const std::string& path) {
   LocationNode location_node;

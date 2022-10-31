@@ -30,10 +30,10 @@
 
 // connection status
 #define KEEP_ALIVE 0
-#define CLOSE 1
-#define CONNECTION_ERROR 2
-#define KEEP_READING 3
-#define NEXT_REQUEST_EXISTS 4
+#define KEEP_READING 1
+#define NEXT_REQUEST_EXISTS 2
+#define CLOSE 3
+#define CONNECTION_ERROR 4
 
 // send status
 #define KEEP_SENDING 0
@@ -61,8 +61,7 @@ class Connection {
 
   const int get_send_status(void) const;
   const int get_connection_status(void) const;
-
-  const int get_fd(void) const { return fd_; }
+  const int get_fd(void) const;
 
   void SetAttributes(const int fd, const std::string& client_addr,
                      const uint16_t port, ServerRouter& server_router);

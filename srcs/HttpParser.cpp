@@ -65,7 +65,6 @@ void HttpParser::Reset(void) {
 HttpParser::Result& HttpParser::get_result(void) { return result_; }
 
 // SECTION : private
-
 void HttpParser::SkipLeadingCRLF(std::string& segment) {
   // TODO segment.size() < 2
   if (!segment.compare(0, 2, CRLF)) {

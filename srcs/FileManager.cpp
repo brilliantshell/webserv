@@ -23,34 +23,36 @@ FileManager::~FileManager(void) {
   close(out_fd_);
 }
 
-ResponseManager::IoFdPair FileManager::Execute(void) {
-  std::cerr << "FileManager Execute\n";
+ResponseManager::IoFdPair FileManager::Execute(bool is_eof) {
+  { std::cerr << "FileManager Execute\n"; }
+  // if (is_eof == true) {
+  //   io_status_ = SetIoComplete(IO_COMPLETE);
+  // }
+  if (router_result_.status >= 400) {
+    return GetErrorPage();
+  }
   if (router_result_.status == 301) {
-    result_.location = router_result_.redirect_to;
-    response_content_ = GenerateRedirectPage(router_result_.redirect_to);
-    result_.ext = "html";
-    return ResponseManager::IoFdPair(-1, -1);
+    return GenerateRedirectPage();
   }
-  switch (request_.req.method & (GET | POST | DELETE)) {
-    case GET:
+  if (io_status_ < ERROR_START) {
+    if (request_.req.method == GET) {
       Get();
-      break;
-    case POST:
+    } else if (request_.req.method == POST) {
       Post();
-      break;
-    case DELETE:
+    } else {
       Delete();
-      break;
-    default:
-      break;
+    }
   }
+  std::cerr << "FileManager :End methods\n";
+  if (result_.status >= 400) {
+    if (io_status_ < ERROR_START) {
+      io_status_ = SetIoComplete(ERROR_START);
+    }
+    return GetErrorPage();
+  }
+  std::cerr << "FileManager: IO complete\n";
   if (io_status_ == IO_COMPLETE) {
-    result_.ext =
-        (result_.status == 201 ||
-         ((request_.req.method & DELETE) == DELETE && result_.status == 200))
-            ? "html"
-            : ParseExtension(router_result_.success_path);
-    return ResponseManager::IoFdPair(-1, -1);
+    return DetermineSuccessFileExt();
   }
   return (io_status_ == FILE_READ) ? ResponseManager::IoFdPair(in_fd_, -1)
                                    : ResponseManager::IoFdPair(-1, out_fd_);
@@ -59,7 +61,8 @@ ResponseManager::IoFdPair FileManager::Execute(void) {
 // SECTION : private
 // GET
 void FileManager::Get(void) {
-  if (in_fd_ == -1) {
+  std::cerr << "FileManager Get\n";
+  if (io_status_ == IO_START) {
     CheckFileMode();
     if (result_.status < 400 && response_content_.empty() == false) {
       return;
@@ -84,27 +87,18 @@ void FileManager::Get(void) {
         }
       }
       fcntl(in_fd_, F_SETFL, O_NONBLOCK);
+      io_status_ = FILE_READ;
     }
   }
-  ReadFile();
-}
-
-void FileManager::ReadFile(void) {
-  char read_buf[READ_BUFFER_SIZE + 1];
-  memset(read_buf, 0, READ_BUFFER_SIZE + 1);
-  ssize_t read_bytes = read(in_fd_, read_buf, READ_BUFFER_SIZE);
-  if (read_bytes > 0) {
-    response_content_.append(read_buf);
-    io_status_ = FILE_READ;
-  } else if (read_bytes == -1) {
-    response_content_.clear();
-    result_.status = 500;  // INTERNAL SERVER ERROR
+  if (io_status_ == FILE_READ) {
+    std::cerr << "FileManager readfile \n";
+    ReadFile(in_fd_);
   }
 }
 
 // POST
 void FileManager::Post(void) {
-  if (out_fd_ == -1) {
+  if (io_status_ == IO_START) {
     FindValidOutputPath(router_result_.success_path);
     if (output_path_.empty()) {  // 403 or 500
       return;
@@ -112,24 +106,28 @@ void FileManager::Post(void) {
     errno = 0;
     out_fd_ = open(output_path_.c_str(), O_WRONLY | O_CREAT, 0644);
     if (out_fd_ == -1) {
-      if (errno == EACCES) {
-        result_.status = 403;  // FORBIDDEN
-      } else {
-        result_.status = 500;  // INTERNAL SERVER ERROR
-        return;
-      }
+      result_.status =
+          (errno == EACCES) ? 403 : 500;  // FORBIDDEN || INTERNAL SERVER ERROR
+      return;
     }
     fcntl(out_fd_, F_SETFL, O_NONBLOCK);
+    io_status_ = FILE_WRITE;
+  }
+  if (io_status_ == FILE_WRITE) {
+    WriteFile(request_.content);
+    if (result_.status == 500) {
+      unlink(output_path_.c_str());
+    }
   }
   if (io_status_ == IO_COMPLETE) {
     result_.status = 201;  // CREATED
+    result_.location = output_path_.substr(1);
     response_content_ =
         "<!DOCTYPE html><html><title>201 Created</title><body><h1>201 "
         "Created</h1><p>YAY! The file is created at " +
-        output_path_.substr(1) + "!</p><p>Have a nice day~</p></body></html>";
-    result_.location = output_path_.substr(1);
-  } else {
-    WriteFile(request_.content);
+        result_.location + "!</p><p>Have a nice day~</p></body></html>";
+    close(out_fd_);
+    out_fd_ = -1;
   }
 }
 
@@ -202,19 +200,24 @@ void FileManager::Delete(void) {
 
 // Utils
 // Generate Redirection Message
-std::string FileManager::GenerateRedirectPage(const std::string& redirect_to) {
-  std::string href;
-  return "<!DOCTYPE html><html><title></title><body><h1>301 Moved "
-         "Permanently</h1><p>The resource has been moved permanently to <a "
-         "href='" +
-         redirect_to + "'>" + redirect_to + "<a>.</p></body></html>";
+ResponseManager::IoFdPair FileManager::GenerateRedirectPage(void) {
+  result_.location = router_result_.redirect_to;
+  response_content_ =
+      "<!DOCTYPE html><html><title></title><body><h1>301 Moved "
+      "Permanently</h1><p>The resource has been moved permanently to <a "
+      "href='" +
+      result_.location + "'>" + result_.location + "<a>.</p></body></html>";
+  result_.ext = "html";
+  io_status_ = IO_COMPLETE;
+  return ResponseManager::IoFdPair(-1, -1);
 }
 
 void FileManager::CheckFileMode(void) {
   struct stat file_stat;
   errno = 0;
   if (stat(router_result_.success_path.c_str(), &file_stat) == -1) {
-    result_.status = errno == ENOENT ? 404 : 500;  // INTERNAL_SERVER_ERROR
+    result_.status =
+        errno == ENOENT ? 404 : 500;  // NOT FOUND || INTERNAL_SERVER_ERROR
     return;
   }
   if ((file_stat.st_mode & S_IFMT) == S_IFDIR) {
@@ -229,6 +232,7 @@ void FileManager::CheckFileMode(void) {
 void FileManager::GenerateAutoindex(const std::string& path) {
   DIR* dir = opendir(path.c_str());
   if (dir == NULL) {
+    std::cerr << "GenerateAutoIndex 500 first \n";
     result_.status = 500;  // INTERNAL_SERVER_ERROR
     return;
   }
@@ -239,12 +243,14 @@ void FileManager::GenerateAutoindex(const std::string& path) {
   std::vector<std::string> dir_vector;
   std::vector<std::string> file_vector;
   for (dirent* ent = readdir(dir); ent != NULL; ent = readdir(dir)) {
+    std::cerr << "each d_name : " << ent->d_name << '\n';
     if (ent->d_name[0] != '.' &&
         DetermineFileType(path, ent, dir_vector, file_vector) == false) {
       break;
     }
   }
-  if (errno != 0) {
+  if (errno != 0) {  // FIXME 문제있음 ㅎ
+    std::cerr << strerror(errno) << " : GenerateAutoIndex 500 second\n";
     result_.status = 500;  // INTERNAL_SERVER_ERROR
   } else {
     ListAutoindexFiles(dir_vector);
@@ -282,4 +288,21 @@ void FileManager::ListAutoindexFiles(std::vector<std::string>& paths) {
     response_content_ +=
         "<a href='./" + encoded_path + "'>" + paths[i] + "</a>\n";
   }
+}
+
+ResponseManager::IoFdPair FileManager::DetermineSuccessFileExt(void) {
+  result_.ext =
+      (result_.status == 201 ||
+       ((request_.req.method & DELETE) == DELETE && result_.status == 200))
+          ? "html"
+          : ParseExtension(router_result_.success_path);
+  return ResponseManager::IoFdPair(-1, -1);
+}
+
+int FileManager::SetIoComplete(int status) {
+  close(in_fd_);
+  close(out_fd_);
+  in_fd_ = -1;
+  out_fd_ = -1;
+  return status;
 }

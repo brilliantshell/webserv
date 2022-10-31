@@ -33,7 +33,7 @@ class CgiManager : public ResponseManager {
              Router::Result& router_result, const Request& request);
   virtual ~CgiManager(void);
 
-  ResponseManager::IoFdPair Execute(void);
+  ResponseManager::IoFdPair Execute(bool is_eof = false);
 
  private:
   enum ResponseType {
@@ -59,7 +59,7 @@ class CgiManager : public ResponseManager {
   void ExecuteScript(const char* success_path, char* const* env);
 
   // parent
-  bool SetIpc(void);
+  void SetIpc(void);
   bool OpenPipes(void);
   bool CheckFileMode(const char* path);
   void PassContent(void);
@@ -68,6 +68,7 @@ class CgiManager : public ResponseManager {
   bool ParseCgiHeader(ResponseHeaderMap& header);
   int DetermineResponseType(ResponseHeaderMap& header);
   void SetInternalServerError(void);
+  int SetIoComplete(int status);
 };
 
 #endif  // INCLUDES_CGIMANAGER_HPP
