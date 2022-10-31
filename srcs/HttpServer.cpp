@@ -65,12 +65,13 @@ void HttpServer::Run(void) {
       PRINT_EVENT(events[i]);
       if (passive_sockets_.count(events[i].ident) == 1) {
         AcceptConnection(events[i].ident);
-      } else {
+      } else if (close_io_fds_.count(events[i].ident) == 0) {
         (connections_[events[i].ident].get_fd() == -1)
             ? HandleIOEvent(events[i])
             : HandleConnectionEvent(events[i]);
       }
     }
+    close_io_fds_.clear();
   }
 }
 
@@ -78,6 +79,15 @@ void HttpServer::Run(void) {
 void HttpServer::HandleConnectionEvent(struct kevent& event) {
   if (event.flags & EV_EOF) {
     close(event.ident);
+    for (IoFdMap::const_iterator it = io_fd_map_.begin();
+         it != io_fd_map_.end(); ++it) {
+      if (it->second == event.ident) {
+        close_io_fds_.insert(it->first);
+        io_fd_map_[it->first] = -1;
+      }
+    }
+    std::cerr << "connection : " << event.ident << " will be resetted"
+              << std::endl;
     connections_[event.ident].Reset();
   } else if (event.filter == EVFILT_READ) {
     ReceiveRequests(event.ident);
@@ -89,25 +99,19 @@ void HttpServer::HandleConnectionEvent(struct kevent& event) {
 // except socket
 void HttpServer::HandleIOEvent(struct kevent& event) {
   struct kevent io_ev;
+  int socket_fd = io_fd_map_[event.ident];
   if (event.flags & EV_EOF) {
-    std::cerr << "IO EOF 발생\n";
-    connections_[io_fd_map_[event.ident]].FormatResponse(event.ident);
-    int socket_fd = io_fd_map_[event.ident];
+    connections_[socket_fd].FormatResponse(event.ident);
     if (connections_[socket_fd].IsResponseBufferReady() == true) {
-      std::cerr << "event 후 write event 등록\n";
       UpdateKqueue(&io_ev, socket_fd, EVFILT_WRITE, EV_ADD | EV_ONESHOT);
     }
     close(event.ident);
     io_fd_map_.erase(event.ident);
   } else if (event.filter == EVFILT_READ || event.filter == EVFILT_WRITE) {
-    std::cerr << "selected connection : " << io_fd_map_[event.ident] << '\n';
-    std::cerr << "origin event fd : " << event.ident << '\n';
     ResponseManager::IoFdPair io_fds =
-        connections_[io_fd_map_[event.ident]].ExecuteMethod(event.ident);
-    RegisterIoEvents(io_fds, connections_[io_fd_map_[event.ident]].get_fd());
-    int socket_fd = io_fd_map_[event.ident];
+        connections_[socket_fd].ExecuteMethod(event.ident);
+    RegisterIoEvents(io_fds, connections_[socket_fd].get_fd());
     if (connections_[socket_fd].IsResponseBufferReady() == true) {
-      std::cerr << "event 후 write event 등록\n";
       UpdateKqueue(&io_ev, socket_fd, EVFILT_WRITE, EV_ADD | EV_ONESHOT);
     }
   }
@@ -191,7 +195,7 @@ void HttpServer::ReceiveRequests(const int socket_fd) {
   if (connections_[socket_fd].IsResponseBufferReady() == true) {
     UpdateKqueue(&io_ev, socket_fd, EVFILT_WRITE, EV_ADD | EV_ONESHOT);
   }
-  if (connections_[socket_fd].get_connection_status() >= CLOSE) {
+  if (connections_[socket_fd].get_connection_status() == CONNECTION_ERROR) {
     close(connections_[socket_fd].get_fd());
     connections_[socket_fd].Reset();
     return;

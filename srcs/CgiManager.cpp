@@ -278,8 +278,6 @@ bool CgiManager::ReceiveCgiResponse(ResponseHeaderMap& header) {
     }
   }
 
-  std::cerr << "[" << i << "] ** response_content : " << response_content_
-            << "\n\n";
   ++i;
   return true;
 }

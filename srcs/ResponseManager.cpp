@@ -57,10 +57,9 @@ void ResponseManager::FormatHeader(void) {
   ss << CRLF;
   response_buffer_.header = ss.str();
   response_buffer_.is_complete = true;
-  { std::cerr << "header: " << response_buffer_.header << std::endl; }
 }
 
-int ResponseManager::get_status(void) const { return io_status_; }
+int ResponseManager::get_io_status(void) const { return io_status_; }
 
 bool ResponseManager::get_is_keep_alive(void) const { return is_keep_alive_; }
 
@@ -118,7 +117,6 @@ ResponseManager::IoFdPair ResponseManager::GetErrorPage(void) {
 }
 
 void ResponseManager::ReadFile(int fd) {
-  std::cerr << "ResponseManager Readfile\n";
   char read_buf[READ_BUFFER_SIZE + 1];
   memset(read_buf, 0, READ_BUFFER_SIZE + 1);
   ssize_t read_bytes = read(fd, read_buf, READ_BUFFER_SIZE);

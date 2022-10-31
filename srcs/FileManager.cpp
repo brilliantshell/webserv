@@ -24,7 +24,6 @@ FileManager::~FileManager(void) {
 }
 
 ResponseManager::IoFdPair FileManager::Execute(bool is_eof) {
-  { std::cerr << "FileManager Execute\n"; }
   // if (is_eof == true) {
   //   io_status_ = SetIoComplete(IO_COMPLETE);
   // }
@@ -43,14 +42,12 @@ ResponseManager::IoFdPair FileManager::Execute(bool is_eof) {
       Delete();
     }
   }
-  std::cerr << "FileManager :End methods\n";
   if (result_.status >= 400) {
     if (io_status_ < ERROR_START) {
       io_status_ = SetIoComplete(ERROR_START);
     }
     return GetErrorPage();
   }
-  std::cerr << "FileManager: IO complete\n";
   if (io_status_ == IO_COMPLETE) {
     return DetermineSuccessFileExt();
   }
@@ -61,7 +58,6 @@ ResponseManager::IoFdPair FileManager::Execute(bool is_eof) {
 // SECTION : private
 // GET
 void FileManager::Get(void) {
-  std::cerr << "FileManager Get\n";
   if (io_status_ == IO_START) {
     CheckFileMode();
     if (result_.status < 400 && response_content_.empty() == false) {
@@ -91,7 +87,6 @@ void FileManager::Get(void) {
     }
   }
   if (io_status_ == FILE_READ) {
-    std::cerr << "FileManager readfile \n";
     ReadFile(in_fd_);
   }
 }
@@ -106,8 +101,13 @@ void FileManager::Post(void) {
     errno = 0;
     out_fd_ = open(output_path_.c_str(), O_WRONLY | O_CREAT, 0644);
     if (out_fd_ == -1) {
-      result_.status =
-          (errno == EACCES) ? 403 : 500;  // FORBIDDEN || INTERNAL SERVER ERROR
+      if (errno == ENOENT) {
+        result_.status = 404;  // PAGE NOT FOUND
+      } else if (errno == EACCES) {
+        result_.status = 403;  // FORBIDDEN
+      } else {
+        result_.status = 500;  // INTERNAL SERVER ERROR}
+      }
       return;
     }
     fcntl(out_fd_, F_SETFL, O_NONBLOCK);
@@ -232,7 +232,6 @@ void FileManager::CheckFileMode(void) {
 void FileManager::GenerateAutoindex(const std::string& path) {
   DIR* dir = opendir(path.c_str());
   if (dir == NULL) {
-    std::cerr << "GenerateAutoIndex 500 first \n";
     result_.status = 500;  // INTERNAL_SERVER_ERROR
     return;
   }
@@ -243,14 +242,12 @@ void FileManager::GenerateAutoindex(const std::string& path) {
   std::vector<std::string> dir_vector;
   std::vector<std::string> file_vector;
   for (dirent* ent = readdir(dir); ent != NULL; ent = readdir(dir)) {
-    std::cerr << "each d_name : " << ent->d_name << '\n';
     if (ent->d_name[0] != '.' &&
         DetermineFileType(path, ent, dir_vector, file_vector) == false) {
       break;
     }
   }
-  if (errno != 0) {  // FIXME 문제있음 ㅎ
-    std::cerr << strerror(errno) << " : GenerateAutoIndex 500 second\n";
+  if (errno != 0) {
     result_.status = 500;  // INTERNAL_SERVER_ERROR
   } else {
     ListAutoindexFiles(dir_vector);

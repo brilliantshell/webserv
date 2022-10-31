@@ -73,7 +73,7 @@ class ResponseManager {
   void FormatHeader(void);
   virtual IoFdPair Execute(bool is_eof = false) = 0;
 
-  int get_status(void) const;
+  int get_io_status(void) const;
   bool get_is_keep_alive(void) const;
 
   Result& get_result(void) { return result_; }

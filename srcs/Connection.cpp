@@ -12,7 +12,7 @@ Connection::Connection(void)
     : fd_(-1),
       connection_status_(KEEP_ALIVE),
       send_status_(KEEP_SENDING),
-      buffer_(BUFFER_SIZE + 1, 0),
+      buffer_(BUFFER_SIZE, 0),
       router_(NULL) {}
 
 Connection::~Connection(void) {
@@ -30,7 +30,7 @@ void Connection::Reset(int does_next_req_exist) {
     buffer_.erase();
   } else if (does_next_req_exist == kReset) {
     parser_.Reset();
-    buffer_.assign(BUFFER_SIZE + 1, 0);
+    buffer_.assign(BUFFER_SIZE, 0);
   } else {
     close(fd_);
     fd_ = -1;
@@ -45,7 +45,14 @@ void Connection::Reset(int does_next_req_exist) {
     while (!response_queue_.empty()) {
       response_queue_.pop();
     }
-    buffer_.assign(BUFFER_SIZE + 1, 0);
+    buffer_.assign(BUFFER_SIZE, 0);
+    for (ResponseManagerMap::iterator it = response_manager_map_.begin();
+         it != response_manager_map_.end(); ++it) {
+      std::cerr << "delete [" << it->first << "]" << std::endl;
+      delete it->second;
+      it->second = NULL;
+    }
+    response_manager_map_.clear();
   }
 }
 
@@ -56,7 +63,7 @@ ResponseManager::IoFdPair Connection::HandleRequest(void) {
   int req_status = parser_.Parse(buffer_);
   if (req_status < HttpParser::kComplete) {
     connection_status_ = KEEP_READING;
-    buffer_.assign(BUFFER_SIZE + 1, 0);
+    buffer_.assign(BUFFER_SIZE, 0);
     return ResponseManager::IoFdPair();
   }
   HttpParser::Result req_data = parser_.get_result();
@@ -76,9 +83,8 @@ ResponseManager::IoFdPair Connection::HandleRequest(void) {
     return ResponseManager::IoFdPair(-1, -1);
   }
   ResponseManager::IoFdPair io_fds = response_manager->Execute();
-
+  bool is_keep_alive = response_manager->get_is_keep_alive();
   if (io_fds.input == -1 && io_fds.output == -1) {
-    std::cerr << "io_fds are -1\n";
     // if (location_data.is_cgi == true &&
     //     response_manager->get_result().is_local_redir == true) {
     //   std::string redir_path =
@@ -98,60 +104,44 @@ ResponseManager::IoFdPair Connection::HandleRequest(void) {
     //     UpdateRequestResult(response_manager->get_is_keep_alive());
     //   } else {
     //     if (io_fds.input != -1) {
-    //       resource_manager_map_[io_fds.input] = response_manager;
+    //       response_manager_map_[io_fds.input] = response_manager;
     //     }
     //     if (io_fds.output != -1) {
-    //       resource_manager_map_[io_fds.output] = response_manager;
+    //       response_manager_map_[io_fds.output] = response_manager;
     //     }
     //   }
     // }
     response_manager->FormatHeader();
+    delete response_manager;
   } else {
     if (io_fds.input != -1) {
-      resource_manager_map_[io_fds.input] = response_manager;
-      std::cerr << "input fd : " << io_fds.input
-                << ", RM address : " << response_manager << std::endl;
+      response_manager_map_[io_fds.input] = response_manager;
     }
     if (io_fds.output != -1) {
-      resource_manager_map_[io_fds.output] = response_manager;
-      std::cerr << "output fd : " << io_fds.output
-                << ", RM address : " << response_manager << std::endl;
+      response_manager_map_[io_fds.output] = response_manager;
     }
   }
-  UpdateRequestResult(response_manager->get_is_keep_alive());
-  std::cerr << "In Execute : resource manager map size : "
-            << resource_manager_map_.size() << '\n';
+  UpdateRequestResult(is_keep_alive);
   return io_fds;
 }
 
 ResponseManager::IoFdPair Connection::ExecuteMethod(int event_fd) {
-  std::cerr << "event fd : " << event_fd << '\n';
-  std::cerr << "IN Execute Method: resource manager map size : "
-            << resource_manager_map_.size() << '\n';
-  ResponseManager* manager = resource_manager_map_[event_fd];
-  std::cerr << "manager : " << manager << '\n';
+  ResponseManager* manager = response_manager_map_[event_fd];
   ResponseManager::IoFdPair io_fds = manager->Execute();
   if (io_fds.input == -1 && io_fds.output == -1) {
-    std::cerr << "io_fds are -1\n";
     manager->FormatHeader();
     UpdateRequestResult(manager->get_is_keep_alive());
   } else {
     if (io_fds.input != -1) {
-      resource_manager_map_[io_fds.input] = manager;
-      std::cerr << "input fd : " << io_fds.input << ", RM address : " << manager
-                << std::endl;
+      response_manager_map_[io_fds.input] = manager;
     }
     if (io_fds.output != -1) {
-      resource_manager_map_[io_fds.output] = manager;
-      std::cerr << "output fd : " << io_fds.output
-                << ", RM address : " << manager << std::endl;
+      response_manager_map_[io_fds.output] = manager;
     }
-    std::cerr << "In Execute Method 2 : resource manager map size : "
-              << resource_manager_map_.size() << '\n';
   }
 
   // if (manager->get_status() == IO_COMPLETE) {
-  //   resource_manager_map_[event_fd] = NULL;
+  //   response_manager_map_[event_fd] = NULL;
   //   delete manager;
   //   return ResponseManager::IoFdPair(-1, -1);
   // }
@@ -159,39 +149,13 @@ ResponseManager::IoFdPair Connection::ExecuteMethod(int event_fd) {
   return io_fds;
 }
 
-// {
-//   // 여기까지 할 일 이라고 생각하는데 ,,,,,,,,
-//   // 이건 어쩌지?
-//   ExecuteMethod(res.content, router_result, request);
-//   // ResponseManager::Result exec_result =
-//   //     resource_manager_.ExecuteMethod(res.content, router_result,
-//   request);
-//  if (exec_result.is_local_redir == true) {
-//     std::string redir_path = exec_result.header["location"];
-//     status = ValidateLocalRedirPath(redir_path, request.req, req_status);
-//     router_result =
-//         router_->Route(status, request, ConnectionInfo(port_, client_addr_));
-//     exec_result =
-//         resource_manager_.ExecuteMethod(res.content, router_result, request);
-//   }
-//   bool is_keep_alive =
-//       (exec_result.status < 500 && req_status == HttpParser::kComplete);
-//   res.header = response_formatter_.Format(res.content.size(), exec_result,
-//                                           request.req.version,
-//                                           router_result.methods,
-//                                           is_keep_alive);
-//   res.total_len = res.header.size() + res.content.size();
-//   UpdateRequestResult(is_keep_alive);
-// }
-
 void Connection::FormatResponse(const int event_fd) {
-  std::cerr << "connection : FormatResponse\n";
-  ResponseManager* manager = resource_manager_map_[event_fd];
+  ResponseManager* manager = response_manager_map_[event_fd];
   manager->Execute(true);
   manager->FormatHeader();
   UpdateRequestResult(manager->get_is_keep_alive());
   delete manager;
-  resource_manager_map_[event_fd] = NULL;
+  response_manager_map_[event_fd] = NULL;
 }
 
 void Connection::Send(void) {
@@ -205,7 +169,6 @@ void Connection::Send(void) {
     response.current_buf = ResponseBuffer::kContent;
   }
   send_status_ = KEEP_SENDING;
-  std::cerr << "sent so far : " << response.offset << "\n";
   if (response.offset >= response.header.size() + response.content.size()) {
     std::cerr << "response offest : " << response.offset << '\n';
     std::cerr << "sent bytes: "
@@ -250,8 +213,8 @@ void Connection::SetAttributes(const int fd, const std::string& client_addr,
 // SECTION : private
 void Connection::Receive(void) {
   ssize_t recv_byte = recv(fd_, &buffer_[0], BUFFER_SIZE, 0);
-  if (recv_byte < BUFFER_SIZE) {
-    if (recv_byte != -1) {  // -1 뜨면 운명임.
+  if (recv_byte <= BUFFER_SIZE) {
+    if (recv_byte != -1) {  // FIXME : -1 생각
       buffer_.erase(recv_byte);
     }
   }

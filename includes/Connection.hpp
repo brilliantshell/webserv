@@ -77,7 +77,7 @@ class Connection {
   std::string client_addr_;
   std::string buffer_;
   ResponseQueue response_queue_;
-  ResponseManagerMap resource_manager_map_;
+  ResponseManagerMap response_manager_map_;
 
   HttpParser parser_;
   Router* router_;

@@ -39,6 +39,7 @@ class HttpServer {
   PassiveSockets passive_sockets_;
   ConnectionVector connections_;
   IoFdMap io_fd_map_;
+  std::set<int> close_io_fds_;
 
   void InitKqueue(void);
   void UpdateKqueue(struct kevent* sock_ev, int socket_fd, int16_t ev_filt,
