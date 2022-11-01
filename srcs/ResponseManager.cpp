@@ -20,9 +20,15 @@ ResponseManager::ResponseManager(int type, bool is_keep_alive,
       response_buffer_(response_buffer),
       router_result_(router_result),
       request_(request),
-      result_(router_result.status) {}
+      result_(router_result.status) {
+  is_cgi_ = router_result_.is_cgi;
+}
 
-ResponseManager::~ResponseManager(void) { close(err_fd_); }
+ResponseManager::~ResponseManager(void) {
+  std::cerr << "ResponseManager destructor, address (" << this << "), fd ("
+            << err_fd_ << ")\n";
+  close(err_fd_);
+}
 
 void ResponseManager::FormatHeader(void) {
   std::stringstream ss;
@@ -60,6 +66,8 @@ void ResponseManager::FormatHeader(void) {
 }
 
 int ResponseManager::get_io_status(void) const { return io_status_; }
+
+bool ResponseManager::get_is_cgi(void) const { return is_cgi_; }
 
 bool ResponseManager::get_is_keep_alive(void) const { return is_keep_alive_; }
 

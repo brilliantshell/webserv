@@ -45,7 +45,25 @@ void Connection::Reset(int does_next_req_exist) {
     while (!response_queue_.empty()) {
       response_queue_.pop();
     }
+    std::cerr << "[ Resetting connection address : " << this << "]"
+              << "\n";
     buffer_.assign(BUFFER_SIZE, 0);
+    std::set<ResponseManager*> manager_set;
+    for (std::map<int, ResponseManager*>::iterator it =
+             response_manager_map_.begin();
+         it != response_manager_map_.end(); ++it) {
+      if (manager_set.count(it->second) == 1) {
+        it->second = NULL;
+        continue;
+      }
+      if (it->second != NULL) {
+        std::cerr << "ResponseManager destroyed, address (" << it->second
+                  << "), fd (" << it->first << ")\n";
+        delete it->second;
+        manager_set.insert(it->second);
+        it->second = NULL;
+      }
+    }
     response_manager_map_.clear();
   }
 }
@@ -70,7 +88,7 @@ ResponseManager::IoFdPair Connection::HandleRequest(void) {
   Router::Result location_data = router_->Route(
       req_data.status, request, ConnectionInfo(port_, client_addr_));
   ResponseManager* response_manager = GenerateResponseManager(
-      req_data.status, (req_status == HttpParser::kComplete), req_data.request,
+      req_data.status, (req_status == HttpParser::kComplete), request,
       location_data);
   if (response_manager == NULL) {
     connection_status_ = CONNECTION_ERROR;
@@ -81,6 +99,12 @@ ResponseManager::IoFdPair Connection::HandleRequest(void) {
   bool is_keep_alive = response_manager->get_is_keep_alive();
   if (io_fds.input == -1 && io_fds.output == -1) {
     response_manager->FormatHeader();
+    for (ResponseManagerMap::iterator it = response_manager_map_.begin();
+         it != response_manager_map_.end(); ++it) {
+      if (it->second == response_manager) {
+        it->second = NULL;
+      }
+    }
     delete response_manager;
   } else {
     if (io_fds.input != -1) {
@@ -95,11 +119,48 @@ ResponseManager::IoFdPair Connection::HandleRequest(void) {
 }
 
 ResponseManager::IoFdPair Connection::ExecuteMethod(int event_fd) {
+  // ResponseManager* manager = response_manager_map_[event_fd];
+  // ResponseManager::IoFdPair io_fds = manager->Execute();
+  // if (io_fds.input == -1 && io_fds.output == -1) {
+  //   manager->FormatHeader();
+  //   connection_status_ =
+  //       (manager->get_is_keep_alive() == true) ? KEEP_ALIVE : CLOSE;
+  //   delete manager;
+  //   if (response_manager_map_.count(event_fd) == 1) {
+  //     response_manager_map_[event_fd] = NULL;
+  //   }
+  // } else {
+  //   if (io_fds.input != -1) {
+  //     response_manager_map_[io_fds.input] = manager;
+  //   }
+  //   if (io_fds.output != -1) {
+  //     response_manager_map_[io_fds.output] = manager;
+  //   }
+  // }
+  // return io_fds;
+  std::cerr << "Executing Connection address : " << this << "\n";
+  std::cerr << "Response Manager Map Size : " << response_manager_map_.size()
+            << "\n";
   ResponseManager* manager = response_manager_map_[event_fd];
+  std::cerr << "manager address : " << manager << "\n";
   ResponseManager::IoFdPair io_fds = manager->Execute();
+  ResponseManager::Result& response_result = manager->get_result();
+  if (response_result.is_local_redir == true) {
+    io_fds = HandleCgiLocalRedirection(&manager, response_result);
+    response_manager_map_[event_fd] = NULL;
+    std::cerr << "local redir io_fds: " << io_fds.input << ", " << io_fds.output
+              << '\n';
+  }
   if (io_fds.input == -1 && io_fds.output == -1) {
     manager->FormatHeader();
-    UpdateRequestResult(manager->get_is_keep_alive());
+    connection_status_ =
+        (manager->get_is_keep_alive() == true) ? KEEP_ALIVE : CLOSE;
+    for (ResponseManagerMap::iterator it = response_manager_map_.begin();
+         it != response_manager_map_.end(); ++it) {
+      if (it->second == manager) {
+        it->second = NULL;
+      }
+    }
     delete manager;
     if (response_manager_map_.count(event_fd) == 1) {
       response_manager_map_[event_fd] = NULL;
@@ -115,45 +176,33 @@ ResponseManager::IoFdPair Connection::ExecuteMethod(int event_fd) {
   return io_fds;
 }
 
-ResponseManager::IoFdPair Connection::FormatResponse(const int event_fd) {
+ResponseManager::IoFdPair Connection::FormatResponse(const int event_fd,
+                                                     int16_t event_filter) {
   ResponseManager* manager = response_manager_map_[event_fd];
-  ResponseManager::IoFdPair io_fds = manager->Execute(true);
 
+  ResponseManager::IoFdPair io_fds = manager->Execute();
   ResponseManager::Result& response_result = manager->get_result();
   if (response_result.is_local_redir == true) {
-    std::cerr << "Local redirection start\n";
-    Request request = manager->get_request();
-    bool is_keep_alive = manager->get_is_keep_alive();
-    int status =
-        ValidateLocalRedirPath(response_result.header["location"], request.req);
-    Router::Result location_data =
-        router_->Route(status, request, ConnectionInfo(port_, client_addr_));
-    ResponseBuffer& current_response_buffer = manager->get_response_buffer();
-    delete manager;
-    response_manager_map_[event_fd] = NULL;
-    // manager for local redirection
-    manager = GenerateResponseManager(status, is_keep_alive, request,
-                                      location_data, current_response_buffer);
-    if (manager == NULL) {
-      connection_status_ = CONNECTION_ERROR;
-      std::cerr << "Connection: memory allocation failure\n";
-      return ResponseManager::IoFdPair(-1, -1);
-    }
-    io_fds = manager->Execute();
+    io_fds = HandleCgiLocalRedirection(&manager, response_result);
     std::cerr << "local redir io_fds: " << io_fds.input << ", " << io_fds.output
               << '\n';
   }
-
   if (io_fds.input == -1 && io_fds.output == -1) {
     manager->FormatHeader();
-    UpdateRequestResult(manager->get_is_keep_alive());
+    connection_status_ =
+        (manager->get_is_keep_alive() == true) ? KEEP_ALIVE : CLOSE;
+    for (ResponseManagerMap::iterator it = response_manager_map_.begin();
+         it != response_manager_map_.end(); ++it) {
+      if (it->second == manager) {
+        it->second = NULL;
+      }
+    }
     delete manager;
     if (response_manager_map_.count(event_fd) == 1) {
       response_manager_map_[event_fd] = NULL;
     }
   } else {
     if (io_fds.input != -1) {
-      std::cerr << "Read local redirected resource\n";
       response_manager_map_[io_fds.input] = manager;
     }
     if (io_fds.output != -1) {
@@ -168,7 +217,13 @@ void Connection::Send(void) {
   struct iovec iovec[2];
   size_t iov_cnt;
   SetIov(iovec, iov_cnt, response);
-  response.offset += writev(fd_, iovec, iov_cnt);
+  ssize_t sent_bytes = writev(fd_, iovec, iov_cnt);
+  if (sent_bytes < 0) {
+    std::cerr << "writev error : " << strerror(errno) << "\n";
+    connection_status_ = CONNECTION_ERROR;
+    return;
+  }
+  response.offset += sent_bytes;
   if (response.current_buf == ResponseBuffer::kHeader &&
       response.offset >= response.header.size()) {
     response.current_buf = ResponseBuffer::kContent;
@@ -310,4 +365,31 @@ int Connection::ValidateLocalRedirPath(std::string& path, RequestLine& req) {
                                     : "");
   req.query = uri_result.query;
   return 200;
+}
+
+ResponseManager::IoFdPair Connection::HandleCgiLocalRedirection(
+    ResponseManager** manager, ResponseManager::Result& response_result) {
+  std::cerr << "Local redirection start\n";
+  Request request = (*manager)->get_request();
+  bool is_keep_alive = (*manager)->get_is_keep_alive();
+  int status =
+      ValidateLocalRedirPath(response_result.header["location"], request.req);
+  Router::Result location_data =
+      router_->Route(status, request, ConnectionInfo(port_, client_addr_));
+  ResponseBuffer& current_response_buffer = (*manager)->get_response_buffer();
+  for (ResponseManagerMap::iterator it = response_manager_map_.begin();
+       it != response_manager_map_.end(); ++it) {
+    if (it->second == *manager) {
+      it->second = NULL;
+    }
+  }
+  delete *manager;
+  *manager = GenerateResponseManager(status, is_keep_alive, request,
+                                     location_data, current_response_buffer);
+  if (*manager == NULL) {
+    connection_status_ = CONNECTION_ERROR;
+    std::cerr << "Connection: memory allocation failure\n";
+    return ResponseManager::IoFdPair(-1, -1);
+  }
+  return (*manager)->Execute();
 }

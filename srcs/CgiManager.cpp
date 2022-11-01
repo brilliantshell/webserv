@@ -26,29 +26,28 @@ CgiManager::~CgiManager(void) {
 }
 
 // Resource Manager Member : response_content, router_result, request
-ResponseManager::IoFdPair CgiManager::Execute(bool is_eof) {
-  std::cerr << "CGIMANAGER START\n";
-  if (is_eof == true) {
-    io_status_ = SetIoComplete(IO_COMPLETE);
-  }
+ResponseManager::IoFdPair CgiManager::Execute(void) {
   switch (io_status_) {
     case IO_START:
+      std::cerr << "CGIMANAGER START\n";
       SetIpc();
       break;
     case PIPE_WRITE:
+      std::cerr << "CGI PIPE WRITE\n";
       PassContent();
       break;
     case PIPE_READ:
+      std::cerr << "CGI PIPE READ\n";
       if (ReceiveCgiResponse(result_.header) == false) {
         std::cerr << "CGI RECEIVE ERROR\n";
         SetInternalServerError();
       }
-      break;
-    case IO_COMPLETE:
-      std::cerr << "CGI COMPLETE\n";
-      if (ParseCgiHeader(result_.header) == false) {
-        std::cerr << "CGI PARSE ERROR\n";
-        SetInternalServerError();
+      if (io_status_ == IO_COMPLETE) {
+        std::cerr << "CGI COMPLETE\n";
+        if (ParseCgiHeader(result_.header) == false) {
+          std::cerr << "CGI PARSE ERROR\n";
+          SetInternalServerError();
+        }
       }
       break;
     default:
@@ -59,10 +58,8 @@ ResponseManager::IoFdPair CgiManager::Execute(bool is_eof) {
     return GetErrorPage();
   }
   if (io_status_ == PIPE_WRITE) {
-    std::cerr << "CGI PIPE WRITE\n";
     return ResponseManager::IoFdPair(-1, in_fd_[1]);
   } else if (io_status_ == PIPE_READ) {
-    std::cerr << "CGI PIPE READ, fd : " << out_fd_[0] << "\n";
     return ResponseManager::IoFdPair(out_fd_[0], -1);
   }
   result_.ext = ParseExtension(router_result_.success_path);
@@ -144,9 +141,11 @@ void CgiManager::ExecuteScript(const char* success_path, char* const* env) {
 // parent
 void CgiManager::SetIpc(void) {
   if (CheckFileMode(router_result_.success_path.c_str()) == false) {
+    std::cerr << "CGI FILE MODE FAILURE\n";
     io_status_ = SetIoComplete(ERROR_START);
   }
   if (OpenPipes() == false) {
+    std::cerr << "CGI OPEN PIPE FAILURE\n";
     result_.status = 500;
     io_status_ = SetIoComplete(ERROR_START);
     return;
@@ -158,6 +157,7 @@ void CgiManager::SetIpc(void) {
   } else if (pid_ > 0) {
     io_status_ = PIPE_WRITE;
   } else {
+    std::cerr << "CGI FORK FAILURE\n";
     result_.status = 500;
     io_status_ = SetIoComplete(ERROR_START);
   }
@@ -197,6 +197,7 @@ void CgiManager::PassContent(void) {
                 ? request_.content.size() - write_offset_
                 : PIPE_BUF_SIZE);
   if (sent_bytes < 0) {
+    std::cerr << "CGI WRITE FAILURE\n";
     result_.status = 500;  // INTERNAL SERVER ERROR
     kill(pid_, SIGTERM);
     io_status_ = SetIoComplete(ERROR_START);
@@ -245,15 +246,15 @@ bool CgiManager::ReceiveCgiResponse(ResponseHeaderMap& header) {
   char buf[PIPE_BUF_SIZE + 1];
   memset(buf, 0, PIPE_BUF_SIZE + 1);
 
+  std::cerr << "cgi read fd : " << out_fd_[0] << '\n';
   static int i = 0;
   ssize_t read_size = read(out_fd_[0], buf, PIPE_BUF_SIZE);
   std::cerr << ">>>>[ " << i << " ]<<<< cgi read buf : " << buf << "\n\n";
   if (read_size < 0) {
     return false;
+  } else if (read_size < PIPE_BUF_SIZE) {
+    io_status_ = SetIoComplete(IO_COMPLETE);
   }
-  // if (read_size < PIPE_BUF_SIZE) {
-  //   io_status_ = SetIoComplete(IO_COMPLETE);
-  // }
   if (is_header == true) {
     header_read_buf_.append(buf, read_size);
     if (header_read_buf_.size() > HEADER_MAX) {
@@ -284,6 +285,7 @@ bool CgiManager::ReceiveCgiResponse(ResponseHeaderMap& header) {
 
 int CgiManager::DetermineResponseType(ResponseHeaderMap& header) {
   if (header.size() == 0) {
+    std::cerr << "CGI NO HEADER\n";
     return kError;
   }
   // redirect (local, client, client with body)

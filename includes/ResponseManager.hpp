@@ -71,9 +71,10 @@ class ResponseManager {
   virtual ~ResponseManager(void);
 
   void FormatHeader(void);
-  virtual IoFdPair Execute(bool is_eof = false) = 0;
+  virtual IoFdPair Execute(void) = 0;
 
   int get_io_status(void) const;
+  bool get_is_cgi(void) const;
   bool get_is_keep_alive(void) const;
   ResponseBuffer& get_response_buffer(void);
   Request& get_request(void);
@@ -101,6 +102,7 @@ class ResponseManager {
   virtual int SetIoComplete(int status);
 
  private:
+  bool is_cgi_;
   void HandleGetErrorFailure(void);
 };
 

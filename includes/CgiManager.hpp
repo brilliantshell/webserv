@@ -33,7 +33,7 @@ class CgiManager : public ResponseManager {
              Router::Result& router_result, Request& request);
   virtual ~CgiManager(void);
 
-  ResponseManager::IoFdPair Execute(bool is_eof = false);
+  ResponseManager::IoFdPair Execute(void);
 
  private:
   enum ResponseType {

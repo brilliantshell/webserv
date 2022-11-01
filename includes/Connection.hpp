@@ -54,7 +54,8 @@ class Connection {
   void Reset(int does_next_req_exist = kClose);
   ResponseManager::IoFdPair HandleRequest(void);
   ResponseManager::IoFdPair ExecuteMethod(int event_fd);
-  ResponseManager::IoFdPair FormatResponse(const int event_fd);
+  ResponseManager::IoFdPair FormatResponse(const int event_fd,
+                                           int16_t event_filter);
   void Send(void);
 
   bool IsResponseBufferReady(void) const;
@@ -94,6 +95,9 @@ class Connection {
   void SetIov(struct iovec* iov, size_t& cnt, ResponseBuffer& res);
   void UpdateRequestResult(bool is_keep_alive);
   int ValidateLocalRedirPath(std::string& path, RequestLine& req);
+
+  ResponseManager::IoFdPair HandleCgiLocalRedirection(
+      ResponseManager** manager, ResponseManager::Result& response_result);
 };
 
 #endif  // INCLUDES_CONNECTION_HPP_

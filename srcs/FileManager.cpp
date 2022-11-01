@@ -23,10 +23,7 @@ FileManager::~FileManager(void) {
   close(out_fd_);
 }
 
-ResponseManager::IoFdPair FileManager::Execute(bool is_eof) {
-  // if (is_eof == true) {
-  //   io_status_ = SetIoComplete(IO_COMPLETE);
-  // }
+ResponseManager::IoFdPair FileManager::Execute(void) {
   if (router_result_.status >= 400) {
     return GetErrorPage();
   }
