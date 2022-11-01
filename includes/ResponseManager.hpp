@@ -67,7 +67,7 @@ class ResponseManager {
   };
 
   ResponseManager(int type, bool is_keep_alive, ResponseBuffer& response_buffer,
-                  Router::Result& router_result, const Request& request);
+                  Router::Result& router_result, Request& request);
   virtual ~ResponseManager(void);
 
   void FormatHeader(void);
@@ -75,8 +75,9 @@ class ResponseManager {
 
   int get_io_status(void) const;
   bool get_is_keep_alive(void) const;
-
-  Result& get_result(void) { return result_; }
+  ResponseBuffer& get_response_buffer(void);
+  Request& get_request(void);
+  Result& get_result(void);
 
  protected:
   enum {
@@ -91,7 +92,7 @@ class ResponseManager {
   Result result_;
   ResponseBuffer& response_buffer_;
   Router::Result router_result_;
-  const Request request_;
+  Request request_;
   HeaderFormatter header_formatter_;
 
   std::string ParseExtension(const std::string& success_path);

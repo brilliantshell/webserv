@@ -10,7 +10,7 @@
 #include "CgiManager.hpp"
 
 CgiManager::CgiManager(bool is_keep_alive, ResponseBuffer& response,
-                       Router::Result& router_result, const Request& request)
+                       Router::Result& router_result, Request& request)
     : ResponseManager(ResponseManager::kStatic, is_keep_alive, response,
                       router_result, request),
       is_header(true),
@@ -317,10 +317,6 @@ int CgiManager::DetermineResponseType(ResponseHeaderMap& header) {
 }
 
 bool CgiManager::ParseCgiHeader(ResponseHeaderMap& header) {
-  std::cerr << "header size : " << header.size() << '\n';
-  for (auto& v : header) {
-    std::cerr << "header key : " << v.first << ", value : " << v.second << "\n";
-  }
   int response_type = DetermineResponseType(header);
   if (response_type == kError) {
     return false;

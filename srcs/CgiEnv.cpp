@@ -10,13 +10,11 @@
 #include "CgiEnv.hpp"
 
 CgiEnv::CgiEnv(void) {
-  try {
-    env_ = new char *[18];
+  env_ = new (std::nothrow) char *[18];
+  if (env_ != NULL) {
     for (size_t i = 0; i < 18; ++i) {
       env_[i] = NULL;
     }
-  } catch (const std::exception &e) {
-    env_ = NULL;
   }
 }
 

@@ -15,7 +15,7 @@
 class FileManager : public ResponseManager {
  public:
   FileManager(bool is_keep_alive, ResponseBuffer& response,
-              Router::Result& router_result, const Request& request);
+              Router::Result& router_result, Request& request);
   virtual ~FileManager(void);
   ResponseManager::IoFdPair Execute(bool is_eof = false);
   const int get_file_fd(void) const;

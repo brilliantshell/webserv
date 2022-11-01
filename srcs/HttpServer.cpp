@@ -101,12 +101,15 @@ void HttpServer::HandleIOEvent(struct kevent& event) {
   struct kevent io_ev;
   int socket_fd = io_fd_map_[event.ident];
   if (event.flags & EV_EOF) {
-    connections_[socket_fd].FormatResponse(event.ident);
+    ResponseManager::IoFdPair io_fds =
+        connections_[socket_fd].FormatResponse(event.ident);
+    RegisterIoEvents(io_fds, connections_[socket_fd].get_fd());
     if (connections_[socket_fd].IsResponseBufferReady() == true) {
       UpdateKqueue(&io_ev, socket_fd, EVFILT_WRITE, EV_ADD | EV_ONESHOT);
     }
-    close(event.ident);
-    io_fd_map_.erase(event.ident);
+    if (event.ident != io_fds.input && event.ident != io_fds.output) {
+      io_fd_map_.erase(event.ident);
+    }
   } else if (event.filter == EVFILT_READ || event.filter == EVFILT_WRITE) {
     ResponseManager::IoFdPair io_fds =
         connections_[socket_fd].ExecuteMethod(event.ident);
@@ -181,37 +184,38 @@ void HttpServer::AcceptConnection(int socket_fd) {
 
 void HttpServer::ReceiveRequests(const int socket_fd) {
   struct kevent io_ev;
-  ResponseManager::IoFdPair io_fds = connections_[socket_fd].HandleRequest();
+  Connection& connection = connections_[socket_fd];
+  ResponseManager::IoFdPair io_fds = connection.HandleRequest();
   UpdateKqueue(&io_ev, socket_fd, EVFILT_READ, EV_ADD | EV_ONESHOT);
-  if (connections_[socket_fd].get_connection_status() == CONNECTION_ERROR) {
-    close(connections_[socket_fd].get_fd());
-    connections_[socket_fd].Reset();
+  if (connection.get_connection_status() == CONNECTION_ERROR) {
+    close(connection.get_fd());
+    connection.Reset();
     return;
   }
-  if (connections_[socket_fd].get_connection_status() == KEEP_READING) {
+  if (connection.get_connection_status() == KEEP_READING) {
     return;
   }
   RegisterIoEvents(io_fds, socket_fd);
-  if (connections_[socket_fd].IsResponseBufferReady() == true) {
+  if (connection.IsResponseBufferReady() == true) {
     UpdateKqueue(&io_ev, socket_fd, EVFILT_WRITE, EV_ADD | EV_ONESHOT);
   }
-  if (connections_[socket_fd].get_connection_status() == CONNECTION_ERROR) {
-    close(connections_[socket_fd].get_fd());
-    connections_[socket_fd].Reset();
+  if (connection.get_connection_status() == CONNECTION_ERROR) {
+    close(connection.get_fd());
+    connection.Reset();
     return;
   }
-  while (connections_[socket_fd].get_connection_status() ==
-         NEXT_REQUEST_EXISTS) {
-    io_fds = connections_[socket_fd].HandleRequest();
+  while (connection.get_connection_status() == NEXT_REQUEST_EXISTS) {
+    io_fds = connection.HandleRequest();
     RegisterIoEvents(io_fds, socket_fd);
   }
 }
 
 void HttpServer::SendResponses(int event_fd) {
   struct kevent sock_ev;
-  if (connections_[event_fd].get_send_status() == KEEP_SENDING) {
-    connections_[event_fd].Send();
-    if (connections_[event_fd].IsResponseBufferReady() == true) {
+  Connection& connection = connections_[event_fd];
+  if (connection.get_send_status() == KEEP_SENDING) {
+    connection.Send();
+    if (connection.IsResponseBufferReady() == true) {
       UpdateKqueue(&sock_ev, event_fd, EVFILT_WRITE, EV_ADD | EV_ONESHOT);
     }
   }

@@ -30,7 +30,7 @@
 class CgiManager : public ResponseManager {
  public:
   CgiManager(bool is_keep_alive, ResponseBuffer& response,
-             Router::Result& router_result, const Request& request);
+             Router::Result& router_result, Request& request);
   virtual ~CgiManager(void);
 
   ResponseManager::IoFdPair Execute(bool is_eof = false);

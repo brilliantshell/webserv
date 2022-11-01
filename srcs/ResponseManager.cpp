@@ -12,7 +12,7 @@
 ResponseManager::ResponseManager(int type, bool is_keep_alive,
                                  ResponseBuffer& response_buffer,
                                  Router::Result& router_result,
-                                 const Request& request)
+                                 Request& request)
     : is_keep_alive_(is_keep_alive),
       type_(type),
       io_status_(IO_START),
@@ -62,6 +62,14 @@ void ResponseManager::FormatHeader(void) {
 int ResponseManager::get_io_status(void) const { return io_status_; }
 
 bool ResponseManager::get_is_keep_alive(void) const { return is_keep_alive_; }
+
+ResponseBuffer& ResponseManager::get_response_buffer(void) {
+  return response_buffer_;
+}
+
+Request& ResponseManager::get_request(void) { return request_; }
+
+ResponseManager::Result& ResponseManager::get_result(void) { return result_; }
 
 // SECTION: protected
 // Utils
@@ -144,7 +152,7 @@ int ResponseManager::SetIoComplete(int status) {
   return status;
 }
 
-// private
+// SECTION: private
 void ResponseManager::HandleGetErrorFailure(void) {
   result_.status = 500;  // INTERNAL_SERVER_ERROR
   response_buffer_.content = LAST_ERROR_DOCUMENT;

@@ -10,7 +10,7 @@
 #include "FileManager.hpp"
 
 FileManager::FileManager(bool is_keep_alive, ResponseBuffer& response,
-                         Router::Result& router_result, const Request& request)
+                         Router::Result& router_result, Request& request)
     : ResponseManager(ResponseManager::kStatic, is_keep_alive, response,
                       router_result, request),
       in_fd_(-1),

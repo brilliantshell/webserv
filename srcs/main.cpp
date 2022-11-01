@@ -35,6 +35,7 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
   signal(SIGPIPE, sigpipe_handler);
+  signal(SIGCHLD, SIG_IGN);
 
   std::string config_path = argv[1];
   size_t last_dot = config_path.rfind('.');
