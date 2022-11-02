@@ -81,19 +81,17 @@ class ResponseManager {
   Result& get_result(void);
 
  protected:
-  enum {
-    kStatic = 0,
-    kCgi,
-  };
+  enum { kStatic = 0, kCgi };
 
   bool is_keep_alive_;
   int type_;
   int io_status_;
   int err_fd_;
+  off_t file_size_;
   Result result_;
-  ResponseBuffer& response_buffer_;
-  Router::Result router_result_;
   Request request_;
+  Router::Result router_result_;
+  ResponseBuffer& response_buffer_;
   HeaderFormatter header_formatter_;
 
   std::string ParseExtension(const std::string& success_path);

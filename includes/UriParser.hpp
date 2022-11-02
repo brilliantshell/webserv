@@ -29,9 +29,9 @@ class UriParser {
         : is_valid(true),
           port(""),
           scheme(""),
-          host(""),
           path("/"),
-          query("") {}
+          query(""),
+          host("") {}
   };
 
   Result ParseTarget(std::string uri);

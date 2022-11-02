@@ -13,7 +13,7 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <sys/event.h>
-#include <sys/types.h>
+#include <sys/resource.h>
 
 #include <iostream>
 
@@ -22,7 +22,6 @@
 #include "Types.hpp"
 
 #define MAX_EVENTS 64
-#define MAX_CONNECTIONS 1024
 
 class HttpServer {
  public:
@@ -46,10 +45,11 @@ class HttpServer {
                     uint16_t ev_flag);
   void AcceptConnection(int socket_fd);
   void ReceiveRequests(const int socket_fd);
-  void SendResponses(int event_fd);
+  void SendResponses(int socket_fd);
   void HandleIOEvent(struct kevent& event);
   void HandleConnectionEvent(struct kevent& event);
   void RegisterIoEvents(ResponseManager::IoFdPair io_fds, int socket_fd = -1);
+  void ClearConnectionResources(int socket_fd);
 };
 
 #endif  // INCLUDES_HTTPSERVER_HPP_

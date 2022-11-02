@@ -45,11 +45,11 @@ ServerConfig Validator::Validate(void) {
  * @param key_map LocationRouter 디렉티브 키맵
  */
 void Validator::InitializeKeyMap(ServerKeyMap_& key_map) const {
-  key_map["listen"] = ServerDirective::kListen;
-  key_map["server_name"] = ServerDirective::kServerName;
-  key_map["error"] = ServerDirective::kError;
-  key_map["location"] = ServerDirective::kRoute;
-  key_map["cgi"] = ServerDirective::kCgiRoute;
+  key_map["listen"] = kListen;
+  key_map["server_name"] = kServerName;
+  key_map["error"] = kError;
+  key_map["location"] = kRoute;
+  key_map["cgi"] = kCgiRoute;
 }
 
 /**
@@ -60,15 +60,15 @@ void Validator::InitializeKeyMap(ServerKeyMap_& key_map) const {
  */
 void Validator::InitializeKeyMap(RouteKeyMap_& key_map,
                                  ServerDirective is_cgi) const {
-  if (is_cgi == ServerDirective::kRoute) {
-    key_map["autoindex"] = LocationDirective::kAutoindex;
-    key_map["redirect_to"] = LocationDirective::kRedirectTo;
-    key_map["index"] = LocationDirective::kIndex;
+  if (is_cgi == kRoute) {
+    key_map["autoindex"] = kAutoindex;
+    key_map["redirect_to"] = kRedirectTo;
+    key_map["index"] = kIndex;
   }
-  key_map["methods"] = LocationDirective::kMethods;
-  key_map["body_max"] = LocationDirective::kBodyMax;
-  key_map["root"] = LocationDirective::kRoot;
-  key_map["upload_path"] = LocationDirective::kUploadPath;
+  key_map["methods"] = kMethods;
+  key_map["body_max"] = kBodyMax;
+  key_map["root"] = kRoot;
+  key_map["upload_path"] = kUploadPath;
 }
 
 /**
@@ -182,8 +182,7 @@ uint8_t Validator::TokenizeMethods(ConstIterator_& delim,
       flag |= GET;
     } else if (method == "POST" && !(POST & flag)) {
       flag |= POST;
-    } else if (is_cgi == ServerDirective::kRoute && method == "DELETE" &&
-               !(DELETE & flag)) {
+    } else if (is_cgi == kRoute && method == "DELETE" && !(DELETE & flag)) {
       flag |= DELETE;
     } else {
       throw SyntaxErrorException();
@@ -217,8 +216,7 @@ void Validator::ValidateRedirectToToken(std::string& redirect_to_token) {
   UriParser uri_parser;
   UriParser::Result uri_result = uri_parser.ParseTarget(redirect_to_token);
   if (uri_result.is_valid == false ||
-      path_resolver_.Resolve(uri_result.path,
-                             PathResolver::Purpose::kRedirectTo) ==
+      path_resolver_.Resolve(uri_result.path, PathResolver::kRedirectTo) ==
           PathResolver::kFailure) {
     throw SyntaxErrorException();
   }
@@ -246,7 +244,7 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
     return false;
   }
   switch (key_it->second) {
-    case ServerDirective::kListen: {
+    case kListen: {
       uint32_t num = TokenizeNumber(delim);
       if (num == 0 || num > 65535) {
         throw SyntaxErrorException();
@@ -255,15 +253,15 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
       key_map.erase(key_it->first);
       break;
     }
-    case ServerDirective::kServerName:
+    case kServerName:
       server_name = TokenizeSingleString(delim);
       std::transform(server_name.begin(), server_name.end(),
                      server_name.begin(), ::tolower);
       key_map.erase(key_it->first);
       break;
-    case ServerDirective::kError: {
+    case kError: {
       std::string err_page = TokenizeSingleString(delim);
-      if (path_resolver_.Resolve(err_page, PathResolver::Purpose::kErrorPage) ==
+      if (path_resolver_.Resolve(err_page, PathResolver::kErrorPage) ==
           PathResolver::kFailure) {
         throw SyntaxErrorException();
       }
@@ -271,14 +269,14 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
       key_map.erase(key_it->first);
       break;
     }
-    case ServerDirective::kRoute:
+    case kRoute:
       if (!location_router.location_map
                .insert(ValidateLocation(delim, key_it->second))
                .second) {
         throw SyntaxErrorException();
       }
       break;
-    case ServerDirective::kCgiRoute: {
+    case kCgiRoute: {
       LocationNode location_node = ValidateLocation(delim, key_it->second);
       for (size_t i = 0; i < location_router.cgi_vector.size(); ++i) {
         if (location_router.cgi_vector[i].first == location_node.first) {
@@ -314,13 +312,13 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
   }
 
   switch (key_it->second) {
-    case LocationDirective::kAutoindex: {
+    case kAutoindex: {
       std::string autoindex = TokenizeSingleString(delim);
       if (autoindex != "on" && autoindex != "off") throw SyntaxErrorException();
       location.autoindex = (autoindex == "on");
       break;
     }
-    case LocationDirective::kBodyMax: {
+    case kBodyMax: {
       uint32_t num = TokenizeNumber(delim);
       if (num > INT_MAX) {
         throw SyntaxErrorException();
@@ -328,22 +326,21 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
       location.body_max = num;
       break;
     }
-    case LocationDirective::kRedirectTo:
+    case kRedirectTo:
       location[key_it->first] = TokenizeSingleString(delim);
       ValidateRedirectToToken(location[key_it->first]);
       break;
-    case LocationDirective::kIndex:
-    case LocationDirective::kRoot:
-    case LocationDirective::kUploadPath:
+    case kIndex:
+    case kRoot:
+    case kUploadPath:
       location[key_it->first] = TokenizeSingleString(delim);
-      if ((key_it->second == LocationDirective::kRoot ||
-           key_it->second == LocationDirective::kUploadPath) &&
+      if ((key_it->second == kRoot || key_it->second == kUploadPath) &&
           path_resolver_.Resolve(location[key_it->first]) ==
               PathResolver::kFailure) {
         throw SyntaxErrorException();
       }
       break;
-    case LocationDirective::kMethods:
+    case kMethods:
       location.methods = TokenizeMethods(delim, is_cgi);
       break;
     default:
@@ -397,8 +394,8 @@ LocationNode Validator::ValidateLocation(ConstIterator_& delim,
   Location location;
   RouteKeyMap_ key_map;
   std::string path = TokenizeRoutePath(delim, is_cgi);
-  if (*(++delim) != '{' || is_cgi == kRoute && path_resolver_.Resolve(path) ==
-                                                   PathResolver::kFailure) {
+  if (*(++delim) != '{' || (is_cgi == kRoute && path_resolver_.Resolve(path) ==
+                                                    PathResolver::kFailure)) {
     throw SyntaxErrorException();
   }
   InitializeKeyMap(key_map, is_cgi);

@@ -18,7 +18,6 @@ class FileManager : public ResponseManager {
               Router::Result& router_result, Request& request);
   virtual ~FileManager(void);
   ResponseManager::IoFdPair Execute(void);
-  const int get_file_fd(void) const;
 
  private:
   int in_fd_;

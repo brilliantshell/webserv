@@ -146,8 +146,8 @@ void HttpParser::TokenizePath(size_t& pos) {
     return UpdateStatus(400, kClose);  // BAD REQUEST
   }
   PathResolver path_resolver;
-  PathResolver::Status path_status = path_resolver.Resolve(
-      uri_result.path, PathResolver::Purpose::kHttpParser);
+  PathResolver::Status path_status =
+      path_resolver.Resolve(uri_result.path, PathResolver::kHttpParser);
   if (path_status == PathResolver::kFailure) {
     return UpdateStatus(400, kClose);  // BAD REQUEST
   }

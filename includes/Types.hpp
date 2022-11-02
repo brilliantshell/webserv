@@ -16,9 +16,9 @@
 #include <string>
 #include <vector>
 
-#define GET 0b00000001
-#define POST 0b00000010
-#define DELETE 0b00000100
+#define GET 1
+#define POST 2
+#define DELETE 4
 
 struct ServerRouter;
 
@@ -80,7 +80,7 @@ typedef std::map<std::string, std::string> ResponseHeaderMap;
 struct ResponseBuffer {
   enum {
     kHeader = 0,
-    kContent,
+    kContent
   };
 
   bool is_complete;

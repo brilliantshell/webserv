@@ -51,7 +51,7 @@ class HttpParser {
     kClose,
     kRLLenErr,
     kHDLenErr,
-    kBDLenErr,
+    kBDLenErr
   };
 
   struct Result {
@@ -70,11 +70,7 @@ class HttpParser {
   Result& get_result(void);
 
  private:
-  enum {
-    kChunkSize = 0,
-    kChunkData,
-    kChunkEnd,
-  };
+  enum { kChunkSize = 0, kChunkData, kChunkEnd };
 
   bool keep_alive_;
   uint8_t is_data_;

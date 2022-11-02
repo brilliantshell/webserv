@@ -41,7 +41,7 @@ class CgiManager : public ResponseManager {
     kDocument,
     kLocalRedir,
     kClientRedir,
-    kClientRedirDoc,
+    kClientRedirDoc
   };
 
   bool is_header;

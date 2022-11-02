@@ -42,11 +42,7 @@
 
 class Connection {
  public:
-  enum {
-    kClose = 0,
-    kReset,
-    kNextReq,
-  };
+  enum { kClose = 0, kReset, kNextReq };
 
   Connection(void);
   ~Connection(void);
@@ -54,22 +50,44 @@ class Connection {
   void Reset(int does_next_req_exist = kClose);
   ResponseManager::IoFdPair HandleRequest(void);
   ResponseManager::IoFdPair ExecuteMethod(int event_fd);
-  ResponseManager::IoFdPair FormatResponse(const int event_fd,
-                                           int16_t event_filter);
+
   void Send(void);
 
   bool IsResponseBufferReady(void) const;
 
-  const int get_send_status(void) const;
-  const int get_connection_status(void) const;
-  const int get_fd(void) const;
+  int get_send_status(void) const;
+  int get_connection_status(void) const;
+  int get_fd(void) const;
 
   void SetAttributes(const int fd, const std::string& client_addr,
                      const uint16_t port, ServerRouter& server_router);
 
  private:
   typedef std::queue<ResponseBuffer> ResponseQueue;
-  typedef std::map<int, ResponseManager*> ResponseManagerMap;
+
+  class ResponseManagerMap : public std::map<int, ResponseManager*> {
+   public:
+    void Clear(void) {
+      std::set<void*> manager_set;
+      for (iterator it = begin(); it != end(); ++it) {
+        if (manager_set.count(it->second) == 0) {
+          manager_set.insert(it->second);
+          delete it->second;
+        }
+      }
+      clear();
+    }
+
+    void Erase(ResponseManager* manager) {
+      for (iterator it = begin(); it != end();) {
+        iterator tmp_it = it;
+        ++it;
+        if (tmp_it->second == manager) {
+          erase(tmp_it);
+        }
+      }
+    }
+  };
 
   int fd_;  // connected socket fd
   int connection_status_;
@@ -82,22 +100,35 @@ class Connection {
 
   HttpParser parser_;
   Router* router_;
-  HeaderFormatter response_formatter_;
 
   void Receive(void);
-  ResponseManager* GenerateResponseManager(int status, bool is_keep_alive,
-                                           Request& request,
+  void DetermineIoComplete(ResponseManager::IoFdPair& io_fds,
+                           ResponseManager* manager);
+  ResponseManager* GenerateResponseManager(bool is_keep_alive, Request& request,
                                            Router::Result& router_result);
-  ResponseManager* GenerateResponseManager(int status, bool is_keep_alive,
-                                           Request& request,
+  ResponseManager* GenerateResponseManager(bool is_keep_alive, Request& request,
                                            Router::Result& router_result,
                                            ResponseBuffer& response_buffer);
   void SetIov(struct iovec* iov, size_t& cnt, ResponseBuffer& res);
-  void UpdateRequestResult(bool is_keep_alive);
   int ValidateLocalRedirPath(std::string& path, RequestLine& req);
 
   ResponseManager::IoFdPair HandleCgiLocalRedirection(
       ResponseManager** manager, ResponseManager::Result& response_result);
+
+  friend std::ostream& operator<<(std::ostream& os,
+                                  const Connection& connection) {
+    os << "fd: " << connection.fd_
+       << " response queue size : " << connection.response_queue_.size()
+       << "  ResponseManagerMap size : "
+       << connection.response_manager_map_.size() << std::endl;
+    for (ResponseManagerMap::const_iterator it =
+             connection.response_manager_map_.begin();
+         it != connection.response_manager_map_.end(); ++it) {
+      os << "ResponseManagerMap key : " << it->first << ", value " << it->second
+         << std::endl;
+    }
+    return os;
+  }
 };
 
 #endif  // INCLUDES_CONNECTION_HPP_

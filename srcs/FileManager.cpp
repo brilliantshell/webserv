@@ -58,27 +58,29 @@ void FileManager::Get(void) {
   if (io_status_ == IO_START) {
     CheckFileMode();
     if (result_.status < 400 && response_content_.empty() == false) {
-      return;
+      return;  // autoindex
     }
     if (result_.status < 400) {
       errno = 0;
       in_fd_ = open(router_result_.success_path.c_str(), O_RDONLY);
       if (in_fd_ == -1) {
-        switch (errno) {
-          case EACCES:
-            result_.status = 403;  // FORBIDDEN
-            return;
-          case ENOENT:
-            result_.status = 404;  // PAGE NOT FOUND
-            return;
-          case EMFILE:
-            result_.status = 503;  // SERVICE UNAVAILABLE
-            return;
-          default:
-            result_.status = 500;  // INTERNAL SERVER ERROR
-            return;
+        if (errno == EACCES) {
+          result_.status = 403;
+        } else if (errno == ENOENT) {
+          result_.status = 404;
+        } else if (errno == EMFILE) {
+          result_.status = 503;
+        } else {
+          result_.status = 500;  // INTERNAL SERVER ERROR
         }
+        return;
       }
+      // struct stat st;
+      // if (fstat(in_fd_, &st) == -1) {
+      //   result_.status = 500;
+      //   return;
+      // }
+      // file_size_ = st.st_size;
       fcntl(in_fd_, F_SETFL, O_NONBLOCK);
       io_status_ = FILE_READ;
     }
@@ -206,7 +208,7 @@ ResponseManager::IoFdPair FileManager::GenerateRedirectPage(void) {
       result_.location + "'>" + result_.location + "<a>.</p></body></html>";
   result_.ext = "html";
   io_status_ = IO_COMPLETE;
-  return ResponseManager::IoFdPair(-1, -1);
+  return ResponseManager::IoFdPair();
 }
 
 void FileManager::CheckFileMode(void) {
@@ -217,6 +219,7 @@ void FileManager::CheckFileMode(void) {
         errno == ENOENT ? 404 : 500;  // NOT FOUND || INTERNAL_SERVER_ERROR
     return;
   }
+  file_size_ = file_stat.st_size;
   if ((file_stat.st_mode & S_IFMT) == S_IFDIR) {
     if (*(router_result_.success_path.rbegin()) == '/') {
       GenerateAutoindex(router_result_.success_path);
@@ -290,7 +293,7 @@ ResponseManager::IoFdPair FileManager::DetermineSuccessFileExt(void) {
        ((request_.req.method & DELETE) == DELETE && result_.status == 200))
           ? "html"
           : ParseExtension(router_result_.success_path);
-  return ResponseManager::IoFdPair(-1, -1);
+  return ResponseManager::IoFdPair();
 }
 
 int FileManager::SetIoComplete(int status) {

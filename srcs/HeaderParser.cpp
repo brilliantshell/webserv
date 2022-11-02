@@ -145,7 +145,6 @@ void HttpParser::ParseFieldValueList(std::list<std::string>& values,
 }
 
 void HttpParser::ParseTransferEncoding(std::list<std::string>& encodings) {
-  size_t list_size = encodings.size();
   std::pair<std::string, size_t> valid_codings[7] = {
       std::make_pair("chunked", 0),   std::make_pair("compress", 0),
       std::make_pair("deflate", 0),   std::make_pair("gzip", 0),

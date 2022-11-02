@@ -90,7 +90,7 @@ void UriParser::ValidatePath(std::string& uri, size_t& start) {
 }
 
 void UriParser::ValidateQuery(std::string& uri, size_t& start) {
-  if (result_.is_valid == false) {
+  if (result_.is_valid == false || start >= uri.size()) {
     return;
   }
   size_t pos = start;
@@ -107,7 +107,7 @@ void UriParser::ValidateQuery(std::string& uri, size_t& start) {
     ++pos;
   }
   if (result_.is_valid == true) {
-    result_.query = uri.substr(start);
+    result_.query = uri.substr(start + 1);
   }
 }
 

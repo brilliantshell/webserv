@@ -17,18 +17,15 @@ ResponseManager::ResponseManager(int type, bool is_keep_alive,
       type_(type),
       io_status_(IO_START),
       err_fd_(-1),
-      response_buffer_(response_buffer),
-      router_result_(router_result),
+      file_size_(0),
+      result_(router_result.status),
       request_(request),
-      result_(router_result.status) {
+      router_result_(router_result),
+      response_buffer_(response_buffer) {
   is_cgi_ = router_result_.is_cgi;
 }
 
-ResponseManager::~ResponseManager(void) {
-  std::cerr << "ResponseManager destructor, address (" << this << "), fd ("
-            << err_fd_ << ")\n";
-  close(err_fd_);
-}
+ResponseManager::~ResponseManager(void) { close(err_fd_); }
 
 void ResponseManager::FormatHeader(void) {
   std::stringstream ss;
@@ -97,6 +94,7 @@ std::string ResponseManager::ParseExtension(const std::string& path) {
 
 // Read error page
 ResponseManager::IoFdPair ResponseManager::GetErrorPage(void) {
+  std::cerr << "error path : " << router_result_.error_path << '\n';
   if (access(router_result_.error_path.c_str(), F_OK) == -1) {
     // no error page
     std::stringstream ss;
@@ -112,7 +110,8 @@ ResponseManager::IoFdPair ResponseManager::GetErrorPage(void) {
         (file_stat.st_mode & S_IFMT) == S_IFDIR) {
       HandleGetErrorFailure();
     }
-    if (io_status_ == IO_START) {
+    file_size_ = file_stat.st_size;
+    if (io_status_ == ERROR_START || io_status_ == IO_START) {
       err_fd_ = open(router_result_.error_path.c_str(), O_RDONLY);
       if (err_fd_ == -1) {
         HandleGetErrorFailure();
@@ -129,7 +128,7 @@ ResponseManager::IoFdPair ResponseManager::GetErrorPage(void) {
     return IoFdPair(err_fd_, -1);
   }
   result_.ext = ParseExtension(router_result_.error_path);
-  return IoFdPair(-1, -1);
+  return IoFdPair();
 }
 
 void ResponseManager::ReadFile(int fd) {
@@ -138,7 +137,8 @@ void ResponseManager::ReadFile(int fd) {
   ssize_t read_bytes = read(fd, read_buf, READ_BUFFER_SIZE);
   if (read_bytes > 0) {
     response_buffer_.content.append(read_buf, read_bytes);
-    if (read_bytes < READ_BUFFER_SIZE) {
+    if (read_bytes < READ_BUFFER_SIZE ||
+        response_buffer_.content.size() == static_cast<size_t>(file_size_)) {
       io_status_ = SetIoComplete(IO_COMPLETE);
     } else if (io_status_ < ERROR_START) {
       io_status_ = FILE_READ;

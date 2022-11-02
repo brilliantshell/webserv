@@ -10,6 +10,8 @@
 #ifndef INCLUDES_SERVER_ROUTER_HPP_
 #define INCLUDES_SERVER_ROUTER_HPP_
 
+#include <utility>
+
 #include "CgiEnv.hpp"
 #include "PathResolver.hpp"
 #include "Types.hpp"
@@ -18,7 +20,7 @@ struct Location {
   bool error;
   bool autoindex;
   uint8_t methods;
-  int32_t body_max;
+  size_t body_max;
   std::string root;
   std::string index;
   std::string upload_path;
@@ -50,7 +52,7 @@ struct LocationRouter {
   LocationMap location_map;
 
   LocationRouter(void);
-  Location& operator[](const std::string& path);
+  std::pair<Location&, size_t> operator[](const std::string& path);
 };
 
 typedef std::map<std::string, LocationRouter> LocationRouterMap;

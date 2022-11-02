@@ -44,9 +44,11 @@ CgiEnv &CgiEnv::operator=(const CgiEnv &rhs) {
       }
     }
   } else {
-    env_ = new char *[18];
-    for (size_t i = 0; i < 18; ++i) {
-      env_[i] = NULL;
+    env_ = new (std::nothrow) char *[18];
+    if (env_ != NULL) {
+      for (size_t i = 0; i < 18; ++i) {
+        env_[i] = NULL;
+      }
     }
   }
   for (size_t i = 0; i < 17; ++i) {
@@ -122,7 +124,6 @@ bool CgiEnv::ParseScriptUriComponents(ScriptUri &script_uri,
                                       const std::string &root,
                                       const std::string &cgi_ext) const {
   size_t ext_dot = req_uri.find(cgi_ext);
-  size_t script_start = req_uri.rfind('/', ext_dot);
   script_uri.path_info = req_uri.substr(ext_dot + cgi_ext.size());
   char *cwd;
   {
@@ -152,12 +153,10 @@ std::string CgiEnv::IntToString(T value) const {
 }
 
 const char *CgiEnv::set_env(const size_t idx, const std::string &key_value) {
-  try {
-    env_[idx] = new char[key_value.size() + 1];
+  env_[idx] = new (std::nothrow) char[key_value.size() + 1];
+  if (env_[idx] != NULL) {
     std::fill(env_[idx], env_[idx] + key_value.size() + 1, '\0');
     std::copy(key_value.begin(), key_value.end(), env_[idx]);
-  } catch (const std::exception &e) {
-    env_[idx] = NULL;  // fail to allocate memory
   }
   return const_cast<const char *>(env_[idx]);
 }
