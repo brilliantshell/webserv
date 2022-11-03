@@ -38,8 +38,7 @@ Router::Result Router::Route(int status, Request& request,
   return result;
 }
 
-// private
-
+// SECTION: private
 Router::CgiDiscriminator Router::GetCgiLocation(
     LocationRouter::CgiVector& cgi_vector, const std::string& path) {
   LocationNode location_node;
@@ -58,7 +57,9 @@ Router::CgiDiscriminator Router::GetCgiLocation(
 
 void Router::RouteToLocation(Result& result, LocationRouter& location_router,
                              Request& request) {
-  Location& location = location_router[request.req.path];
+  std::pair<Location&, size_t> location_data =
+      location_router[request.req.path];
+  Location& location = location_data.first;
   result.methods = location.methods;
   if (location.error == true) {
     return UpdateStatus(result, 404);  // Page Not Found
@@ -77,7 +78,7 @@ void Router::RouteToLocation(Result& result, LocationRouter& location_router,
   result.success_path =
       "." + location.root +
       ((request.req.method == POST) ? location.upload_path.substr(1) : "") +
-      request.req.path.substr(1);
+      request.req.path.substr(location_data.second);
   if (*result.success_path.rbegin() == '/') {
     if (request.req.method & (POST | DELETE)) {
       return UpdateStatus(result, 403);  // Forbidden
@@ -141,13 +142,15 @@ Location::Location(bool is_error, std::string error_path)
 // SECTION : LocationRouter
 LocationRouter::LocationRouter(void) : error(true, "/error.html") {}
 
-Location& LocationRouter::operator[](const std::string& path) {
+std::pair<Location&, size_t> LocationRouter::operator[](
+    const std::string& path) {
   size_t pos = std::string::npos;
   size_t end_pos = path.rfind('/', pos);
   std::string target_path = path.substr(0, end_pos + 1);
   while (end_pos != std::string::npos) {
     if (location_map.count(target_path) == 1) {
-      return location_map[target_path];
+      return std::pair<Location&, size_t>(location_map[target_path],
+                                          target_path.size());
     }
     pos = end_pos;
     if (pos == 0) {
@@ -156,7 +159,7 @@ Location& LocationRouter::operator[](const std::string& path) {
     end_pos = path.rfind('/', pos - 1);
     target_path = path.substr(0, end_pos + 1);
   }
-  return error;
+  return std::pair<Location&, size_t>(error, 0);
 }
 
 // SECTION: ServerRouter

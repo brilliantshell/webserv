@@ -6,7 +6,7 @@
 #include "CgiManager.hpp"
 #include "Connection.hpp"
 #include "HttpParser.hpp"
-#include "ResourceManager.hpp"
+#include "ResponseManager.hpp"
 #include "Router.hpp"
 #include "Types.hpp"
 #include "Validator.hpp"
@@ -40,8 +40,8 @@ TEST(CgiManagerTest, InputOutput) {
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     const char** cgi_env = router_result.cgi_env.get_env();
@@ -91,8 +91,8 @@ TEST(CgiManagerTest, InputOutput) {
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     const char** cgi_env = router_result.cgi_env.get_env();
@@ -142,8 +142,8 @@ TEST(CgiManagerTest, InputOutput) {
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     const char** cgi_env = router_result.cgi_env.get_env();
@@ -193,8 +193,8 @@ TEST(CgiManagerTest, InputOutput) {
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     const char** cgi_env = router_result.cgi_env.get_env();
@@ -246,9 +246,9 @@ TEST(CgiManagerTest, ParseCgiResponse) {
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
+    ResponseManager rm;
 
-    ResourceManager::Result rm_result =
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     const char** cgi_env = router_result.cgi_env.get_env();
@@ -291,8 +291,8 @@ Request</h1></body></html>");
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     const char** cgi_env = router_result.cgi_env.get_env();
@@ -343,8 +343,8 @@ Request</h1></body></html>");
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_max.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 500);
@@ -372,8 +372,8 @@ Request</h1></body></html>");
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_max.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 500);
@@ -401,8 +401,8 @@ Request</h1></body></html>");
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_max.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 500);
@@ -430,8 +430,8 @@ Request</h1></body></html>");
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_max.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 500);
@@ -459,8 +459,8 @@ Request</h1></body></html>");
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 500);
@@ -488,8 +488,8 @@ Request</h1></body></html>");
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_cwd.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     const char** cgi_env = router_result.cgi_env.get_env();
@@ -537,8 +537,8 @@ Request</h1></body></html>");
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 200);
@@ -569,8 +569,8 @@ Request</h1></body></html>");
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 500);
@@ -598,8 +598,8 @@ Request</h1></body></html>");
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 200);
@@ -630,8 +630,8 @@ Request</h1></body></html>");
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 500);
@@ -659,8 +659,8 @@ Request</h1></body></html>");
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 302);
@@ -692,8 +692,8 @@ Request</h1></body></html>");
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 302);
@@ -725,8 +725,8 @@ Request</h1></body></html>");
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 500);
@@ -754,8 +754,8 @@ Request</h1></body></html>");
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 500);
@@ -783,8 +783,8 @@ Request</h1></body></html>");
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 500);
@@ -812,8 +812,8 @@ Request</h1></body></html>");
     EXPECT_EQ(router_result.success_path, "./resources/cgi/cgi_redir.php");
     EXPECT_EQ(router_result.error_path, "./error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
 
     ASSERT_EQ(rm_result.status, 302);

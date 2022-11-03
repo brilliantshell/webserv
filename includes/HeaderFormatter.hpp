@@ -1,5 +1,5 @@
 /**
- * @file ResponseFormatter.hpp
+ * @file HeaderFormatter.hpp
  * @author ghan, jiskim, yongjule
  * @brief Format HTTP response
  * @date 2022-10-18
@@ -7,25 +7,19 @@
  * @copyright Copyright (c) 2022
  */
 
-#ifndef INCLUDES_RESPONSEFORMATTER_HPP_
-#define INCLUDES_RESPONSEFORMATTER_HPP_
+#ifndef INCLUDES_HEADERFORMATTER_HPP_
+#define INCLUDES_HEADERFORMATTER_HPP_
 
 #include <sys/errno.h>
 
 #include <sstream>
 
 #include "HttpParser.hpp"
-#include "ResourceManager.hpp"
 #include "ResponseData.hpp"
 #include "Types.hpp"
 
-class ResponseFormatter {
+class HeaderFormatter {
  public:
-  std::string Format(size_t content_length,
-                     ResourceManager::Result& resource_result, uint8_t version,
-                     uint8_t allowed_methods, bool is_keep_alive);
-
- private:
   std::string FormatCurrentTime(void);
   std::string FormatAllowedMethods(uint8_t allowed_methods);
   std::string FormatContentType(bool is_autoindex, const std::string& ext,
@@ -33,4 +27,4 @@ class ResponseFormatter {
   void ResolveConflicts(ResponseHeaderMap& header);
 };
 
-#endif  // INCLUDES_RESPONSEFORMATTER_HPP_
+#endif  // INCLUDES_HEADERFORMATTER_HPP_

@@ -13,7 +13,7 @@
 
 void HttpParser::ReceiveHeader(std::string& segment) {
   size_t ex_size = header_buf_.size();
-  header_buf_.append(segment);
+  header_buf_.append(segment, 0, segment.size());
   if (header_buf_.size() > 1 && !header_buf_.compare(0, 2, CRLF)) {
     if (result_.request.req.version == kHttp1_1) {
       UpdateStatus(400, kClose);  // BAD REQUEST
@@ -145,7 +145,6 @@ void HttpParser::ParseFieldValueList(std::list<std::string>& values,
 }
 
 void HttpParser::ParseTransferEncoding(std::list<std::string>& encodings) {
-  size_t list_size = encodings.size();
   std::pair<std::string, size_t> valid_codings[7] = {
       std::make_pair("chunked", 0),   std::make_pair("compress", 0),
       std::make_pair("deflate", 0),   std::make_pair("gzip", 0),

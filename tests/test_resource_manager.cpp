@@ -14,25 +14,25 @@
 
 #include "Connection.hpp"
 #include "HttpParser.hpp"
-#include "ResourceManager.hpp"
+#include "ResponseManager.hpp"
 #include "Router.hpp"
 #include "Types.hpp"
 #include "Validator.hpp"
 
-#define RM_CONFIG_PATH_PREFIX "../configs/tests/ResourceManager/"
-#define RM_REQ_PATH_PREFIX "../tests/ResourceManager/"
+#define RM_CONFIG_PATH_PREFIX "../configs/tests/ResponseManager/"
+#define RM_REQ_PATH_PREFIX "../tests/ResponseManager/"
 
 std::string FileToString(const std::string& file_path);
 ServerConfig TestValidatorSuccess(const std::string& case_id);
 
 /*
-ResourceManager::Result {
+ResponseManager::Result {
         int status;
         std::string content;
 };
 */
 
-TEST(ResourceManager, GETMethod) {
+TEST(ResponseManager, GETMethod) {
   // s 00 GET SUCCESS
   {
     ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_00");
@@ -56,8 +56,8 @@ TEST(ResourceManager, GETMethod) {
     EXPECT_EQ(router_result.success_path, "./resources/s_00.html");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 200);
     EXPECT_EQ(rm_result.content, FileToString(RM_REQ_PATH_PREFIX "s_00.html"));
@@ -86,8 +86,8 @@ TEST(ResourceManager, GETMethod) {
     EXPECT_EQ(router_result.success_path, "./resources/f_00.html");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 404);
     EXPECT_EQ(rm_result.content, FileToString(RM_REQ_PATH_PREFIX "error.html"));
@@ -117,8 +117,8 @@ TEST(ResourceManager, GETMethod) {
     EXPECT_EQ(router_result.success_path, "./resources/f_01.html");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 403);
     EXPECT_EQ(rm_result.content, FileToString(RM_REQ_PATH_PREFIX "error.html"));
@@ -148,8 +148,8 @@ TEST(ResourceManager, GETMethod) {
     EXPECT_EQ(router_result.success_path, "./resources/f_02.html");
     EXPECT_EQ(router_result.error_path, "./resources/sinnarisyeos.sinna");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 404);
   }
@@ -177,8 +177,8 @@ TEST(ResourceManager, GETMethod) {
     EXPECT_EQ(router_result.success_path, "./resources/f_03.html");
     EXPECT_EQ(router_result.error_path, "./resources");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 500);
   }
@@ -206,8 +206,8 @@ TEST(ResourceManager, GETMethod) {
     EXPECT_EQ(router_result.success_path, "./_deps/");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 200);
     EXPECT_EQ(rm_result.content,
@@ -243,8 +243,8 @@ pre><hr></body></html>");
     EXPECT_EQ(router_result.success_path, "./_deps/googletest-build/");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 200);
     EXPECT_EQ(rm_result.content,
@@ -283,8 +283,8 @@ pre><hr></body></html>");
     EXPECT_EQ(router_result.success_path, "./resources/s_03.html");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 200);
     EXPECT_EQ(rm_result.content, FileToString(RM_REQ_PATH_PREFIX "s_03.html"));
@@ -319,8 +319,8 @@ pre><hr></body></html>");
         "58cc26b28ce6205eaf4380e12a6ea7944afb6fbdc93ce567");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 500);
     EXPECT_EQ(rm_result.content, FileToString(RM_REQ_PATH_PREFIX "error.html"));
@@ -328,7 +328,7 @@ pre><hr></body></html>");
 }
 
 // if 중복 file_001 형식으로 생성
-TEST(ResourceManager, POSTMethod) {
+TEST(ResponseManager, POSTMethod) {
   // s 04 file upload
   {
     ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_04");
@@ -352,8 +352,8 @@ TEST(ResourceManager, POSTMethod) {
     EXPECT_EQ(router_result.success_path, "./resources/post/s_04.txt");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 201);  // CREATED
     ASSERT_EQ(access("./resources/post/s_04.txt", F_OK), 0);
@@ -387,8 +387,8 @@ TEST(ResourceManager, POSTMethod) {
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
     chmod("./resources/post/unauthorized", 0555);
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 403);  // FORBIDDEN
     errno = 0;
@@ -420,8 +420,8 @@ TEST(ResourceManager, POSTMethod) {
     EXPECT_EQ(router_result.success_path, "./resources/post/s_05.txt");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 201);  // CREATED
     ASSERT_EQ(access("./resources/post/s_05_0.txt", F_OK), 0);
@@ -452,8 +452,8 @@ TEST(ResourceManager, POSTMethod) {
     EXPECT_EQ(router_result.success_path, "./resources/post/s_06.txt");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
 
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 201);  // CREATED
     ASSERT_EQ(access("./resources/post/s_06.txt", F_OK), 0);
@@ -463,7 +463,7 @@ TEST(ResourceManager, POSTMethod) {
   }
 }
 
-TEST(ResourceManager, DELETEMethod) {
+TEST(ResponseManager, DELETEMethod) {
   // s 07 DELETE A FILE
   {
     ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_07");
@@ -490,8 +490,8 @@ TEST(ResourceManager, DELETEMethod) {
       ofs << "smart";
     }
     ASSERT_EQ(access("./resources/delete/s_07.txt", F_OK), 0);
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 200);  // CREATED
     ASSERT_EQ(access("./resources/delete/s_07.txt", F_OK), -1);
@@ -527,8 +527,8 @@ TEST(ResourceManager, DELETEMethod) {
       chmod("./resources/delete/f_06.txt", 0444);
     }
     ASSERT_EQ(access("./resources/delete/f_06.txt", F_OK), 0);
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 403);  // FORBIDDEN`
     ASSERT_EQ(access("./resources/delete/f_06.txt", F_OK), 0);
@@ -558,8 +558,8 @@ TEST(ResourceManager, DELETEMethod) {
     EXPECT_EQ(router_result.success_path, "./resources/delete/f_07.txt");
     EXPECT_EQ(router_result.error_path, "./resources/error.html");
     ASSERT_EQ(access("./resources/delete/f_07.txt", F_OK), -1);
-    ResourceManager rm;
-    ResourceManager::Result rm_result =
+    ResponseManager rm;
+    ResponseManager::Result rm_result =
         rm.ExecuteMethod(router_result, parse_result.request);
     EXPECT_EQ(rm_result.status, 404);  // PAGE NOT FOUND
     ASSERT_EQ(access("./resources/delete/f_07.txt", F_OK), -1);

@@ -40,7 +40,7 @@ class Validator {
     kServerName,
     kError,
     kRoute,
-    kCgiRoute,
+    kCgiRoute
   };
 
   enum LocationDirective {
@@ -50,7 +50,7 @@ class Validator {
     kRoot,
     kIndex,
     kUploadPath,
-    kRedirectTo,
+    kRedirectTo
   };
 
   struct PortServerPair {

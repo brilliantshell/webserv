@@ -4,8 +4,8 @@ ifdef DEBUG
 	CXXFLAGS = --std=c++98 -g3 -fsanitize=address
 else ifdef LEAKS
 	CXXFLAGS = --std=c++98 -g
-else 
-	CXXFLAGS	= --std=c++98 # -Wall -Wextra -Werror
+else
+	CXXFLAGS	= --std=c++98  -Wall -Wextra -Werror -pedantic
 endif
 
 NAME			=  BrilliantServer
@@ -25,10 +25,11 @@ SRCS			= $(addprefix $(SRCS_DIR), \
 				  HeaderParser.cpp \
 				  Router.cpp \
 				  PathResolver.cpp \
-				  ResourceManager.cpp \
+				  ResponseManager.cpp \
 				  CgiEnv.cpp \
 				  CgiManager.cpp \
-				  ResponseFormatter.cpp \
+				  FileManager.cpp\
+				  HeaderFormatter.cpp \
 				  ClientConnection.cpp \
 				)
 
@@ -57,7 +58,7 @@ CUT = "\033[K"
 all				:	 $(OBJS) $(NAME)
 
 $(NAME)		: 	$(OBJS)
-							@$(CXX) $(CXXFLAGS) $(OBJS) -I$(INC_DIR) -o $@ 
+							@$(CXX) $(CXXFLAGS) $(OBJS) -I$(INC_DIR) -o $@
 							@echo  $(L_CYAN) 🔗 Linking [$(notdir $^)] to [$@] $(RESET)
 							$(COMPILE_MSG)
 
@@ -84,7 +85,7 @@ re				:
 					@make all
 
 .PHONY			:	debug
-debug			: 
+debug			:
 					@make DEBUG=1
 					@echo $(RED)$(BOLD) It\'s DEBUG TIME🤪$(RESET)
 

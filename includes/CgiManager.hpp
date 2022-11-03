@@ -16,6 +16,7 @@
 #include <csignal>
 #include <string>
 
+#include "ResponseManager.hpp"
 #include "Router.hpp"
 #include "Types.hpp"
 #include "UriParser.hpp"
@@ -26,21 +27,13 @@
 
 #define PIPE_BUF_SIZE 4096
 
-class CgiManager {
+class CgiManager : public ResponseManager {
  public:
-  struct Result {
-    bool is_local_redir;
-    int status;
+  CgiManager(bool is_keep_alive, ResponseBuffer& response,
+             Router::Result& router_result, Request& request);
+  virtual ~CgiManager(void);
 
-    Result(int status) : is_local_redir(false), status(status) {}
-  };
-
-  CgiManager(void);
-  ~CgiManager(void);
-
-  Result Execute(std::string& response_content, Router::Result& router_result,
-                 ResponseHeaderMap& header, const std::string& request_content,
-                 int status);
+  ResponseManager::IoFdPair Execute(void);
 
  private:
   enum ResponseType {
@@ -48,11 +41,16 @@ class CgiManager {
     kDocument,
     kLocalRedir,
     kClientRedir,
-    kClientRedirDoc,
+    kClientRedirDoc
   };
 
+  bool is_header;
+  pid_t pid_;
   int in_fd_[2];
   int out_fd_[2];
+  size_t write_offset_;
+  std::string header_read_buf_;
+  std::string& response_content_;
 
   // child
   void DupFds(void);
@@ -61,17 +59,16 @@ class CgiManager {
   void ExecuteScript(const char* success_path, char* const* env);
 
   // parent
-  bool OpenPipes(Result& result);
-  bool CheckFileMode(Result& result, const char* path);
-  void PassContent(Result& result, const std::string& content);
-  bool ReceiveCgiHeaderFields(ResponseHeaderMap& header,
-                              const std::string& header_buf);
-  bool ReceiveCgiResponse(std::string& response_content, Result& result,
-                          ResponseHeaderMap& header);
-  bool ParseCgiHeader(std::string& response_content, Result& result,
-                      ResponseHeaderMap& header);
-  int DetermineResponseType(const std::string& content,
-                            ResponseHeaderMap& header);
+  void SetIpc(void);
+  bool OpenPipes(void);
+  bool CheckFileMode(const char* path);
+  void PassContent(void);
+  bool ReceiveCgiHeaderFields(ResponseHeaderMap& header, size_t header_end);
+  bool ReceiveCgiResponse(ResponseHeaderMap& header);
+  bool ParseCgiHeader(ResponseHeaderMap& header);
+  int DetermineResponseType(ResponseHeaderMap& header);
+  void SetInternalServerError(void);
+  int SetIoComplete(int status);
 };
 
 #endif  // INCLUDES_CGIMANAGER_HPP

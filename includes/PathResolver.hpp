@@ -15,18 +15,9 @@
 
 class PathResolver {
  public:
-  enum Purpose {
-    kLocation = 0,
-    kRedirectTo,
-    kErrorPage,
-    kHttpParser,
-  };
+  enum Purpose { kLocation = 0, kRedirectTo, kErrorPage, kHttpParser };
 
-  enum Status {
-    kFailure = 0,
-    kDirectory,
-    kFile,
-  };
+  enum Status { kFailure = 0, kDirectory, kFile };
 
   PathResolver(void);
 

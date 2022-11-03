@@ -24,17 +24,37 @@ std::string FileToString(const std::string& file_path) {
   return ss.str();
 }
 
-void sigpipe_handler(int signo) {
-  std::cout << "\n\n\n\n\n\n\n>>>>>>>>>>>>SIGPIPE caught<<<<<<<<\n\n\n\n\n\n\n"
-            << std::endl;
+#include <execinfo.h>
+
+void stack_trace() {
+  void** buffer = new void*[15];
+  int count = backtrace(buffer, 15);
+  backtrace_symbols_fd(buffer, count, 2);
+  delete[] buffer;
+
+  std::exception_ptr ptr = std::current_exception();
+  try {
+    std::rethrow_exception(ptr);
+  } catch (std::exception& p) {
+    std::cerr << p.what() << std::endl;
+  }
 }
 
 int main(int argc, char* argv[]) {
+  // std::set_terminate(stack_trace);
   if (argc < 2) {
-    std::cerr << "BrilliantServer : Usage: ./webserv [config file path]\n";
+    std::cerr
+        << "BrilliantServer : Usage: ./BrilliantServer  [config file path]\n";
     return EXIT_FAILURE;
   }
-  signal(SIGPIPE, sigpipe_handler);
+  signal(SIGPIPE, SIG_IGN);
+  signal(SIGCHLD, SIG_IGN);
+  // redirect error to file
+  // {
+  //   int fd = open("error.log", O_WRONLY | O_CREAT | O_TRUNC, 0644);
+  //   dup2(fd, 2);
+  //   close(fd);
+  // }
 
   std::string config_path = argv[1];
   size_t last_dot = config_path.rfind('.');
@@ -48,8 +68,10 @@ int main(int argc, char* argv[]) {
   try {
     Validator validator(FileToString(config_path));
     HttpServer(validator.Validate()).Run();
-  } catch (const std::exception& e) {
+  } catch (const Validator::SyntaxErrorException& e) {
     std::cerr << "BrilliantServer : Validator : " << e.what() << '\n';
+  } catch (std::exception& e) {
+    std::cerr << "BrilliantServer : HttpServer : " << e.what() << '\n';
   } catch (...) {
     std::cerr << "BrilliantServer : Unknown error\n";
   }

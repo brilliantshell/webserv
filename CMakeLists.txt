@@ -43,7 +43,7 @@ add_executable(
 	srcs/HeaderParser.cpp
 	srcs/Router.cpp
 	srcs/PathResolver.cpp
-	srcs/ResourceManager.cpp
+	srcs/ResponseManager.cpp
 	srcs/CgiEnv.cpp
 	srcs/CgiManager.cpp
 	srcs/ResponseFormatter.cpp
@@ -72,7 +72,7 @@ add_executable(
 # 	srcs/HeaderParser.cpp
 # 	srcs/Router.cpp
 # 	srcs/PathResolver.cpp
-# 	srcs/ResourceManager.cpp
+# 	srcs/ResponseManager.cpp
 # 	srcs/CgiEnv.cpp
 # 	srcs/CgiManager.cpp
 # 	srcs/ResponseFormatter.cpp
@@ -121,7 +121,7 @@ target_link_libraries(
 
 execute_process(
 	# symlink
-	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/tests/ResourceManager ${CMAKE_SOURCE_DIR}/build/resources
+	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/tests/ResponseManager ${CMAKE_SOURCE_DIR}/build/resources
 	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/tests/ResponseFormatter ${CMAKE_SOURCE_DIR}/build/rf_resources
 	COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_SOURCE_DIR}/tests/Connection ${CMAKE_SOURCE_DIR}/build/cn_resources
 

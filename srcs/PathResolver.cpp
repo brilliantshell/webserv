@@ -32,14 +32,15 @@ const std::string &PathResolver::get_file_name(void) const {
   return file_name_;
 }
 
-// private
+// SECTION : private
 bool PathResolver::ReserveFileName(std::string &path, Purpose purpose) {
   if ((purpose == kErrorPage) && path[0] != '/') {
     path.insert(0, "/");
   }
   if (*path.rbegin() != '/') {
-    if (purpose == kLocation || path.compare(path.size() - 2, 2, "/.") == 0 ||
-        path.compare(path.size() - 3, 3, "/..") == 0) {
+    if (purpose == kLocation ||
+        (path.size() > 2 && path.compare(path.size() - 2, 2, "/.") == 0) ||
+        (path.size() > 3 && path.compare(path.size() - 3, 3, "/..") == 0)) {
       path += '/';
     } else {
       size_t last_slash_pos = path.rfind('/');

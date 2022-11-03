@@ -9,7 +9,14 @@
 
 #include "CgiManager.hpp"
 
-CgiManager::CgiManager(void) {}
+CgiManager::CgiManager(bool is_keep_alive, ResponseBuffer& response,
+                       Router::Result& router_result, Request& request)
+    : ResponseManager(ResponseManager::kStatic, is_keep_alive, response,
+                      router_result, request),
+      is_header(true),
+      pid_(-1),
+      write_offset_(0),
+      response_content_(response.content) {}
 
 CgiManager::~CgiManager(void) {
   close(out_fd_[0]);
@@ -18,38 +25,38 @@ CgiManager::~CgiManager(void) {
   close(in_fd_[1]);
 }
 
-CgiManager::Result CgiManager::Execute(std::string& response_content,
-                                       Router::Result& router_result,
-                                       ResponseHeaderMap& header,
-                                       const std::string& request_content,
-                                       int status) {
-  Result result(status);
-  if (CheckFileMode(result, router_result.success_path.c_str()) == false) {
-    return result;
+// Resource Manager Member : response_content, router_result, request
+ResponseManager::IoFdPair CgiManager::Execute(void) {
+  switch (io_status_) {
+    case IO_START:
+      SetIpc();
+      break;
+    case PIPE_WRITE:
+      PassContent();
+      break;
+    case PIPE_READ:
+      if (ReceiveCgiResponse(result_.header) == false) {
+        SetInternalServerError();
+      }
+      if (io_status_ == IO_COMPLETE) {
+        if (ParseCgiHeader(result_.header) == false) {
+          SetInternalServerError();
+        }
+      }
+      break;
+    default:
+      break;
   }
-  if (OpenPipes(result) == false) {
-    result.status = 500;  // INTERNAL SERVER ERROR
-    return result;
+  if (result_.status >= 400) {
+    return GetErrorPage();
   }
-  pid_t pid = fork();
-  if (pid == 0) {
-    ExecuteScript(router_result.success_path.c_str(),
-                  const_cast<char* const*>(router_result.cgi_env.get_env()));
-  } else if (pid > 0) {
-    PassContent(result, request_content);
-    if (result.status == 500) {
-      kill(pid, SIGTERM);
-    } else if (ReceiveCgiResponse(response_content, result, header) == false ||
-               ParseCgiHeader(response_content, result, header) == false) {
-      result.status = 500;
-      result.is_local_redir = false;
-      response_content.clear();
-      header.clear();
-    }
-  } else {
-    result.status = 500;  // INTERNAL SERVER ERROR
+  if (io_status_ == PIPE_WRITE) {
+    return ResponseManager::IoFdPair(-1, in_fd_[1]);
+  } else if (io_status_ == PIPE_READ) {
+    return ResponseManager::IoFdPair(out_fd_[0], -1);
   }
-  return result;
+  result_.ext = ParseExtension(router_result_.success_path);
+  return ResponseManager::IoFdPair();
 }
 
 // SECTION: private
@@ -60,11 +67,15 @@ void CgiManager::DupFds(void) {
   }
   close(out_fd_[1]);
   close(out_fd_[0]);
+  out_fd_[0] = -1;
+  out_fd_[1] = -1;
   if (dup2(in_fd_[0], STDIN_FILENO) == -1) {
     exit(EXIT_FAILURE);
   }
   close(in_fd_[0]);
   close(in_fd_[1]);
+  in_fd_[0] = -1;
+  in_fd_[1] = -1;
 }
 
 void CgiManager::ParseScriptCommandLine(std::vector<std::string>& arg_vector,
@@ -120,56 +131,87 @@ void CgiManager::ExecuteScript(const char* success_path, char* const* env) {
   }
   alarm(5);  // CGI script timeout
   execve(script_path, const_cast<char* const*>(argv), env);
-  std::cerr << "execve error" << std::endl;
   exit(EXIT_FAILURE);
 }
 
 // parent
-bool CgiManager::OpenPipes(Result& result) {
+void CgiManager::SetIpc(void) {
+  if (CheckFileMode(router_result_.success_path.c_str()) == false) {
+    io_status_ = SetIoComplete(ERROR_START);
+  }
+  if (OpenPipes() == false) {
+    result_.status = 500;
+    io_status_ = SetIoComplete(ERROR_START);
+    return;
+  }
+  pid_ = fork();
+  if (pid_ == 0) {
+    ExecuteScript(router_result_.success_path.c_str(),
+                  const_cast<char* const*>(router_result_.cgi_env.get_env()));
+  } else if (pid_ > 0) {
+    io_status_ = PIPE_WRITE;
+  } else {
+    result_.status = 500;
+    io_status_ = SetIoComplete(ERROR_START);
+  }
+}
+
+bool CgiManager::OpenPipes(void) {
   if (pipe(out_fd_) == -1) {
     return false;
   }
   if (pipe(in_fd_) == -1) {
     close(out_fd_[0]);
     close(out_fd_[1]);
+    out_fd_[0] = out_fd_[1] = -1;
     return false;
   }
+  fcntl(out_fd_[0], F_SETFL, O_NONBLOCK);
+  fcntl(in_fd_[1], F_SETFL, O_NONBLOCK);
   return true;
 }
 
-bool CgiManager::CheckFileMode(Result& result, const char* path) {
+bool CgiManager::CheckFileMode(const char* path) {
   if (access(path, X_OK) == -1) {
     if (errno == ENOENT) {
-      result.status = 404;  // PAGE NOT FOUND
+      result_.status = 404;  // PAGE NOT FOUND
     } else if (errno == EACCES) {
-      result.status = 403;  // FORBIDDEN
+      result_.status = 403;  // FORBIDDEN
     } else {
-      result.status = 500;  // INTERNAL_SERVER_ERROR
+      result_.status = 500;  // INTERNAL_SERVER_ERROR
     }
-    return false;
   }
-  return true;
+  return (result_.status < 400);
 }
 
-void CgiManager::PassContent(Result& result, const std::string& content) {
-  size_t offset = 0;
-  for (ssize_t sent_bytes = 0; offset < content.size(); offset += sent_bytes) {
-    size_t bytes = (content.size() < offset + PIPE_BUF_SIZE)
-                       ? content.size() - offset
-                       : PIPE_BUF_SIZE;
-    sent_bytes = write(in_fd_[1], &content[offset], bytes);
-    if (sent_bytes == -1) {
-      result.status = 500;  // INTERNAL SERVER ERROR
-      break;
-    }
+void CgiManager::PassContent(void) {
+  errno = 0;
+  ssize_t sent_bytes =
+      write(in_fd_[1], &request_.content[write_offset_],
+            (request_.content.size() < write_offset_ + PIPE_BUF_SIZE)
+                ? request_.content.size() - write_offset_
+                : PIPE_BUF_SIZE);
+  if (sent_bytes < 0) {
+    result_.status = 500;  // INTERNAL SERVER ERROR
+    kill(pid_, SIGTERM);
+    io_status_ = SetIoComplete(ERROR_START);
   }
-  close(out_fd_[1]);
-  close(in_fd_[0]);
-  close(in_fd_[1]);
+  write_offset_ += sent_bytes;
+  io_status_ =
+      (write_offset_ >= request_.content.size()) ? PIPE_READ : PIPE_WRITE;
+  if (io_status_ == PIPE_READ) {
+    close(out_fd_[1]);
+    close(in_fd_[0]);
+    close(in_fd_[1]);
+    out_fd_[1] = -1;
+    in_fd_[0] = -1;
+    in_fd_[1] = -1;
+  }
 }
 
 bool CgiManager::ReceiveCgiHeaderFields(ResponseHeaderMap& header,
-                                        const std::string& header_buf) {
+                                        size_t header_end) {
+  std::string header_buf(header_read_buf_, 0, header_end);
   size_t start = 0;
   for (size_t end_of_line = header_buf.find(CRLF);
        end_of_line < header_buf.size() && end_of_line != std::string::npos;
@@ -197,46 +239,45 @@ bool CgiManager::ReceiveCgiHeaderFields(ResponseHeaderMap& header,
   return true;
 }
 
-bool CgiManager::ReceiveCgiResponse(std::string& response_content,
-                                    Result& result, ResponseHeaderMap& header) {
-  bool is_header = true;
-  ssize_t read_size;
+bool CgiManager::ReceiveCgiResponse(ResponseHeaderMap& header) {
   char buf[PIPE_BUF_SIZE + 1];
-  std::string header_buf;
-
   memset(buf, 0, PIPE_BUF_SIZE + 1);
-  while ((read_size = read(out_fd_[0], buf, PIPE_BUF_SIZE)) > 0) {
-    if (is_header == true) {
-      header_buf += buf;
-      if (header_buf.size() > HEADER_MAX) {
-        close(out_fd_[0]);
-        return false;
-      }
-      size_t header_end = header_buf.find(CRLF CRLF);
-      if (header_end != std::string::npos) {
-        if (ReceiveCgiHeaderFields(
-                header, header_buf.substr(0, header_end + 2)) == false) {
-          close(out_fd_[0]);
-          return false;
-        }
-        is_header = false;
-        response_content.append(header_buf, header_end + 4);
-      }
-    } else {
-      response_content.append(buf, read_size);
-      if (response_content.size() > CONTENT_MAX) {
-        close(out_fd_[0]);
-        return false;
-      }
-    }
-    memset(buf, 0, PIPE_BUF_SIZE + 1);
+
+  ssize_t read_size = read(out_fd_[0], buf, PIPE_BUF_SIZE);
+  if (read_size < 0) {
+    return false;
+  } else if (read_size < PIPE_BUF_SIZE) {
+    io_status_ = SetIoComplete(IO_COMPLETE);
   }
-  close(out_fd_[0]);
-  return read_size >= 0;
+  if (is_header == true) {
+    header_read_buf_.append(buf, read_size);
+    if (header_read_buf_.size() > HEADER_MAX) {
+      close(out_fd_[0]);
+      out_fd_[0] = -1;
+      return false;
+    }
+    size_t header_end = header_read_buf_.find(CRLF CRLF);
+    if (header_end != std::string::npos) {
+      if (ReceiveCgiHeaderFields(header, header_end + 2) == false) {
+        close(out_fd_[0]);
+        out_fd_[0] = -1;
+        return false;
+      }
+      is_header = false;
+      response_content_.append(header_read_buf_, header_end + 4);
+    }
+  } else {
+    response_content_.append(buf, read_size);
+    if (response_content_.size() > CONTENT_MAX) {
+      close(out_fd_[0]);
+      out_fd_[0] = -1;
+      return false;
+    }
+  }
+  return true;
 }
 
-int CgiManager::DetermineResponseType(const std::string& content,
-                                      ResponseHeaderMap& header) {
+int CgiManager::DetermineResponseType(ResponseHeaderMap& header) {
   if (header.size() == 0) {
     return kError;
   }
@@ -244,7 +285,7 @@ int CgiManager::DetermineResponseType(const std::string& content,
   if (header.count("location") == 1) {
     std::string& location = header["location"];
     if (location[0] == '/') {
-      if (header.size() > 1 || content.size() > 0) {
+      if (header.size() > 1 || response_content_.size() > 0) {
         return kError;
       }
       return kLocalRedir;
@@ -253,7 +294,7 @@ int CgiManager::DetermineResponseType(const std::string& content,
       if (uri_result.is_valid == false) {
         return kError;
       }
-      if (content.size() > 0) {
+      if (response_content_.size() > 0) {
         if (header.count("content-type") != 1 || header.count("status") != 1) {
           return kError;
         }
@@ -270,24 +311,23 @@ int CgiManager::DetermineResponseType(const std::string& content,
   return kError;
 }
 
-bool CgiManager::ParseCgiHeader(std::string& response_content, Result& result,
-                                ResponseHeaderMap& header) {
-  int response_type = DetermineResponseType(response_content, header);
+bool CgiManager::ParseCgiHeader(ResponseHeaderMap& header) {
+  int response_type = DetermineResponseType(header);
   if (response_type == kError) {
     return false;
   }
   if (header.count("status") == 1) {
     std::stringstream ss(header["status"]);
-    ss >> result.status;
-    if (result.status < 100 || result.status > 999) {
+    ss >> result_.status;
+    if (result_.status < 100 || result_.status > 999) {
       return false;
     }
   }
   if (response_type == kLocalRedir) {
-    result.is_local_redir = true;
+    result_.is_local_redir = true;
   }
   if (response_type == kClientRedir || response_type == kClientRedirDoc) {
-    result.status = 302;
+    result_.status = 302;
   }
   std::vector<std::string> field_names;
   for (ResponseHeaderMap::const_iterator it = header.begin();
@@ -305,4 +345,24 @@ bool CgiManager::ParseCgiHeader(std::string& response_content, Result& result,
   }
   header.erase("status");
   return true;
+}
+
+void CgiManager::SetInternalServerError(void) {
+  result_.status = 500;
+  result_.is_local_redir = false;
+  result_.header.clear();
+  response_content_.clear();
+  io_status_ = SetIoComplete(ERROR_START);
+}
+
+int CgiManager::SetIoComplete(int status) {
+  close(in_fd_[0]);
+  close(in_fd_[1]);
+  close(out_fd_[0]);
+  close(out_fd_[1]);
+  in_fd_[0] = -1;
+  in_fd_[1] = -1;
+  out_fd_[0] = -1;
+  out_fd_[1] = -1;
+  return status;
 }
