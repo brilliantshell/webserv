@@ -130,11 +130,11 @@ void FileManager::Post(void) {
   }
 }
 
-void FileManager::WriteFile(const std::string& request_content) {
+void FileManager::WriteFile(const std::string& kRequestContent) {
   ssize_t written_bytes =
-      write(out_fd_, &request_content[write_offset_],
-            (request_content.size() < WRITE_BUFFER_SIZE + write_offset_)
-                ? request_content.size() - write_offset_
+      write(out_fd_, &kRequestContent[write_offset_],
+            (kRequestContent.size() < WRITE_BUFFER_SIZE + write_offset_)
+                ? kRequestContent.size() - write_offset_
                 : WRITE_BUFFER_SIZE);
   if (written_bytes < 0) {
     result_.status = 500;  // INTERNAL SERVER ERROR
@@ -142,7 +142,7 @@ void FileManager::WriteFile(const std::string& request_content) {
   }
   write_offset_ += written_bytes;
   io_status_ =
-      (write_offset_ >= request_content.size()) ? IO_COMPLETE : FILE_WRITE;
+      (write_offset_ >= kRequestContent.size()) ? IO_COMPLETE : FILE_WRITE;
 }
 
 void FileManager::FindValidOutputPath(std::string& success_path) {
@@ -229,13 +229,13 @@ void FileManager::CheckFileMode(void) {
   }
 }
 
-void FileManager::GenerateAutoindex(const std::string& path) {
-  DIR* dir = opendir(path.c_str());
+void FileManager::GenerateAutoindex(const std::string& kPath) {
+  DIR* dir = opendir(kPath.c_str());
   if (dir == NULL) {
     result_.status = 500;  // INTERNAL_SERVER_ERROR
     return;
   }
-  std::string index_of = "Index of " + path.substr(1);
+  std::string index_of = "Index of " + kPath.substr(1);
   response_content_ = "<!DOCTYPE html><html><title>" + index_of +
                       "</title><body><h1>" + index_of + "</h1><hr><pre>\n";
   errno = 0;
@@ -243,7 +243,7 @@ void FileManager::GenerateAutoindex(const std::string& path) {
   std::vector<std::string> file_vector;
   for (dirent* ent = readdir(dir); ent != NULL; ent = readdir(dir)) {
     if (ent->d_name[0] != '.' &&
-        DetermineFileType(path, ent, dir_vector, file_vector) == false) {
+        DetermineFileType(kPath, ent, dir_vector, file_vector) == false) {
       break;
     }
   }
@@ -258,21 +258,22 @@ void FileManager::GenerateAutoindex(const std::string& path) {
   result_.is_autoindex = true;
 }
 
-bool FileManager::DetermineFileType(const std::string& path, const dirent* ent,
+bool FileManager::DetermineFileType(const std::string& kPath,
+                                    const dirent* kEnt,
                                     std::vector<std::string>& dir_vector,
                                     std::vector<std::string>& file_vector) {
-  std::string file_name(ent->d_name);
+  std::string file_name(kEnt->d_name);
   struct stat s_buf;
   memset(&s_buf, 0, sizeof(s_buf));
-  if (ent->d_type == DT_LNK) {
-    if (stat((path + file_name).c_str(), &s_buf) == -1) {
+  if (kEnt->d_type == DT_LNK) {
+    if (stat((kPath + file_name).c_str(), &s_buf) == -1) {
       return false;
     }
     S_ISDIR(s_buf.st_mode) ? dir_vector.push_back(file_name + "/")
                            : file_vector.push_back(file_name);
   } else {
-    (ent->d_type == DT_DIR) ? dir_vector.push_back(file_name + "/")
-                            : file_vector.push_back(file_name);
+    (kEnt->d_type == DT_DIR) ? dir_vector.push_back(file_name + "/")
+                             : file_vector.push_back(file_name);
   }
   return true;
 }

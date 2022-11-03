@@ -1,4 +1,3 @@
-
 /**
  * @file Validator.cpp
  * @author ghan, jiskim, yongjule
@@ -11,7 +10,7 @@
 #include "Validator.hpp"
 
 // SECTION : public
-Validator::Validator(const std::string& config) : kConfig_(config) {}
+Validator::Validator(const std::string& kConfig) : kConfig_(kConfig) {}
 
 ServerConfig Validator::Validate(void) {
   ServerConfig result;
@@ -26,7 +25,7 @@ ServerConfig Validator::Validate(void) {
     cursor_ =
         std::find_if(cursor_ + 8, kConfig_.end(), IsCharSet(" \t", false));
     if (cursor_ == kConfig_.end() || (*cursor_ != '\n' && *cursor_ != '{')) {
-      throw SyntaxErrorException("Invalid configuration file");
+      throw SyntaxErrorException("invalid configuration file");
     }
     ++cursor_;
     PortServerPair port_server = ValidateLocationRouter(result.port_set);
@@ -35,7 +34,7 @@ ServerConfig Validator::Validate(void) {
         std::find_if(++cursor_, kConfig_.end(), IsCharSet(" \n\t", false));
   }
   if (port_server_list.empty()) {
-    throw SyntaxErrorException("Invalid configuration file");
+    throw SyntaxErrorException("invalid configuration file");
   }
   GeneratePortMap(result, port_server_list);
   return result;
@@ -92,12 +91,14 @@ Validator::ServerKeyIt_ Validator::FindDirectiveKey(ConstIterator_& delim,
   ServerKeyIt_ key_it = key_map.find(std::string(cursor_, delim));
   if (key_it == key_map.end()) {
     throw SyntaxErrorException(
-        std::string(cursor_, (*delim == '\n' ? --delim : delim)) +
-        " is invalid directive in server block.");
+        cursor_ == kConfig_.end()
+            ? "} not found"
+            : std::string(cursor_, ((*delim == '\n') ? --delim : delim)) +
+                  " is invalid directive in server block");
   }
   cursor_ = delim + 1;
   if (*cursor_ == '\n') {
-    throw SyntaxErrorException("Invalid server directive");
+    throw SyntaxErrorException("invalid server directive");
   }
   return key_it;
 }
@@ -197,7 +198,7 @@ uint8_t Validator::TokenizeMethods(ConstIterator_& delim,
     } else if (is_cgi == kRoute && method == "DELETE" && !(DELETE & flag)) {
       flag |= DELETE;
     } else {
-      throw SyntaxErrorException(method + " is not supported method");
+      throw SyntaxErrorException(method + " is not a supported method");
     }
   }
   return flag;
@@ -215,7 +216,7 @@ Validator::ConstIterator_ Validator::CheckEndOfParameter(ConstIterator_ delim) {
   }
   if (delim == kConfig_.end() || *delim != '\n') {
     throw SyntaxErrorException(
-        ("expected newline but was [" +
+        ("expected a newline but was [" +
          (delim == kConfig_.end() ? "EOF" : std::string(1, *delim)) + "]"));
   }
   return delim;
@@ -261,7 +262,8 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
     case kListen: {
       uint32_t num = TokenizeNumber(delim);
       if (num == 0 || num > 65535) {
-        throw SyntaxErrorException("port number must be in range 1-65535.");
+        throw SyntaxErrorException(
+            "the port number must be in a range, 1-65535");
       }
       port = num;
       key_map.erase(key_it->first);
@@ -277,7 +279,7 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
       std::string err_page = TokenizeSingleString(delim);
       if (path_resolver_.Resolve(err_page, PathResolver::kErrorPage) ==
           PathResolver::kFailure) {
-        throw SyntaxErrorException("error page cannot be directory.");
+        throw SyntaxErrorException("error page cannot be a directory");
       }
       location_router.error = Location(true, err_page);
       key_map.erase(key_it->first);
@@ -287,21 +289,21 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
       if (!location_router.location_map
                .insert(ValidateLocation(delim, key_it->second))
                .second) {
-        throw SyntaxErrorException("duplicated location path.");
+        throw SyntaxErrorException("duplicated location path");
       }
       break;
     case kCgiRoute: {
       LocationNode location_node = ValidateLocation(delim, key_it->second);
       for (size_t i = 0; i < location_router.cgi_vector.size(); ++i) {
         if (location_router.cgi_vector[i].first == location_node.first) {
-          throw SyntaxErrorException("duplicated cgi extension.");
+          throw SyntaxErrorException("duplicated cgi extension");
         }
       }
       location_router.cgi_vector.push_back(location_node);
       break;
     }
     default:
-      throw SyntaxErrorException("invalid directive in server block.");
+      throw SyntaxErrorException("invalid directive in server block");
   }
   return true;
 }
@@ -329,14 +331,14 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
     case kAutoindex: {
       std::string autoindex = TokenizeSingleString(delim);
       if (autoindex != "on" && autoindex != "off")
-        throw SyntaxErrorException("autoindex must be on or off.");
+        throw SyntaxErrorException("autoindex must be on or off");
       location.autoindex = (autoindex == "on");
       break;
     }
     case kBodyMax: {
       uint32_t num = TokenizeNumber(delim);
       if (num > INT_MAX) {
-        throw SyntaxErrorException("body_max is too big");
+        throw SyntaxErrorException("body_max is too large");
       }
       location.body_max = num;
       break;
@@ -359,7 +361,7 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
       location.methods = TokenizeMethods(delim, is_cgi);
       break;
     default:
-      throw SyntaxErrorException("invalid directive in location block.");
+      throw SyntaxErrorException("invalid directive in location block");
   }
   key_map.erase(key_it);
   return true;
@@ -391,7 +393,7 @@ Validator::PortServerPair Validator::ValidateLocationRouter(PortSet& port_set) {
   if (key_map.count("listen") || (location_router.location_map.empty() &&
                                   location_router.cgi_vector.empty())) {
     throw SyntaxErrorException(
-        "listen directive and location block are required.");
+        "listen directive and location block are required");
   }
   port_set.insert(port);
   return PortServerPair(port, LocationRouterNode(server_name, location_router));
@@ -412,7 +414,7 @@ LocationNode Validator::ValidateLocation(ConstIterator_& delim,
   std::string path = TokenizeRoutePath(delim, is_cgi);
   if (*(++delim) != '{' || (is_cgi == kRoute && path_resolver_.Resolve(path) ==
                                                     PathResolver::kFailure)) {
-    throw SyntaxErrorException("invalid location block.");
+    throw SyntaxErrorException("invalid location block");
   }
   InitializeKeyMap(key_map, is_cgi);
   for (cursor_ = ++delim; cursor_ != kConfig_.end(); ++cursor_) {
@@ -448,10 +450,10 @@ void Validator::GeneratePortMap(ServerConfig& result,
           server_router.default_server =
               it2_backup->location_router_node.second;
         }
-        if (!server_router.location_router_map
-                 .insert(it2_backup->location_router_node)
-                 .second) {
-          throw SyntaxErrorException("이거 뭐더라 FIXME");
+        if (server_router.location_router_map
+                .insert(it2_backup->location_router_node)
+                .second == false) {
+          throw SyntaxErrorException("location already exists");
         }
         port_server_list.erase(it2_backup);
       }

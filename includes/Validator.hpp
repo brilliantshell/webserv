@@ -26,19 +26,19 @@
 // SECTION : Validator
 class Validator {
  public:
-  Validator(const std::string& config);
+  Validator(const std::string& kConfig);
   ServerConfig Validate(void);
 
   class SyntaxErrorException : public std::exception {
    public:
-    SyntaxErrorException() : std::exception(), msg_("") {}
-    SyntaxErrorException(const std::string& msg)
-        : std::exception(), msg_(msg) {}
+    SyntaxErrorException() : std::exception(), kMessage_("") {}
+    SyntaxErrorException(const std::string& kMessage)
+        : std::exception(), kMessage_(kMessage) {}
     virtual ~SyntaxErrorException() throw() {}
-    virtual const char* what() const throw() { return msg_.c_str(); }
+    virtual const char* what() const throw() { return kMessage_.c_str(); }
 
    private:
-    std::string msg_;
+    const std::string kMessage_;
   };
 
  private:

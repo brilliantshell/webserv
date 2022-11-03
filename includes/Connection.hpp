@@ -59,8 +59,8 @@ class Connection {
   int get_connection_status(void) const;
   int get_fd(void) const;
 
-  void SetAttributes(const int fd, const std::string& client_addr,
-                     const uint16_t port, ServerRouter& server_router);
+  void SetAttributes(const int kFd, const std::string& kClientAddr,
+                     const uint16_t kPort, ServerRouter& server_router);
 
  private:
   typedef std::queue<ResponseBuffer> ResponseQueue;
@@ -116,14 +116,14 @@ class Connection {
       ResponseManager** manager, ResponseManager::Result& response_result);
 
   friend std::ostream& operator<<(std::ostream& os,
-                                  const Connection& connection) {
-    os << "fd: " << connection.fd_
-       << " response queue size : " << connection.response_queue_.size()
+                                  const Connection& kConnection) {
+    os << "fd: " << kConnection.fd_
+       << " response queue size : " << kConnection.response_queue_.size()
        << "  ResponseManagerMap size : "
-       << connection.response_manager_map_.size() << std::endl;
+       << kConnection.response_manager_map_.size() << std::endl;
     for (ResponseManagerMap::const_iterator it =
-             connection.response_manager_map_.begin();
-         it != connection.response_manager_map_.end(); ++it) {
+             kConnection.response_manager_map_.begin();
+         it != kConnection.response_manager_map_.end(); ++it) {
       os << "ResponseManagerMap key : " << it->first << ", value " << it->second
          << std::endl;
     }

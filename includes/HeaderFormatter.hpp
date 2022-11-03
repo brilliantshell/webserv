@@ -22,7 +22,7 @@ class HeaderFormatter {
  public:
   std::string FormatCurrentTime(void);
   std::string FormatAllowedMethods(uint8_t allowed_methods);
-  std::string FormatContentType(bool is_autoindex, const std::string& ext,
+  std::string FormatContentType(bool is_autoindex, const std::string& kExt,
                                 ResponseHeaderMap& header);
   void ResolveConflicts(ResponseHeaderMap& header);
 };

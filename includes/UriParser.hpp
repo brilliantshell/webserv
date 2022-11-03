@@ -37,7 +37,7 @@ class UriParser {
   Result ParseTarget(std::string uri);
   bool ParseHost(std::string& uri);
   void EncodeAsciiToHex(std::string& path);
-  bool DecodeHexToAscii(std::string& uri, const size_t pos);
+  bool DecodeHexToAscii(std::string& uri, const size_t kPos);
   std::string GetFullPath(void);
 
  private:

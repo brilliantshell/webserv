@@ -104,33 +104,33 @@ void CgiManager::ParseScriptCommandLine(std::vector<std::string>& arg_vector,
   }
 }
 
-void CgiManager::ExecuteScript(const char* success_path, char* const* env) {
+void CgiManager::ExecuteScript(const char* kSuccessPath, char* const* kEnv) {
   // 1. ENAMETOOLONG, 2.ENOMEM(dirname)
-  if (env == NULL) {
+  if (kEnv == NULL) {
     exit(EXIT_FAILURE);
   }
-  char* new_cwd = dirname(const_cast<char*>(success_path));
+  char* new_cwd = dirname(const_cast<char*>(kSuccessPath));
   if (new_cwd == NULL || chdir(new_cwd) == -1) {
     exit(EXIT_FAILURE);
   }
-  char* script_path = basename(const_cast<char*>(success_path));
+  char* script_path = basename(const_cast<char*>(kSuccessPath));
   if (script_path == NULL) {
     exit(EXIT_FAILURE);
   }
   DupFds();
   std::vector<std::string> arg_vector;
-  ParseScriptCommandLine(arg_vector, env[6]);
-  const char** argv = new (std::nothrow) const char*[arg_vector.size() + 2];
-  if (argv == NULL) {
+  ParseScriptCommandLine(arg_vector, kEnv[6]);
+  const char** kArgv = new (std::nothrow) const char*[arg_vector.size() + 2];
+  if (kArgv == NULL) {
     exit(EXIT_FAILURE);
   }
-  memset(argv, 0, sizeof(char*) * (arg_vector.size() + 2));
-  argv[0] = script_path;
+  memset(kArgv, 0, sizeof(char*) * (arg_vector.size() + 2));
+  kArgv[0] = script_path;
   for (size_t i = 0; i < arg_vector.size(); ++i) {
-    argv[i + 1] = arg_vector[i].c_str();
+    kArgv[i + 1] = arg_vector[i].c_str();
   }
   alarm(5);  // CGI script timeout
-  execve(script_path, const_cast<char* const*>(argv), env);
+  execve(script_path, const_cast<char* const*>(kArgv), kEnv);
   exit(EXIT_FAILURE);
 }
 
@@ -171,8 +171,8 @@ bool CgiManager::OpenPipes(void) {
   return true;
 }
 
-bool CgiManager::CheckFileMode(const char* path) {
-  if (access(path, X_OK) == -1) {
+bool CgiManager::CheckFileMode(const char* kPath) {
+  if (access(kPath, X_OK) == -1) {
     if (errno == ENOENT) {
       result_.status = 404;  // PAGE NOT FOUND
     } else if (errno == EACCES) {

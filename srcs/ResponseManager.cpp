@@ -79,17 +79,17 @@ ResponseManager::Result& ResponseManager::get_result(void) { return result_; }
 // SECTION: protected
 // Utils
 // Parse Extension for MIME type
-std::string ResponseManager::ParseExtension(const std::string& path) {
-  size_t last_slash = path.rfind('/');
-  if (last_slash > path.size() - 3) {
+std::string ResponseManager::ParseExtension(const std::string& kPath) {
+  size_t last_slash = kPath.rfind('/');
+  if (last_slash > kPath.size() - 3) {
     return "";
   }
-  size_t last_dot = path.rfind('.');
+  size_t last_dot = kPath.rfind('.');
   if (last_dot == std::string::npos || last_dot < last_slash ||
-      last_dot == path.size() - 1) {
+      last_dot == kPath.size() - 1) {
     return "";
   }
-  return path.substr(last_dot + 1);
+  return kPath.substr(last_dot + 1);
 }
 
 // Read error page

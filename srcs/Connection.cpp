@@ -142,12 +142,12 @@ int Connection::get_connection_status(void) const { return connection_status_; }
 
 int Connection::get_fd(void) const { return fd_; }
 
-void Connection::SetAttributes(const int fd, const std::string& client_addr,
-                               const uint16_t port,
+void Connection::SetAttributes(const int kFd, const std::string& kClientAddr,
+                               const uint16_t kPort,
                                ServerRouter& server_router) {
-  fd_ = fd;
-  client_addr_ = client_addr;
-  port_ = port;
+  fd_ = kFd;
+  client_addr_ = kClientAddr;
+  port_ = kPort;
   router_ = new (std::nothrow) Router(server_router);
   if (router_ == NULL) {
     std::cerr << "Connection : Router memory allocation failure\n";

@@ -28,14 +28,14 @@
 class CgiEnv {
  public:
   CgiEnv(void);
-  CgiEnv(const CgiEnv& original);
+  CgiEnv(const CgiEnv& kSrc);
   ~CgiEnv(void);
 
   const char** get_env(void) const;
-  CgiEnv& operator=(const CgiEnv& rhs);
-  bool SetMetaVariables(Request& request, const std::string& root,
-                        const std::string& cgi_ext,
-                        const ConnectionInfo& connection_info);
+  CgiEnv& operator=(const CgiEnv& kRhs);
+  bool SetMetaVariables(Request& request, const std::string& kRoot,
+                        const std::string& kCgiExt,
+                        const ConnectionInfo& kConnectionInfo);
 
  private:
   struct ScriptUri {
@@ -47,14 +47,14 @@ class CgiEnv {
   char** env_;
 
   bool ParseScriptUriComponents(ScriptUri& script_uri,
-                                const std::string& req_uri,
-                                const std::string& root,
-                                const std::string& cgi_ext) const;
+                                const std::string& kReqUri,
+                                const std::string& kRoot,
+                                const std::string& kCgiExt) const;
 
   template <typename T>
   std::string IntToString(T value) const;
 
-  const char* set_env(const size_t idx, const std::string& key_value);
+  const char* set_env(const size_t kIdx, const std::string& kKeyValue);
 };
 
 #endif  // INCLUDES_CGIENV_HPP_

@@ -16,9 +16,9 @@
             << std::dec << event.fflags << "], data: [" << event.data      \
             << "], udata: [" << event.udata << "]" << std::endl;
 
-HttpServer::HttpServer(const ServerConfig& config)
-    : port_map_(config.port_map),
-      passive_sockets_(PassiveSockets(config.port_set)) {
+HttpServer::HttpServer(const ServerConfig& kConfig)
+    : port_map_(kConfig.port_map),
+      passive_sockets_(PassiveSockets(kConfig.port_set)) {
   struct rlimit fd_limit;
   getrlimit(RLIMIT_NOFILE, &fd_limit);
   connections_.resize(fd_limit.rlim_cur);
@@ -136,9 +136,9 @@ void HttpServer::AcceptConnection(int socket_fd) {
     close(fd);
     return;
   }
-  const uint16_t port = passive_sockets_[socket_fd];
-  connections_[fd].SetAttributes(fd, inet_ntoa(addr.sin_addr), port,
-                                 port_map_[port]);
+  const uint16_t kPort = passive_sockets_[socket_fd];
+  connections_[fd].SetAttributes(fd, inet_ntoa(addr.sin_addr), kPort,
+                                 port_map_[kPort]);
   if (connections_[fd].get_connection_status() == CONNECTION_ERROR) {
     std::cerr << "HttpServer : connection attributes set up failed : "
               << strerror(errno) << '\n';
@@ -149,24 +149,24 @@ void HttpServer::AcceptConnection(int socket_fd) {
   UpdateKqueue(&sock_ev, fd, EVFILT_READ, EV_ADD | EV_ONESHOT);
 }
 
-void HttpServer::ReceiveRequests(const int socket_fd) {
+void HttpServer::ReceiveRequests(const int kSocketFd) {
   struct kevent io_ev;
-  Connection& connection = connections_[socket_fd];
+  Connection& connection = connections_[kSocketFd];
   ResponseManager::IoFdPair io_fds = connection.HandleRequest();
-  UpdateKqueue(&io_ev, socket_fd, EVFILT_READ, EV_ADD | EV_ONESHOT);
+  UpdateKqueue(&io_ev, kSocketFd, EVFILT_READ, EV_ADD | EV_ONESHOT);
   if (connection.get_connection_status() == CONNECTION_ERROR) {
     return;
   }
   if (connection.get_connection_status() == KEEP_READING) {
     return;
   }
-  RegisterIoEvents(io_fds, socket_fd);
+  RegisterIoEvents(io_fds, kSocketFd);
   if (connection.IsResponseBufferReady() == true) {
-    UpdateKqueue(&io_ev, socket_fd, EVFILT_WRITE, EV_ADD | EV_ONESHOT);
+    UpdateKqueue(&io_ev, kSocketFd, EVFILT_WRITE, EV_ADD | EV_ONESHOT);
   }
   while (connection.get_connection_status() == NEXT_REQUEST_EXISTS) {
     io_fds = connection.HandleRequest();
-    RegisterIoEvents(io_fds, socket_fd);
+    RegisterIoEvents(io_fds, kSocketFd);
   }
 }
 
@@ -185,17 +185,17 @@ void HttpServer::SendResponses(int socket_fd) {
 }
 
 void HttpServer::RegisterIoEvents(ResponseManager::IoFdPair io_fds,
-                                  int socket_fd) {
+                                  const int kSocketFd) {
   struct kevent io_ev;
   if (io_fds.input != -1) {
-    if (socket_fd > 0) {
-      io_fd_map_[io_fds.input] = socket_fd;
+    if (kSocketFd > 0) {
+      io_fd_map_[io_fds.input] = kSocketFd;
     }
     UpdateKqueue(&io_ev, io_fds.input, EVFILT_READ, EV_ADD | EV_ONESHOT);
   }
   if (io_fds.output != -1) {
-    if (socket_fd > 0) {
-      io_fd_map_[io_fds.output] = socket_fd;
+    if (kSocketFd > 0) {
+      io_fd_map_[io_fds.output] = kSocketFd;
     }
     UpdateKqueue(&io_ev, io_fds.output, EVFILT_WRITE, EV_ADD | EV_ONESHOT);
   }
