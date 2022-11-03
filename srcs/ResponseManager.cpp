@@ -94,7 +94,9 @@ std::string ResponseManager::ParseExtension(const std::string& kPath) {
 
 // Read error page
 ResponseManager::IoFdPair ResponseManager::GetErrorPage(void) {
-  std::cerr << "error path : " << router_result_.error_path << '\n';
+  if (result_.status >= 500) {
+    is_keep_alive_ = false;
+  }
   if (access(router_result_.error_path.c_str(), F_OK) == -1) {
     // no error page
     std::stringstream ss;
@@ -163,6 +165,7 @@ int ResponseManager::SetIoComplete(int status) {
 // SECTION: private
 void ResponseManager::HandleGetErrorFailure(void) {
   result_.status = 500;  // INTERNAL_SERVER_ERROR
+  is_keep_alive_ = false;
   response_buffer_.content = LAST_ERROR_DOCUMENT;
   io_status_ = SetIoComplete(IO_COMPLETE);
 }

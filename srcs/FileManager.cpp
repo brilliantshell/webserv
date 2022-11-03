@@ -75,12 +75,6 @@ void FileManager::Get(void) {
         }
         return;
       }
-      // struct stat st;
-      // if (fstat(in_fd_, &st) == -1) {
-      //   result_.status = 500;
-      //   return;
-      // }
-      // file_size_ = st.st_size;
       fcntl(in_fd_, F_SETFL, O_NONBLOCK);
       io_status_ = FILE_READ;
     }

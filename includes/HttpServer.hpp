@@ -41,8 +41,8 @@ class HttpServer {
   std::set<int> close_io_fds_;
 
   void InitKqueue(void);
-  void UpdateKqueue(struct kevent* sock_ev, int socket_fd, int16_t ev_filt,
-                    uint16_t ev_flag);
+  void UpdateKqueue(int socket_fd, int16_t ev_filt, uint16_t ev_flag);
+  void UpdateTimerEvent(int id, uint16_t ev_filt, intptr_t data);
   void AcceptConnection(int socket_fd);
   void ReceiveRequests(const int kSocketFd);
   void SendResponses(int socket_fd);

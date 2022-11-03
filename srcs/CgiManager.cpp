@@ -85,7 +85,7 @@ void CgiManager::ParseScriptCommandLine(std::vector<std::string>& arg_vector,
   }
   query.erase(0, 13);  // QUERY_STRING=
   if (!query.empty() && query.find("=") == std::string::npos) {
-    size_t start = 1;
+    size_t start = 0;
     for (size_t plus_pos = query.find("+"); plus_pos != std::string::npos;
          plus_pos = query.find("+", start)) {
       arg_vector.push_back(query.substr(start, plus_pos - start));
@@ -131,6 +131,7 @@ void CgiManager::ExecuteScript(const char* kSuccessPath, char* const* kEnv) {
   }
   alarm(5);  // CGI script timeout
   execve(script_path, const_cast<char* const*>(kArgv), kEnv);
+  std::cerr << "execve error" << std::endl;
   exit(EXIT_FAILURE);
 }
 
