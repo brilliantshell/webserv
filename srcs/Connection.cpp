@@ -39,6 +39,7 @@ void Connection::Reset(int does_next_req_exist) {
     parser_.Reset();
     buffer_.assign(BUFFER_SIZE, 0);
     connection_status_ = KEEP_ALIVE;
+    send_status_ = KEEP_SENDING;
     client_addr_.clear();
     if (router_ != NULL) {
       delete router_;
@@ -52,6 +53,10 @@ void Connection::Reset(int does_next_req_exist) {
 }
 
 ResponseManager::IoFdPair Connection::HandleRequest(void) {
+  if (connection_status_ == CLOSE) {
+    connection_status_ = CONNECTION_ERROR;
+    return ResponseManager::IoFdPair();
+  }
   if (connection_status_ != NEXT_REQUEST_EXISTS) {
     Receive();
   }
@@ -70,6 +75,8 @@ ResponseManager::IoFdPair Connection::HandleRequest(void) {
   }
   Router::Result location_data = router_->Route(
       req_data.status, request, ConnectionInfo(port_, client_addr_));
+  std::cerr << "request status (4 : complete),  (5 : close) : " << req_status
+            << "\n";
   ResponseManager* response_manager = GenerateResponseManager(
       (req_status == HttpParser::kComplete), request, location_data);
   if (response_manager == NULL) {
@@ -123,6 +130,7 @@ void Connection::Send(void) {
   send_status_ = KEEP_SENDING;
   if (response.offset >= response.header.size() + response.content.size()) {
     response_queue_.pop();
+    send_status_ = SEND_NEXT;
     if (response_queue_.empty()) {
       send_status_ = SEND_FINISHED;
     }
@@ -134,6 +142,10 @@ bool Connection::IsResponseBufferReady(void) const {
     return false;
   }
   return response_queue_.front().is_complete;
+}
+
+bool Connection::IsHttpPairSynced(void) const {
+  return (response_manager_map_.size() == response_queue_.size());
 }
 
 int Connection::get_send_status(void) const { return send_status_; }
@@ -165,6 +177,8 @@ void Connection::Receive(void) {
 
 void Connection::DetermineIoComplete(ResponseManager::IoFdPair& io_fds,
                                      ResponseManager* manager) {
+  connection_status_ =
+      (manager->get_is_keep_alive() == true) ? KEEP_ALIVE : CLOSE;
   if (io_fds.input == -1 && io_fds.output == -1) {
     manager->FormatHeader();
     response_manager_map_.Erase(manager);
@@ -177,10 +191,7 @@ void Connection::DetermineIoComplete(ResponseManager::IoFdPair& io_fds,
       response_manager_map_[io_fds.output] = manager;
     }
   }
-  connection_status_ =
-      (manager->get_is_keep_alive() == true) ? KEEP_ALIVE : CLOSE;
 }
-
 // For General Response
 ResponseManager* Connection::GenerateResponseManager(
     bool is_keep_alive, Request& request, Router::Result& router_result) {

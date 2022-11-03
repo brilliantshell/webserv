@@ -37,7 +37,9 @@
 
 // send status
 #define KEEP_SENDING 0
-#define SEND_FINISHED 1
+#define SEND_NEXT 1
+#define SEND_FINISHED 2
+
 #define SEND_BUFF_SIZE 32768
 
 class Connection {
@@ -54,6 +56,7 @@ class Connection {
   void Send(void);
 
   bool IsResponseBufferReady(void) const;
+  bool IsHttpPairSynced(void) const;
 
   int get_send_status(void) const;
   int get_connection_status(void) const;

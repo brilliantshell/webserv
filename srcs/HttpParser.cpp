@@ -66,8 +66,7 @@ HttpParser::Result& HttpParser::get_result(void) { return result_; }
 
 // SECTION : private
 void HttpParser::SkipLeadingCRLF(std::string& segment) {
-  // TODO segment.size() < 2
-  if (segment.compare(0, 2, CRLF) == 0) {
+  if (segment.size() > 2 && segment.compare(0, 2, CRLF) == 0) {
     segment = segment.substr(2);
   }
   status_ = kRequestLine;

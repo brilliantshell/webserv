@@ -34,12 +34,15 @@ void HttpServer::Run(void) {
     int number_of_events = kevent(kq_, NULL, 0, events, MAX_EVENTS, NULL);
     if (number_of_events == -1) {
       std::cerr << "HttpServer : kevent failed : " << strerror(errno) << '\n';
-      exit(EXIT_FAILURE);
+      exit(EXIT_FAILURE);  // TODO : error handling
     }
     for (int i = 0; i < number_of_events; ++i) {
       PRINT_EVENT(events[i]);
-      if (passive_sockets_.count(events[i].ident) == 1) {
+      if (events[i].filter != EVFILT_TIMER &&
+          passive_sockets_.count(events[i].ident) == 1) {
         AcceptConnection(events[i].ident);
+      } else if (events[i].filter == EVFILT_TIMER) {
+        ClearConnectionResources(events[i].ident);
       } else if (close_io_fds_.count(events[i].ident) == 0) {
         (io_fd_map_.count(events[i].ident) == 1)
             ? HandleIOEvent(events[i])
@@ -51,33 +54,40 @@ void HttpServer::Run(void) {
 }
 
 void HttpServer::HandleConnectionEvent(struct kevent& event) {
-  if (event.flags & EV_EOF) {
+  if (event.flags & EV_EOF && event.filter == EVFILT_READ) {
     ClearConnectionResources(event.ident);
+    UpdateTimerEvent(event.ident, EV_DELETE, 0);
   } else {
     if (event.filter == EVFILT_READ) {
       ReceiveRequests(event.ident);
     } else if (event.filter == EVFILT_WRITE) {
       SendResponses(event.ident);
     }
+    UpdateTimerEvent(
+        event.ident, EV_ADD | EV_ONESHOT,
+        (connections_[event.ident].get_connection_status() == KEEP_READING)
+            ? 5
+            : 30);
     if (connections_[event.ident].get_connection_status() == CONNECTION_ERROR) {
       ClearConnectionResources(event.ident);
+      UpdateTimerEvent(event.ident, EV_DELETE, 0);
     }
   }
 }
 
 void HttpServer::HandleIOEvent(struct kevent& event) {
-  struct kevent io_ev;
   int socket_fd = io_fd_map_[event.ident];
   if (event.filter == EVFILT_READ || event.filter == EVFILT_WRITE) {
     ResponseManager::IoFdPair io_fds =
         connections_[socket_fd].ExecuteMethod(event.ident);
     if (connections_[socket_fd].get_connection_status() == CONNECTION_ERROR) {
       ClearConnectionResources(socket_fd);
+      UpdateTimerEvent(socket_fd, EV_DELETE, 0);
       return;
     }
     RegisterIoEvents(io_fds, connections_[socket_fd].get_fd());
     if (connections_[socket_fd].IsResponseBufferReady() == true) {
-      UpdateKqueue(&io_ev, socket_fd, EVFILT_WRITE, EV_ADD | EV_ONESHOT);
+      UpdateKqueue(socket_fd, EVFILT_WRITE, EV_ADD | EV_ONESHOT);
     }
     if (static_cast<int>(event.ident) != io_fds.input &&
         static_cast<int>(event.ident) != io_fds.output) {
@@ -103,6 +113,7 @@ void HttpServer::InitKqueue(void) {
   for (ListenerMap::const_iterator it = passive_sockets_.begin();
        it != passive_sockets_.end(); ++it) {
     EV_SET(&sock_ev[i++], it->first, EVFILT_READ, EV_ADD, 0, 0, NULL);
+    std::cerr << "HttpServer : Added socket fd : " << it->first << '\n';
   }
   if (kevent(kq_, sock_ev, passive_sockets_.size(), NULL, 0, NULL) == -1) {
     std::cerr << " HttpServer : Failed to listen : " << strerror(errno) << '\n';
@@ -111,13 +122,25 @@ void HttpServer::InitKqueue(void) {
   delete[] sock_ev;
 }
 
-void HttpServer::UpdateKqueue(struct kevent* sock_ev, int socket_fd,
-                              int16_t ev_filt, uint16_t ev_flag) {
-  EV_SET(sock_ev, socket_fd, ev_filt, ev_flag, 0, 0, NULL);
-  if (kevent(kq_, sock_ev, 1, NULL, 0, NULL) == -1) {
+void HttpServer::UpdateKqueue(int socket_fd, int16_t ev_filt,
+                              uint16_t ev_flag) {
+  struct kevent sock_ev;
+  EV_SET(&sock_ev, socket_fd, ev_filt, ev_flag, 0, 0, NULL);
+  if (kevent(kq_, &sock_ev, 1, NULL, 0, NULL) == -1) {
     std::cerr << " HttpServer : UpdateKqueue failed : " << strerror(errno)
               << '\n';
-    return;
+    return;  // TODO : error handling?
+  }
+}
+
+// data = timeout period
+void HttpServer::UpdateTimerEvent(int id, uint16_t ev_filt, intptr_t data) {
+  struct kevent timer_ev;
+  EV_SET(&timer_ev, id, EVFILT_TIMER, ev_filt, NOTE_SECONDS, data, NULL);
+  if (kevent(kq_, &timer_ev, 1, NULL, 0, NULL) == -1) {
+    std::cerr << " HttpServer : UpdateTimerEvent failed : " << strerror(errno)
+              << '\n';
+    return;  // TODO : error handling?
   }
 }
 
@@ -145,24 +168,23 @@ void HttpServer::AcceptConnection(int socket_fd) {
     connections_[fd].Reset();
     return;
   }
-  struct kevent sock_ev;
-  UpdateKqueue(&sock_ev, fd, EVFILT_READ, EV_ADD | EV_ONESHOT);
+  UpdateKqueue(fd, EVFILT_READ, EV_ADD | EV_ONESHOT);
+  UpdateTimerEvent(fd, EV_ADD | EV_ONESHOT, 30);
 }
 
 void HttpServer::ReceiveRequests(const int kSocketFd) {
-  struct kevent io_ev;
   Connection& connection = connections_[kSocketFd];
   ResponseManager::IoFdPair io_fds = connection.HandleRequest();
-  UpdateKqueue(&io_ev, kSocketFd, EVFILT_READ, EV_ADD | EV_ONESHOT);
   if (connection.get_connection_status() == CONNECTION_ERROR) {
     return;
   }
+  UpdateKqueue(kSocketFd, EVFILT_READ, EV_ADD | EV_ONESHOT);
   if (connection.get_connection_status() == KEEP_READING) {
     return;
   }
   RegisterIoEvents(io_fds, kSocketFd);
   if (connection.IsResponseBufferReady() == true) {
-    UpdateKqueue(&io_ev, kSocketFd, EVFILT_WRITE, EV_ADD | EV_ONESHOT);
+    UpdateKqueue(kSocketFd, EVFILT_WRITE, EV_ADD | EV_ONESHOT);
   }
   while (connection.get_connection_status() == NEXT_REQUEST_EXISTS) {
     io_fds = connection.HandleRequest();
@@ -171,33 +193,43 @@ void HttpServer::ReceiveRequests(const int kSocketFd) {
 }
 
 void HttpServer::SendResponses(int socket_fd) {
-  struct kevent sock_ev;
   Connection& connection = connections_[socket_fd];
-  if (connection.get_send_status() == KEEP_SENDING) {
+  if (connection.get_send_status() < SEND_FINISHED) {
     connection.Send();
     if (connection.get_connection_status() == CONNECTION_ERROR) {
       return;
     }
+    std::cerr << std::boolalpha << "is conn status close? : "
+              << (connection.get_connection_status() == CLOSE) << '\n'
+              << "is send status send next? : "
+              << (connection.get_send_status() == SEND_NEXT) << '\n'
+              << "is the req/res pair synced? : "
+              << connection.IsHttpPairSynced() << '\n';
+    if (connection.get_connection_status() == CLOSE &&
+        connection.get_send_status() > KEEP_SENDING &&
+        connection.IsHttpPairSynced() == true) {
+      std::cerr << "fd: " << socket_fd << "  shutdown\n ";
+      shutdown(socket_fd, SHUT_WR);
+    }
     if (connection.IsResponseBufferReady() == true) {
-      UpdateKqueue(&sock_ev, socket_fd, EVFILT_WRITE, EV_ADD | EV_ONESHOT);
+      UpdateKqueue(socket_fd, EVFILT_WRITE, EV_ADD | EV_ONESHOT);
     }
   }
 }
 
 void HttpServer::RegisterIoEvents(ResponseManager::IoFdPair io_fds,
                                   const int kSocketFd) {
-  struct kevent io_ev;
   if (io_fds.input != -1) {
     if (kSocketFd > 0) {
       io_fd_map_[io_fds.input] = kSocketFd;
     }
-    UpdateKqueue(&io_ev, io_fds.input, EVFILT_READ, EV_ADD | EV_ONESHOT);
+    UpdateKqueue(io_fds.input, EVFILT_READ, EV_ADD | EV_ONESHOT);
   }
   if (io_fds.output != -1) {
     if (kSocketFd > 0) {
       io_fd_map_[io_fds.output] = kSocketFd;
     }
-    UpdateKqueue(&io_ev, io_fds.output, EVFILT_WRITE, EV_ADD | EV_ONESHOT);
+    UpdateKqueue(io_fds.output, EVFILT_WRITE, EV_ADD | EV_ONESHOT);
   }
 }
 
