@@ -30,15 +30,15 @@ bool UriParser::ParseHost(std::string& uri) {
   return result_.is_valid;
 }
 
-bool UriParser::DecodeHexToAscii(std::string& uri, const size_t pos) {
+bool UriParser::DecodeHexToAscii(std::string& uri, const size_t kPos) {
   IsCharSet is_hexdig(HEXDIG, true);
-  if (pos + 2 < uri.size() && is_hexdig(uri[pos + 1]) &&
-      is_hexdig(uri[pos + 2])) {
+  if (kPos + 2 < uri.size() && is_hexdig(uri[kPos + 1]) &&
+      is_hexdig(uri[kPos + 2])) {
     unsigned int x;
     std::stringstream ss;
-    ss << std::hex << uri.substr(pos + 1, 2);
+    ss << std::hex << uri.substr(kPos + 1, 2);
     ss >> x;
-    uri.replace(pos, 3, 1, x);
+    uri.replace(kPos, 3, 1, x);
     return true;
   }
   return false;

@@ -82,7 +82,7 @@ class ClientConnection {
   ~ClientConnection(void);
 
   void Connect(uint16_t port);
-  void SendMessage(const std::string& message);
+  void SendMessage(const std::string& kMessage);
   std::string ReceiveMessage(void);
 
  private:

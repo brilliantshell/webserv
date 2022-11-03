@@ -32,7 +32,7 @@ std::string HeaderFormatter::FormatAllowedMethods(uint8_t allowed_methods) {
 }
 
 std::string HeaderFormatter::FormatContentType(bool is_autoindex,
-                                               const std::string& ext,
+                                               const std::string& kExt,
                                                ResponseHeaderMap& header) {
   if (is_autoindex == true) {
     return "text/html;charset=utf-8";
@@ -43,7 +43,7 @@ std::string HeaderFormatter::FormatContentType(bool is_autoindex,
     content_type = content_type_it->second;
     header.erase(content_type_it);
   } else {
-    MimeMap::iterator mime_it = g_mime_map.find(ext);
+    MimeMap::iterator mime_it = g_mime_map.find(kExt);
     content_type = (mime_it != g_mime_map.end()) ? mime_it->second : "";
   }
   return content_type;

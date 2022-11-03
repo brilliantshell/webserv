@@ -29,12 +29,12 @@ struct Location {
   Location(void);
   Location(bool is_error, std::string error_path);
 
-  std::string& operator[](const std::string& key) {
-    if (key == "root") {
+  std::string& operator[](const std::string& kKey) {
+    if (kKey == "root") {
       return root;
-    } else if (key == "index") {
+    } else if (kKey == "index") {
       return index;
-    } else if (key == "upload_path") {
+    } else if (kKey == "upload_path") {
       return upload_path;
     }
     return redirect_to;
@@ -52,7 +52,7 @@ struct LocationRouter {
   LocationMap location_map;
 
   LocationRouter(void);
-  std::pair<Location&, size_t> operator[](const std::string& path);
+  std::pair<Location&, size_t> operator[](const std::string& kPath);
 };
 
 typedef std::map<std::string, LocationRouter> LocationRouterMap;
@@ -62,7 +62,7 @@ struct ServerRouter {
   LocationRouterMap location_router_map;
   LocationRouter default_server;
 
-  LocationRouter& operator[](const std::string& host);
+  LocationRouter& operator[](const std::string& kHost);
 };
 
 class Router {
@@ -89,12 +89,12 @@ class Router {
   ServerRouter& server_router_;
 
   CgiDiscriminator GetCgiLocation(LocationRouter::CgiVector& cgi_vector,
-                                  const std::string& path);
+                                  const std::string& kPath);
   void RouteToLocation(Result& result, LocationRouter& location_router,
                        Request& request);
   void RouteToCgi(Result& result, Request& request,
-                  const CgiDiscriminator& cgi_discriminator,
-                  const ConnectionInfo& connection_info);
+                  const CgiDiscriminator& kCgiDiscriminator,
+                  const ConnectionInfo& kConnectionInfo);
   bool GetHostAddr(std::string& server_addr) const;
   void UpdateStatus(Result& result, int status);
 };

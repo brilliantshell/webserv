@@ -14,8 +14,8 @@
 StatusMap g_status_map;
 MimeMap g_mime_map;
 
-std::string FileToString(const std::string& file_path) {
-  std::ifstream ifs(file_path);
+std::string FileToString(const std::string& kFilePath) {
+  std::ifstream ifs(kFilePath);
   if (!ifs.good()) {
     throw std::runtime_error("Config open failure");
   }

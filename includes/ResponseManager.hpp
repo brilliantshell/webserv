@@ -94,7 +94,7 @@ class ResponseManager {
   ResponseBuffer& response_buffer_;
   HeaderFormatter header_formatter_;
 
-  std::string ParseExtension(const std::string& success_path);
+  std::string ParseExtension(const std::string& kSuccessPath);
   IoFdPair GetErrorPage(void);
   void ReadFile(int fd);
   virtual int SetIoComplete(int status);

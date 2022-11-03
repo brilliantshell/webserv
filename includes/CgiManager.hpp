@@ -56,12 +56,12 @@ class CgiManager : public ResponseManager {
   void DupFds(void);
   void ParseScriptCommandLine(std::vector<std::string>& arg_vector,
                               std::string query);
-  void ExecuteScript(const char* success_path, char* const* env);
+  void ExecuteScript(const char* kSuccessPath, char* const* kEnv);
 
   // parent
   void SetIpc(void);
   bool OpenPipes(void);
-  bool CheckFileMode(const char* path);
+  bool CheckFileMode(const char* kPath);
   void PassContent(void);
   bool ReceiveCgiHeaderFields(ResponseHeaderMap& header, size_t header_end);
   bool ReceiveCgiResponse(ResponseHeaderMap& header);

@@ -22,14 +22,14 @@
 
 class PassiveSockets : public ListenerMap {
  public:
-  PassiveSockets(const PortSet& port_set);
+  PassiveSockets(const PortSet& kPortSet);
   ~PassiveSockets(void);
 
  private:
-  void Listen(const PortSet& port_set);
-  int OpenSocket(const uint16_t port);
-  int BindSocket(int fd, const uint16_t port);
-  void InitializeSockAddr(const uint16_t port, sockaddr_in* addr);
+  void Listen(const PortSet& kPortSet);
+  int OpenSocket(const uint16_t kPort);
+  int BindSocket(int fd, const uint16_t kPort);
+  void InitializeSockAddr(const uint16_t kPort, sockaddr_in* addr);
 };
 
 #endif  // INCLUDES_PASSIVE_SOCKETS_HPP_

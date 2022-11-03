@@ -26,22 +26,23 @@
 // SECTION : Validator
 class Validator {
  public:
-  Validator(const std::string& config);
+  Validator(const std::string& kConfig);
   ServerConfig Validate(void);
 
   class SyntaxErrorException : public std::exception {
    public:
-    virtual const char* what() const throw() { return "syntax error"; }
+    SyntaxErrorException() : std::exception(), kMessage_("") {}
+    SyntaxErrorException(const std::string& kMessage)
+        : std::exception(), kMessage_(kMessage) {}
+    virtual ~SyntaxErrorException() throw() {}
+    virtual const char* what() const throw() { return kMessage_.c_str(); }
+
+   private:
+    const std::string kMessage_;
   };
 
  private:
-  enum ServerDirective {
-    kListen = 0,
-    kServerName,
-    kError,
-    kRoute,
-    kCgiRoute
-  };
+  enum ServerDirective { kListen = 0, kServerName, kError, kRoute, kCgiRoute };
 
   enum LocationDirective {
     kAutoindex = 0,

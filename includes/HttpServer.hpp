@@ -25,7 +25,7 @@
 
 class HttpServer {
  public:
-  HttpServer(const ServerConfig& config);
+  HttpServer(const ServerConfig& kConfig);
   ~HttpServer(void);
   void Run(void);
 
@@ -44,11 +44,12 @@ class HttpServer {
   void UpdateKqueue(struct kevent* sock_ev, int socket_fd, int16_t ev_filt,
                     uint16_t ev_flag);
   void AcceptConnection(int socket_fd);
-  void ReceiveRequests(const int socket_fd);
+  void ReceiveRequests(const int kSocketFd);
   void SendResponses(int socket_fd);
   void HandleIOEvent(struct kevent& event);
   void HandleConnectionEvent(struct kevent& event);
-  void RegisterIoEvents(ResponseManager::IoFdPair io_fds, int socket_fd = -1);
+  void RegisterIoEvents(ResponseManager::IoFdPair io_fds,
+                        const int kSocketFd = -1);
   void ClearConnectionResources(int socket_fd);
 };
 

@@ -31,7 +31,7 @@ class FileManager : public ResponseManager {
 
   // POST
   void Post(void);
-  void WriteFile(const std::string& request_content);
+  void WriteFile(const std::string& kRequestContent);
   void FindValidOutputPath(std::string& success_path);
 
   // DELETE
@@ -40,8 +40,8 @@ class FileManager : public ResponseManager {
   // Utils
   ResponseManager::IoFdPair GenerateRedirectPage(void);
   void CheckFileMode(void);
-  void GenerateAutoindex(const std::string& path);
-  bool DetermineFileType(const std::string& path, const dirent* ent,
+  void GenerateAutoindex(const std::string& kPath);
+  bool DetermineFileType(const std::string& kPath, const dirent* kEnt,
                          std::vector<std::string>& dir_vector,
                          std::vector<std::string>& file_vector);
   void ListAutoindexFiles(std::vector<std::string>& paths);

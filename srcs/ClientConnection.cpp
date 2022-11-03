@@ -32,8 +32,8 @@ void ClientConnection::Connect(uint16_t port) {
   }
 }
 
-void ClientConnection::SendMessage(const std::string& message) {
-  if (::send(socket_fd_, message.c_str(), message.size(), 0) == -1) {
+void ClientConnection::SendMessage(const std::string& kMessage) {
+  if (::send(socket_fd_, kMessage.c_str(), kMessage.size(), 0) == -1) {
     std::cerr << "send() error" << strerror(errno) << std::endl;
     exit(2);
   }

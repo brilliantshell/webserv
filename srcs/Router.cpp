@@ -40,14 +40,14 @@ Router::Result Router::Route(int status, Request& request,
 
 // SECTION: private
 Router::CgiDiscriminator Router::GetCgiLocation(
-    LocationRouter::CgiVector& cgi_vector, const std::string& path) {
+    LocationRouter::CgiVector& cgi_vector, const std::string& kPath) {
   LocationNode location_node;
   size_t pos = std::string::npos;
   for (size_t i = 0; i < cgi_vector.size(); ++i) {
-    size_t latest = path.find(cgi_vector[i].first);
-    if (latest < pos && path[latest - 1] != '/' &&
-        (latest + cgi_vector[i].first.size() == path.size() ||
-         path[latest + cgi_vector[i].first.size()] == '/')) {
+    size_t latest = kPath.find(cgi_vector[i].first);
+    if (latest < pos && kPath[latest - 1] != '/' &&
+        (latest + cgi_vector[i].first.size() == kPath.size() ||
+         kPath[latest + cgi_vector[i].first.size()] == '/')) {
       pos = latest;  // update cgi extension
       location_node = cgi_vector[i];
     }
@@ -91,19 +91,19 @@ void Router::RouteToLocation(Result& result, LocationRouter& location_router,
 }
 
 void Router::RouteToCgi(Result& result, Request& request,
-                        const CgiDiscriminator& cgi_discriminator,
-                        const ConnectionInfo& connection_info) {
-  const std::string& cgi_ext = cgi_discriminator.first.first;
-  const Location& cgi_location = cgi_discriminator.first.second;
-  result.methods = cgi_location.methods;
-  if ((cgi_location.methods & request.req.method) == 0) {
+                        const CgiDiscriminator& kCgiDiscriminator,
+                        const ConnectionInfo& kConnectionInfo) {
+  const std::string& kCgiExt = kCgiDiscriminator.first.first;
+  const Location& kCgiLocation = kCgiDiscriminator.first.second;
+  result.methods = kCgiLocation.methods;
+  if ((kCgiLocation.methods & request.req.method) == 0) {
     return UpdateStatus(result, 405);  // Method Not Allowed
   }
   result.success_path =
-      "." + cgi_location.root +
-      request.req.path.substr(1, cgi_discriminator.second + cgi_ext.size() - 1);
-  if (result.cgi_env.SetMetaVariables(request, cgi_location.root, cgi_ext,
-                                      connection_info) == false) {
+      "." + kCgiLocation.root +
+      request.req.path.substr(1, kCgiDiscriminator.second + kCgiExt.size() - 1);
+  if (result.cgi_env.SetMetaVariables(request, kCgiLocation.root, kCgiExt,
+                                      kConnectionInfo) == false) {
     result.status = 500;  // INTERNAL SERVER ERROR
   }
   result.is_cgi = true;
@@ -143,10 +143,10 @@ Location::Location(bool is_error, std::string error_path)
 LocationRouter::LocationRouter(void) : error(true, "/error.html") {}
 
 std::pair<Location&, size_t> LocationRouter::operator[](
-    const std::string& path) {
+    const std::string& kPath) {
   size_t pos = std::string::npos;
-  size_t end_pos = path.rfind('/', pos);
-  std::string target_path = path.substr(0, end_pos + 1);
+  size_t end_pos = kPath.rfind('/', pos);
+  std::string target_path = kPath.substr(0, end_pos + 1);
   while (end_pos != std::string::npos) {
     if (location_map.count(target_path) == 1) {
       return std::pair<Location&, size_t>(location_map[target_path],
@@ -156,18 +156,18 @@ std::pair<Location&, size_t> LocationRouter::operator[](
     if (pos == 0) {
       break;
     }
-    end_pos = path.rfind('/', pos - 1);
-    target_path = path.substr(0, end_pos + 1);
+    end_pos = kPath.rfind('/', pos - 1);
+    target_path = kPath.substr(0, end_pos + 1);
   }
   return std::pair<Location&, size_t>(error, 0);
 }
 
 // SECTION: ServerRouter
-LocationRouter& ServerRouter::operator[](const std::string& host) {
-  if (host.size() == 0) {
+LocationRouter& ServerRouter::operator[](const std::string& kHost) {
+  if (kHost.size() == 0) {
     return default_server;
   }
-  std::string server_name(host, 0, host.find(':'));
+  std::string server_name(kHost, 0, kHost.find(':'));
   return (location_router_map.count(server_name) == 1)
              ? location_router_map[server_name]
              : default_server;
