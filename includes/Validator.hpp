@@ -31,17 +31,18 @@ class Validator {
 
   class SyntaxErrorException : public std::exception {
    public:
-    virtual const char* what() const throw() { return "syntax error"; }
+    SyntaxErrorException() : std::exception(), msg_("") {}
+    SyntaxErrorException(const std::string& msg)
+        : std::exception(), msg_(msg) {}
+    virtual ~SyntaxErrorException() throw() {}
+    virtual const char* what() const throw() { return msg_.c_str(); }
+
+   private:
+    std::string msg_;
   };
 
  private:
-  enum ServerDirective {
-    kListen = 0,
-    kServerName,
-    kError,
-    kRoute,
-    kCgiRoute
-  };
+  enum ServerDirective { kListen = 0, kServerName, kError, kRoute, kCgiRoute };
 
   enum LocationDirective {
     kAutoindex = 0,
