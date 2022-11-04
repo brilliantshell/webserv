@@ -40,8 +40,6 @@ int HttpParser::Parse(std::string& segment) {
 }
 
 bool HttpParser::DoesNextReqExist(void) {
-  std::cerr << "status : " << status_ << "\nback_up buf : " << backup_buf_
-            << '\n';
   return (status_ == kComplete && backup_buf_.empty() == false);
 }
 

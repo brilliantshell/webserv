@@ -10,8 +10,18 @@
 #include "Validator.hpp"
 
 // SECTION : public
+/**
+ * @brief config file 검증 하는 Validator 객체 생성
+ *
+ * @param kConfig .config file string
+ */
 Validator::Validator(const std::string& kConfig) : kConfig_(kConfig) {}
 
+/**
+ * @brief config 파일 구성 요소 검증
+ *
+ * @return ServerConfig 파싱된 server port 정보 구조체
+ */
 ServerConfig Validator::Validate(void) {
   ServerConfig result;
   PortServerList_ port_server_list;
@@ -151,7 +161,7 @@ uint32_t Validator::TokenizeNumber(ConstIterator_& delim) {
  * @brief 단일 std::string 으로 받는 파라미터 파싱
  *
  * @param delim 파라미터 종료 위치 가리킬 레퍼런스, 파싱 후 개행 위치로 설정
- * @return std::string
+ * @return std::string 파싱된 string 형 파라미터
  */
 const std::string Validator::TokenizeSingleString(ConstIterator_& delim) {
   delim = std::find_if(cursor_, kConfig_.end(), IsCharSet(" \t\n", true));
@@ -163,6 +173,7 @@ const std::string Validator::TokenizeSingleString(ConstIterator_& delim) {
  * @brief Location 의 path 디렉티브의 파라미터 (PATH) 파싱 & 유효성 검사
  *
  * @param delim 파라미터 종료 위치 가리킬 레퍼런스, 파싱 후 개행 위치로 설정
+ * @param is_cgi cgi script 여부
  * @return std::string 라우트 경로 (cgi script 경로일 수도 있다)
  */
 const std::string Validator::TokenizeRoutePath(ConstIterator_& delim,
@@ -453,7 +464,7 @@ void Validator::GeneratePortMap(ServerConfig& result,
         if (server_router.location_router_map
                 .insert(it2_backup->location_router_node)
                 .second == false) {
-          throw SyntaxErrorException("location already exists");
+          throw SyntaxErrorException("duplicated server name and port");
         }
         port_server_list.erase(it2_backup);
       }

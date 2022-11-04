@@ -65,7 +65,7 @@ int PassiveSockets::BindSocket(int fd, const uint16_t kPort) {
       close(fd);
       return -1;
     }
-    listen(fd, 64);
+    listen(fd, 128);
   }
   return fd;
 }

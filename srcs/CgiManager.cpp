@@ -131,7 +131,6 @@ void CgiManager::ExecuteScript(const char* kSuccessPath, char* const* kEnv) {
   }
   alarm(5);  // CGI script timeout
   execve(script_path, const_cast<char* const*>(kArgv), kEnv);
-  std::cerr << "execve error" << std::endl;
   exit(EXIT_FAILURE);
 }
 

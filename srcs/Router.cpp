@@ -99,6 +99,9 @@ void Router::RouteToCgi(Result& result, Request& request,
   if ((kCgiLocation.methods & request.req.method) == 0) {
     return UpdateStatus(result, 405);  // Method Not Allowed
   }
+  if (kCgiLocation.body_max < request.content.size()) {
+    return UpdateStatus(result, 413);  // Request Entity Too Large
+  }
   result.success_path =
       "." + kCgiLocation.root +
       request.req.path.substr(1, kCgiDiscriminator.second + kCgiExt.size() - 1);
