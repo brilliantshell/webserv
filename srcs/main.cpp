@@ -13,6 +13,7 @@
 
 StatusMap g_status_map;
 MimeMap g_mime_map;
+#include <fstream>
 
 std::string FileToString(const std::string& kFilePath) {
   std::ifstream ifs(kFilePath);

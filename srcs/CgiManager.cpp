@@ -11,8 +11,7 @@
 
 CgiManager::CgiManager(bool is_keep_alive, ResponseBuffer& response,
                        Router::Result& router_result, Request& request)
-    : ResponseManager(ResponseManager::kStatic, is_keep_alive, response,
-                      router_result, request),
+    : ResponseManager(is_keep_alive, response, router_result, request),
       is_header(true),
       pid_(-1),
       write_offset_(0),

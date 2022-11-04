@@ -1,7 +1,7 @@
 /**
  * @file HeaderFormatter.cpp
  * @author ghan, jiskim, yongjule
- * @brief Format HTTP response
+ * @brief Format HTTP response header
  * @date 2022-10-18
  *
  * @copyright Copyright (c) 2022
@@ -9,6 +9,12 @@
 
 #include "HeaderFormatter.hpp"
 
+/**
+ * @brief Date 헤더 필드에 들어갈 값 설정, 현재 시간을 RFC 규격에 에 맞게
+ * formatting
+ *
+ * @return std::string Formatting 된 현재 시간
+ */
 std::string HeaderFormatter::FormatCurrentTime(void) {
   time_t now = time(0);
   char buf[80];
@@ -17,7 +23,14 @@ std::string HeaderFormatter::FormatCurrentTime(void) {
   return buf;
 }
 
-std::string HeaderFormatter::FormatAllowedMethods(uint8_t allowed_methods) {
+/**
+ * @brief Allowed 헤더 필드에 들어갈 값 설정, 라우팅 된 location 의 허가된
+ * methods 출력
+ *
+ * @param allowed_methods 라우팅 된 location 에서 허용하는 methods
+ * @return std::string GET, POST, DELETE 중 허가된 메소드 리스트
+ */
+std::string HeaderFormatter::FormatAllowed(uint8_t allowed_methods) {
   std::string methods;
   if (allowed_methods & GET) {
     methods += "GET";
@@ -31,6 +44,15 @@ std::string HeaderFormatter::FormatAllowedMethods(uint8_t allowed_methods) {
   return methods;
 }
 
+/**
+ * @brief Content-Type 헤더 필드에 들어갈 값 설정, CGI 에서 설정된 값이 없다면
+ * 파일 확장자에 따라 MIME 맵에서 찾아서 설정
+ *
+ * @param is_autoindex autoindex 여부
+ * @param kExt 파일 extension
+ * @param header CGI script 로 부터 받은 header fields
+ * @return std::string 설정된 Content-Type
+ */
 std::string HeaderFormatter::FormatContentType(bool is_autoindex,
                                                const std::string& kExt,
                                                ResponseHeaderMap& header) {
@@ -49,6 +71,11 @@ std::string HeaderFormatter::FormatContentType(bool is_autoindex,
   return content_type;
 }
 
+/**
+ * @brief CGI 와 충돌하는 헤더 필드 제거
+ *
+ * @param header 정리된 헤더 map
+ */
 void HeaderFormatter::ResolveConflicts(ResponseHeaderMap& header) {
   std::string server_fields[5] = {"server", "date", "allow", "connection",
                                   "content-length"};
