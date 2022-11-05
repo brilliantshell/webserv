@@ -146,8 +146,8 @@ ssize_t FileManager::WriteFile(const std::string& kReqContent) {
  * @brief POST 요청 시 생성할 파일의 이름 설정
  *
  * @param success_path 요청에서 제공해 준 경로
- * @return true 파일 생성 성골
- * @return false 파일 생성 실패 (403, 500)
+ * @return true
+ * @return false
  */
 bool FileManager::FindValidOutputPath(std::string& success_path) {
   size_t ext_start = success_path.rfind('.');

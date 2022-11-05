@@ -257,8 +257,8 @@ void Validator::ValidateRedirectToToken(std::string& redirect_to_token) {
  * @param port LocationRouter 의 port
  * @param server_name LocationRouter 의 server_name
  * @param key_map  서버 디렉티브 map
- * @return true  파싱 성공
- * @return false 서버 블록이 끝난 경우
+ * @return true
+ * @return false
  */
 bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
                                              LocationRouter& location_router,
@@ -326,8 +326,8 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
  * @param location 파싱한 파라미터 저장할 Location
  * @param key_map Location 디렉티브 map
  * @param is_cgi cgi route 인지 여부
- * @return true 파싱 성공
- * @return false 서버 블록이 끝난 경우
+ * @return true
+ * @return false
  */
 bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
                                              Location& location,

@@ -10,16 +10,12 @@
 #ifndef INCLUDES_HTTPPARSER_HPP_
 #define INCLUDES_HTTPPARSER_HPP_
 
-#include <iostream>
-
 #include "PathResolver.hpp"
 #include "Types.hpp"
 #include "UriParser.hpp"
 
 #define CRLF "\r\n"
 #define SP " "
-
-#define BUFFER_SIZE 4096
 
 // HTTP request 길이 제한
 #define METHOD_MAX 6
@@ -83,32 +79,29 @@ class HttpParser {
   std::string backup_buf_;
   Result result_;
 
-  void SkipLeadingCRLF(std::string& segment);
-
   // Parse request line
+  void SkipLeadingCRLF(std::string& segment);
   void ReceiveRequestLine(std::string& segment);
   void ParseRequestLine(void);
   void TokenizeMethod(size_t& pos);
   void TokenizePath(size_t& pos);
   void TokenizeVersion(size_t& pos);
 
-  // Parse header
+  // Parse header - HeaderParser.cpp
+  void SkipWhiteSpace(size_t& cursor);
   void ReceiveHeader(std::string& segment);
   void ParseHeader(void);
   std::string TokenizeFieldName(size_t& cursor);
   void TokenizeFieldValueList(size_t& cursor, std::string& name);
-  void SkipWhiteSpace(size_t& cursor);
 
+  void ParseFieldValueList(std::list<std::string>& field_value_list,
+                           std::map<std::string, size_t>& valid_map,
+                           int no_match_status, char delim);
   void ValidateHost(void);
   void DetermineBodyLength(void);
   void ParseContentLength(std::list<std::string>& content_length);
   void ParseTransferEncoding(std::list<std::string>& encodings);
-  void ParseFieldValueList(std::list<std::string>& field_value_list,
-                           std::map<std::string, size_t>& valid_map,
-                           int no_match_status, char delim);
   void ValidateConnection(void);
-
-  void UpdateStatus(int http_status, int parser_status);
 
   template <typename InputIterator>
   std::map<std::string, size_t> GenerateValidValueMap(InputIterator first,
@@ -121,6 +114,8 @@ class HttpParser {
   bool ParseChunkSize(void);
   void ParseChunkEnd(void);
   bool IgnoreChunkExtension(std::string& chunk_size_line);
+
+  void UpdateStatus(int http_status, int parser_status);
 };
 
 #endif  // INCLUDES_HTTPPARSER_HPP_

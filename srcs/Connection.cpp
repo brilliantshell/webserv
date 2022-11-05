@@ -1,7 +1,7 @@
 /**
  * @file Connection.cpp
  * @author ghan, jiskim, yongjule
- * @brief
+ * @brief Manage connection between client and server
  * @date 2022-10-27
  *
  * @copyright Copyright (c) 2022
@@ -95,7 +95,7 @@ ResponseManager::IoFdPair Connection::HandleRequest(void) {
   }
   HttpParser::Result req_data = parser_.get_result();
   Request& request = req_data.request;
-  PRINT_REQ_LOG(request.req.host, request.req.path);
+  PRINT_REQ_LOG(request.req);
   Router::Result location_data = router_->Route(
       req_data.status, request, ConnectionInfo(port_, client_addr_));
   response_queue_.push(ResponseBuffer());

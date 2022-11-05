@@ -27,9 +27,16 @@
 #include "PathResolver.hpp"
 #include "Router.hpp"
 
-#define PRINT_REQ_LOG(host, path)                                 \
-  std::cout << "----------- Request -----------\nHost : " << host \
-            << "\nPath : " << path << '\n';
+#define PRINT_REQ_LOG(req)                                                    \
+  std::cout << "--------------------- REQUEST ---------------------\nHost : " \
+            << req.host << "\nRequest Line : "                                \
+            << ((req.method == GET)                                           \
+                    ? "GET "                                                  \
+                    : ((req.method == POST) ? "POST " : "DELETE "))           \
+            << req.path << ((req.version == 1) ? " HTTP/1.1" : " HTTP/1.0")   \
+            << "\n\n";
+
+#define BUFFER_SIZE 4096
 
 // connection status
 #define KEEP_ALIVE 0

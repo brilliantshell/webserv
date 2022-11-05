@@ -229,8 +229,8 @@ void Router::RouteToCgi(Result& result, Request& request,
  * @brief Default 서버에 대한 host 주소 설정
  *
  * @param server_addr host 주소를 저장할 string
- * @return true 성공
- * @return false 실패
+ * @return true
+ * @return false
  */
 bool Router::GetHostAddr(std::string& server_addr) const {
   std::string host(sysconf(_SC_HOST_NAME_MAX), '\0');

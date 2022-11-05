@@ -188,8 +188,8 @@ void CgiManager::SetIpc(void) {
 /**
  * @brief CGI 프로세스와 서버의 통신을 위한 파이프 open, non-block 세팅
  *
- * @return true 파이프 open 성공
- * @return false 파이프 open 실패
+ * @return true
+ * @return false
  */
 bool CgiManager::OpenPipes(void) {
   if (pipe(out_fd_) == -1) {
@@ -211,8 +211,8 @@ bool CgiManager::OpenPipes(void) {
  * @brief 실행할 CGI 스크립트가 실행가능 한 지 판단하고 불가능하면 에러 설정
  *
  * @param kPath CGI 스크립트 경로
- * @return true 실행 가능
- * @return false 실행 불가능
+ * @return true
+ * @return false
  */
 bool CgiManager::CheckFileMode(const char* kPath) {
   if (access(kPath, X_OK) == -1) {
