@@ -38,8 +38,8 @@
 #define ERROR_READ 7
 
 // Buffer size
-#define READ_BUFFER_SIZE 4096
-#define WRITE_BUFFER_SIZE 4096
+#define READ_BUFF_SIZE 4096
+#define WRITE_BUFF_SIZE 4096
 
 // Abstract Class For FileManager, CgiManager
 class ResponseManager {

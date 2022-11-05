@@ -11,10 +11,8 @@
 #define INCLUDES_CGIMANAGER_HPP_
 
 #include <libgen.h>
-#include <unistd.h>
 
 #include <csignal>
-#include <string>
 
 #include "ResponseManager.hpp"
 #include "Router.hpp"
@@ -44,7 +42,7 @@ class CgiManager : public ResponseManager {
     kClientRedirDoc
   };
 
-  bool is_header;
+  bool is_header_;
   pid_t pid_;
   int in_fd_[2];
   int out_fd_[2];

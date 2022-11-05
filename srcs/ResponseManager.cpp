@@ -112,12 +112,12 @@ ResponseManager::Result& ResponseManager::get_result(void) { return result_; }
  * @return ssize_t read 한 byte 수
  */
 ssize_t ResponseManager::ReadFile(int fd) {
-  char read_buf[READ_BUFFER_SIZE + 1];
-  memset(read_buf, 0, READ_BUFFER_SIZE + 1);
-  ssize_t read_bytes = read(fd, read_buf, READ_BUFFER_SIZE);
+  char read_buf[READ_BUFF_SIZE + 1];
+  memset(read_buf, 0, READ_BUFF_SIZE + 1);
+  ssize_t read_bytes = read(fd, read_buf, READ_BUFF_SIZE);
   if (read_bytes > 0) {
     response_buffer_.content.append(read_buf, read_bytes);
-    if (read_bytes < READ_BUFFER_SIZE ||
+    if (read_bytes < READ_BUFF_SIZE ||
         response_buffer_.content.size() == static_cast<size_t>(file_size_)) {
       io_status_ = SetIoComplete(IO_COMPLETE);
     } else {

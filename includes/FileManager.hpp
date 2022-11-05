@@ -12,6 +12,8 @@
 
 #include "ResponseManager.hpp"
 
+#define FILE_IDX_MAX 100
+
 class FileManager : public ResponseManager {
  public:
   FileManager(bool is_keep_alive, ResponseBuffer& response,
@@ -31,22 +33,23 @@ class FileManager : public ResponseManager {
 
   // POST
   void Post(void);
-  void WriteFile(const std::string& kRequestContent);
-  void FindValidOutputPath(std::string& success_path);
+  ssize_t WriteFile(const std::string& kReqContent);
+  bool FindValidOutputPath(std::string& success_path);
 
   // DELETE
   void Delete(void);
 
   // Utils
+  int OpenResource(const char* kPath, const int kFlags);
   ResponseManager::IoFdPair GenerateRedirectPage(void);
   void CheckFileMode(void);
-  void GenerateAutoindex(const std::string& kPath);
+  int GenerateAutoindex(const std::string& kPath);
   bool DetermineFileType(const std::string& kPath, const dirent* kEnt,
                          std::vector<std::string>& dir_vector,
                          std::vector<std::string>& file_vector);
   void ListAutoindexFiles(std::vector<std::string>& paths);
   ResponseManager::IoFdPair DetermineSuccessFileExt(void);
-  int SetIoComplete(int status);
+  int SetIoComplete(const int kStatus);
 };
 
 #endif  // INCLUDES_FILEMANAGER_HPP_
