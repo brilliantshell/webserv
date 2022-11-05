@@ -113,7 +113,7 @@ void HttpServer::HandleIOEvent(struct kevent& event) {
   }
 }
 
-// SECTION: private
+// SECTION : private
 /**
  * @brief kqueue 생성 및 passive socket 등록
  *

@@ -104,7 +104,7 @@ Request& ResponseManager::get_request(void) { return request_; }
  */
 ResponseManager::Result& ResponseManager::get_result(void) { return result_; }
 
-// SECTION: protected
+// SECTION : protected
 /**
  * @brief GET 요청/에러일 때 파일 읽기
  *
@@ -199,7 +199,7 @@ int ResponseManager::SetIoComplete(int status) {
   return status;
 }
 
-// SECTION: private
+// SECTION : private
 /**
  * @brief 에러 페이지 I/O 실패시 에러 코드 설정 및 에러 페이지 작성
  *

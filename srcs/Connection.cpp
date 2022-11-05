@@ -292,14 +292,15 @@ ResponseManager* Connection::GenerateResponseManager(
 ResponseManager::IoFdPair Connection::HandleCgiLocalRedirection(
     ResponseManager** manager, std::string& local_redir_path) {
   Request request = (*manager)->get_request();
+  bool is_keep_alive = (*manager)->get_is_keep_alive();
   int status = ValidateLocalRedirPath(local_redir_path, request.req);
   Router::Result location_data =
       router_->Route(status, request, ConnectionInfo(port_, client_addr_));
   ResponseBuffer& current_response_buffer = (*manager)->get_response_buffer();
   response_manager_map_.Erase(*manager);
   delete *manager;
-  *manager = GenerateResponseManager((*manager)->get_is_keep_alive(), request,
-                                     location_data, current_response_buffer);
+  *manager = GenerateResponseManager(is_keep_alive, request, location_data,
+                                     current_response_buffer);
   return (*manager != NULL) ? (*manager)->Execute()
                             : SetConnectionError<ResponseManager::IoFdPair>(
                                   "Connection : memory allocation failure");

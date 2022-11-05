@@ -1,5 +1,5 @@
 /**
- * @file ServerRouter.hpp
+ * @file Router.hpp
  * @author ghan, jiskim, yongjule
  * @brief Route a request to a path
  * @date 2022-10-07

@@ -63,7 +63,7 @@ ResponseManager::IoFdPair CgiManager::Execute(void) {
              : ResponseManager::IoFdPair(out_fd_[0], in_fd_[1]);
 }
 
-// SECTION: private
+// SECTION : private
 
 // SECTION : child
 
