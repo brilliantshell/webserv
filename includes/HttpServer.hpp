@@ -15,13 +15,14 @@
 #include <sys/event.h>
 #include <sys/resource.h>
 
-#include <iostream>
-
 #include "Connection.hpp"
 #include "PassiveSockets.hpp"
 #include "Types.hpp"
 
 #define MAX_EVENTS 64
+
+#define CONNECTION_TIMEOUT 30
+#define REQUEST_TIMEOUT 5
 
 class HttpServer {
  public:
@@ -32,22 +33,26 @@ class HttpServer {
  private:
   typedef std::vector<Connection> ConnectionVector;
   typedef std::map<int, int> IoFdMap;
+  typedef std::set<int> CloseIoFdSet;
 
   int kq_;
   PortMap port_map_;
   PassiveSockets passive_sockets_;
   ConnectionVector connections_;
   IoFdMap io_fd_map_;
-  std::set<int> close_io_fds_;
+  CloseIoFdSet close_io_fds_;
+
+  void HandleIOEvent(struct kevent& event);
+  void HandleConnectionEvent(struct kevent& event);
 
   void InitKqueue(void);
   void UpdateKqueue(int socket_fd, int16_t ev_filt, uint16_t ev_flag);
   void UpdateTimerEvent(int id, uint16_t ev_filt, intptr_t data);
+
   void AcceptConnection(int socket_fd);
   void ReceiveRequests(const int kSocketFd);
   void SendResponses(int socket_fd);
-  void HandleIOEvent(struct kevent& event);
-  void HandleConnectionEvent(struct kevent& event);
+
   void RegisterIoEvents(ResponseManager::IoFdPair io_fds,
                         const int kSocketFd = -1);
   void ClearConnectionResources(int socket_fd);

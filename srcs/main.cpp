@@ -13,6 +13,7 @@
 
 StatusMap g_status_map;
 MimeMap g_mime_map;
+#include <fstream>
 
 std::string FileToString(const std::string& kFilePath) {
   std::ifstream ifs(kFilePath);
@@ -24,24 +25,7 @@ std::string FileToString(const std::string& kFilePath) {
   return ss.str();
 }
 
-#include <execinfo.h>
-
-void stack_trace() {
-  void** buffer = new void*[15];
-  int count = backtrace(buffer, 15);
-  backtrace_symbols_fd(buffer, count, 2);
-  delete[] buffer;
-
-  std::exception_ptr ptr = std::current_exception();
-  try {
-    std::rethrow_exception(ptr);
-  } catch (std::exception& p) {
-    std::cerr << p.what() << std::endl;
-  }
-}
-
 int main(int argc, char* argv[]) {
-  // std::set_terminate(stack_trace);
   if (argc < 2) {
     std::cerr
         << "BrilliantServer : Usage: ./BrilliantServer  [config file path]\n";

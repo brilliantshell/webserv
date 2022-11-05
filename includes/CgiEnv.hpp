@@ -1,7 +1,7 @@
 /**
  * @file CgiEnv.hpp
  * @author ghan, jiskim, yongjule
- * @brief CGI metavariables holder
+ * @brief CGI meta-variables holder
  * @date 2022-10-13
  *
  * @copyright Copyright (c) 2022
@@ -18,7 +18,6 @@
 
 #include <algorithm>
 #include <cstdlib>
-#include <exception>
 #include <sstream>
 #include <string>
 
@@ -55,6 +54,8 @@ class CgiEnv {
   std::string IntToString(T value) const;
 
   const char* set_env(const size_t kIdx, const std::string& kKeyValue);
+  void InitEnv(void);
+  void Clear(size_t idx = 18);
 };
 
 #endif  // INCLUDES_CGIENV_HPP_

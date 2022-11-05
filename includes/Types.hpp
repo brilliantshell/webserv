@@ -10,15 +10,19 @@
 #ifndef INCLUDES_TYPES_HPP_
 #define INCLUDES_TYPES_HPP_
 
+#include <iostream>
 #include <list>
 #include <map>
 #include <set>
 #include <string>
 #include <vector>
 
-#define GET 1
-#define POST 2
-#define DELETE 4
+#define GET 0x01
+#define POST 0x02
+#define DELETE 0x04
+
+#define PRINT_ERROR(msg) std::cerr << "BrilliantServer : " << msg << std::endl;
+#define PRINT_OUT(msg) std::cout << "BrilliantServer : " << msg << std::endl;
 
 struct ServerRouter;
 
@@ -78,18 +82,15 @@ typedef std::map<std::string, std::string> ResponseHeaderMap;
 
 // SECTION : ResponseBufferQueue node
 struct ResponseBuffer {
-  enum {
-    kHeader = 0,
-    kContent
-  };
+  enum { kHeader = 0, kContent };
 
   bool is_complete;
-  int current_buf;
+  int cur_buf;
   size_t offset;
   std::string header;
   std::string content;
 
-  ResponseBuffer(void) : is_complete(false), current_buf(kHeader), offset(0) {}
+  ResponseBuffer(void) : is_complete(false), cur_buf(kHeader), offset(0) {}
 };
 
 #endif  // INCLUDES_TYPES_HPP_

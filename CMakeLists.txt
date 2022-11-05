@@ -28,7 +28,7 @@ add_executable(
 	tests/test.cpp
 	tests/test_validator.cpp
 	#tests/test_socket_generator.cpp
-	#tests/test_parser.cpp
+	tests/test_parser.cpp
 	#tests/test_router.cpp
 	#tests/test_path_resolver.cpp
 	#tests/test_resource_manager.cpp
@@ -38,9 +38,9 @@ add_executable(
 	srcs/Validator.cpp
 	# srcs/PassiveSockets.cpp
 	# srcs/Connection.cpp
-	# srcs/HttpParser.cpp
+	srcs/HttpParser.cpp
 	srcs/UriParser.cpp
-	# srcs/HeaderParser.cpp
+	srcs/HeaderParser.cpp
 	srcs/Router.cpp
 	srcs/PathResolver.cpp
 	# srcs/ResponseManager.cpp

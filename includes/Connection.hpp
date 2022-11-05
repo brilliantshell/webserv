@@ -17,7 +17,6 @@
 #include <unistd.h>
 
 #include <cstring>
-#include <iostream>
 #include <queue>
 #include <string>
 
@@ -27,6 +26,17 @@
 #include "HttpParser.hpp"
 #include "PathResolver.hpp"
 #include "Router.hpp"
+
+#define PRINT_REQ_LOG(req)                                                    \
+  std::cout << "--------------------- REQUEST ---------------------\nHost : " \
+            << req.host << "\nRequest Line : "                                \
+            << ((req.method == GET)                                           \
+                    ? "GET "                                                  \
+                    : ((req.method == POST) ? "POST " : "DELETE "))           \
+            << req.path << ((req.version == 1) ? " HTTP/1.1" : " HTTP/1.0")   \
+            << "\n\n";
+
+#define BUFFER_SIZE 4096
 
 // connection status
 #define KEEP_ALIVE 0
@@ -40,38 +50,39 @@
 #define SEND_NEXT 1
 #define SEND_FINISHED 2
 
-#define SEND_BUFF_SIZE 32768
+#define SEND_BUFF_SIZE 32768  // 32KB
 
 class Connection {
  public:
-  enum { kClose = 0, kReset, kNextReq };
-
   Connection(void);
   ~Connection(void);
 
-  void Reset(int does_next_req_exist = kClose);
+  void Reset(bool does_next_req_exist);
+  void Clear(void);
+
   ResponseManager::IoFdPair HandleRequest(void);
   ResponseManager::IoFdPair ExecuteMethod(int event_fd);
 
   void Send(void);
+
+  void SetAttributes(const int kFd, const std::string& kClientAddr,
+                     const uint16_t kPort, ServerRouter& server_router);
 
   bool IsResponseBufferReady(void) const;
   bool IsHttpPairSynced(void) const;
 
   int get_send_status(void) const;
   int get_connection_status(void) const;
-  int get_fd(void) const;
-
-  void SetAttributes(const int kFd, const std::string& kClientAddr,
-                     const uint16_t kPort, ServerRouter& server_router);
 
  private:
   typedef std::queue<ResponseBuffer> ResponseQueue;
 
   class ResponseManagerMap : public std::map<int, ResponseManager*> {
    public:
+    ~ResponseManagerMap(void) { Clear(); }
+
     void Clear(void) {
-      std::set<void*> manager_set;
+      std::set<ResponseManager*> manager_set;
       for (iterator it = begin(); it != end(); ++it) {
         if (manager_set.count(it->second) == 0) {
           manager_set.insert(it->second);
@@ -104,34 +115,22 @@ class Connection {
   HttpParser parser_;
   Router* router_;
 
-  void Receive(void);
+  ssize_t Receive(void);
   void DetermineIoComplete(ResponseManager::IoFdPair& io_fds,
                            ResponseManager* manager);
-  ResponseManager* GenerateResponseManager(bool is_keep_alive, Request& request,
-                                           Router::Result& router_result);
+
   ResponseManager* GenerateResponseManager(bool is_keep_alive, Request& request,
                                            Router::Result& router_result,
                                            ResponseBuffer& response_buffer);
-  void SetIov(struct iovec* iov, size_t& cnt, ResponseBuffer& res);
-  int ValidateLocalRedirPath(std::string& path, RequestLine& req);
 
   ResponseManager::IoFdPair HandleCgiLocalRedirection(
-      ResponseManager** manager, ResponseManager::Result& response_result);
+      ResponseManager** manager, std::string& local_redir_path);
+  int ValidateLocalRedirPath(std::string& path, RequestLine& req);
 
-  friend std::ostream& operator<<(std::ostream& os,
-                                  const Connection& kConnection) {
-    os << "fd: " << kConnection.fd_
-       << " response queue size : " << kConnection.response_queue_.size()
-       << "  ResponseManagerMap size : "
-       << kConnection.response_manager_map_.size() << std::endl;
-    for (ResponseManagerMap::const_iterator it =
-             kConnection.response_manager_map_.begin();
-         it != kConnection.response_manager_map_.end(); ++it) {
-      os << "ResponseManagerMap key : " << it->first << ", value " << it->second
-         << std::endl;
-    }
-    return os;
-  }
+  size_t SetIov(struct iovec* iov, ResponseBuffer& res);
+
+  template <typename T>
+  T SetConnectionError(const std::string& kMsg);
 };
 
 #endif  // INCLUDES_CONNECTION_HPP_

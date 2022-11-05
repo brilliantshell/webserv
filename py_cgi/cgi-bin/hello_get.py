@@ -1,10 +1,12 @@
 #!/usr/bin/python
 
 # Import modules for CGI handling 
-import cgi, cgitb 
+import cgi, cgitb, os
+
 
 # Create instance of FieldStorage 
 form = cgi.FieldStorage() 
+
 
 
 # Get data from fields
@@ -19,7 +21,8 @@ print ("</head>")
 print ("<body>")
 print ("<h2>Hello %s %s</h2>" % (first_name, last_name))
 print(form)
-
+print("="*100);
+print("PATH_INFO: %s" % os.getenv("PATH_INFO"));
 print("<a href='/'>Go Back to Root</a>")
 print ("</body>")
 print ("</html>")

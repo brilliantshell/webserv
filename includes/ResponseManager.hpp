@@ -15,7 +15,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <fstream>
 #include <sstream>
 
 #include "HeaderFormatter.hpp"
@@ -28,6 +27,7 @@
   "<!DOCTYPE html><title>500 Internal Server Error</title><body><h1>500 " \
   "Internal Server Error</ h1></ body></ html> "
 
+//  I/O status
 #define FILE_READ 0
 #define PIPE_READ 1
 #define FILE_WRITE 2
@@ -37,8 +37,9 @@
 #define ERROR_START 6
 #define ERROR_READ 7
 
-#define READ_BUFFER_SIZE 4096
-#define WRITE_BUFFER_SIZE 4096
+// Buffer size
+#define READ_BUFF_SIZE 4096
+#define WRITE_BUFF_SIZE 4096
 
 // Abstract Class For FileManager, CgiManager
 class ResponseManager {
@@ -66,25 +67,20 @@ class ResponseManager {
           location("") {}
   };
 
-  ResponseManager(int type, bool is_keep_alive, ResponseBuffer& response_buffer,
+  ResponseManager(bool is_keep_alive, ResponseBuffer& response_buffer,
                   Router::Result& router_result, Request& request);
   virtual ~ResponseManager(void);
 
   void FormatHeader(void);
   virtual IoFdPair Execute(void) = 0;
 
-  int get_io_status(void) const;
-  bool get_is_cgi(void) const;
   bool get_is_keep_alive(void) const;
   ResponseBuffer& get_response_buffer(void);
   Request& get_request(void);
   Result& get_result(void);
 
  protected:
-  enum { kStatic = 0, kCgi };
-
   bool is_keep_alive_;
-  int type_;
   int io_status_;
   int err_fd_;
   off_t file_size_;
@@ -94,14 +90,14 @@ class ResponseManager {
   ResponseBuffer& response_buffer_;
   HeaderFormatter header_formatter_;
 
-  std::string ParseExtension(const std::string& kSuccessPath);
+  ssize_t ReadFile(int fd);
   IoFdPair GetErrorPage(void);
-  void ReadFile(int fd);
+  std::string ParseExtension(const std::string& kSuccessPath);
   virtual int SetIoComplete(int status);
 
  private:
-  bool is_cgi_;
-  void HandleGetErrorFailure(void);
+  IoFdPair HandleGetErrorFailure(void);
+  IoFdPair GenerateDefaultError(void);
 };
 
 #endif  // INCLUDES_RESPONSEMANAGER_HPP_
