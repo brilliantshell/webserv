@@ -1,7 +1,7 @@
 /**
  * @file ResponseData.hpp
  * @author ghan, jiskim, yongjule
- * @brief
+ * @brief Global Map structures which store HTTP status information, MIME type
  * @date 2022-10-18
  *
  * @copyright Copyright (c) 2022
@@ -13,6 +13,10 @@
 #include <map>
 #include <string>
 
+/**
+ * @brief 상태 코드 별 메세지 저장하는 구조체
+ *
+ */
 struct StatusMap : public std::map<int, std::string> {
   StatusMap(void) {
     // Successful
@@ -64,6 +68,10 @@ struct StatusMap : public std::map<int, std::string> {
   }
 };
 
+/**
+ * @brief 확장자 별 MIME type 저장하는 구조체
+ *
+ */
 struct MimeMap : public std::map<std::string, std::string> {
   MimeMap(void) {
     this->operator[]("htm") = "text/html;charset=utf-8";

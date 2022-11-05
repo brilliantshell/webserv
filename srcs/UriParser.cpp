@@ -9,12 +9,18 @@
 
 #include "UriParser.hpp"
 
+/**
+ * @brief HTTP 요청 target URI 파싱
+ *
+ * @param uri 파싱할 URI
+ * @return UriParser::Result 파싱 결과
+ */
 UriParser::Result UriParser::ParseTarget(std::string uri) {
   size_t pos = 0;
   if (uri[0] == '/') {
     ValidatePath(uri, pos);
     ValidateQuery(uri, pos);
-  } else if (isalpha(uri[0])) {
+  } else if (isalpha(uri[0]) == true) {
     ValidateScheme(uri, pos);
     ValidateHierPart(uri, ++pos);
   } else {
@@ -23,6 +29,13 @@ UriParser::Result UriParser::ParseTarget(std::string uri) {
   return result_;
 }
 
+/**
+ * @brief HTTP 요청 Host 헤더 파싱
+ *
+ * @param uri 파싱할 URI
+ * @return true
+ * @return false
+ */
 bool UriParser::ParseHost(std::string& uri) {
   size_t pos = 0;
   ValidateAuthority(uri, pos);
@@ -30,21 +43,11 @@ bool UriParser::ParseHost(std::string& uri) {
   return result_.is_valid;
 }
 
-bool UriParser::DecodeHexToAscii(std::string& uri, const size_t kPos) {
-  IsCharSet is_hexdig(HEXDIG, true);
-  if (kPos + 2 < uri.size() && is_hexdig(uri[kPos + 1]) &&
-      is_hexdig(uri[kPos + 2])) {
-    unsigned int x;
-    std::stringstream ss;
-    ss << std::hex << uri.substr(kPos + 1, 2);
-    ss >> x;
-    uri.replace(kPos, 3, 1, x);
-    return true;
-  }
-  return false;
-}
-
-// RESERVED n cycle
+/**
+ * @brief ASCII 문자 HEX 로 인코딩
+ *
+ * @param path 인코딩 적용할 경로
+ */
 void UriParser::EncodeAsciiToHex(std::string& path) {
   IsCharSet is_reserved(RESERVED, true);
   for (size_t i = 0; i < path.size(); ++i) {
@@ -61,44 +64,80 @@ void UriParser::EncodeAsciiToHex(std::string& path) {
   }
 }
 
-std::string UriParser::GetFullPath(void) {
-  if (result_.scheme.empty() == true) {
-    return result_.path + result_.query;
-  } else {
-    return result_.scheme + "://" + result_.host + result_.port + result_.path +
-           result_.query;
+/**
+ * @brief HEX 로 인코딩된 ASCII 문자 디코딩
+ *
+ * @param uri 디코딩 적용할 URI
+ * @param kPos 문자열에서 디코딩 적용
+ * @return true
+ * @return false
+ */
+bool UriParser::DecodeHexToAscii(std::string& uri, const size_t kPos) {
+  IsCharSet is_hexdig(HEXDIG, true);
+  if (kPos + 2 >= uri.size() || is_hexdig(uri[kPos + 1]) == false ||
+      is_hexdig(uri[kPos + 2]) == false) {
+    return false;
   }
+  unsigned int x;
+  std::stringstream ss;
+  ss << std::hex << uri.substr(kPos + 1, 2);
+  ss >> x;
+  uri.replace(kPos, 3, 1, x);
+  return true;
+}
+
+/**
+ * @brief Origin Form / Absolute Form 으로 전체 경로 반환
+ *
+ * @return std::string Origin Form / Absolute Form
+ */
+std::string UriParser::GetFullPath(void) {
+  return (result_.scheme.empty() == true)
+             ? result_.path + result_.query
+             : result_.scheme + "://" + result_.host + result_.port +
+                   result_.path + result_.query;
 }
 
 // SECTION : private
-// Origin form 검증 및 파싱
+/**
+ * @brief 경로 파싱 및 검증
+ *
+ * @param uri 파싱할 URI
+ * @param start 검증 시작 위치
+ */
 void UriParser::ValidatePath(std::string& uri, size_t& start) {
   if (result_.is_valid == false) {
     return;
   }
   size_t pos = start;
   while (pos < uri.size() && uri[pos] != '?' && result_.is_valid) {
-    if (IsCharSet(PCHAR "/", false)(uri[pos])) {
+    if (IsCharSet(PCHAR "/", false)(uri[pos]) == true) {
       result_.is_valid = (uri[pos] == '%') ? DecodeHexToAscii(uri, pos) : false;
     }
     ++pos;
   }
   if (result_.is_valid == true) {
-    result_.path = uri.substr(start, pos - start);
+    result_.path.assign(uri, start, pos - start);
   }
   start = pos;
 }
 
+/**
+ * @brief Query string 파싱 및 검증
+ *
+ * @param uri 파싱할 URI
+ * @param start 검증 시작 위치
+ */
 void UriParser::ValidateQuery(std::string& uri, size_t& start) {
   if (result_.is_valid == false || start >= uri.size()) {
     return;
   }
   size_t pos = start;
-  while (pos < uri.size() && result_.is_valid) {
-    if (IsCharSet(PCHAR "/?", false)(uri[pos])) {
+  while (pos < uri.size() && result_.is_valid == true) {
+    if (IsCharSet(PCHAR "/?", false)(uri[pos]) == true) {
       if (uri[pos] == '%' && uri.size() > pos + 2) {
-        result_.is_valid = IsCharSet(HEXDIG, true)(uri[pos + 1]) &&
-                           IsCharSet(HEXDIG, true)(uri[pos + 2]);
+        result_.is_valid = (IsCharSet(HEXDIG, true)(uri[pos + 1]) == true &&
+                            IsCharSet(HEXDIG, true)(uri[pos + 2]) == true);
         pos += 2;
       } else {
         result_.is_valid = false;
@@ -107,22 +146,36 @@ void UriParser::ValidateQuery(std::string& uri, size_t& start) {
     ++pos;
   }
   if (result_.is_valid == true) {
-    result_.query = uri.substr(start + 1);
+    result_.query.assign(uri, start + 1);
   }
 }
 
-// Absolute form 검증 및 파싱
+/**
+ * @brief (Absolute Form) URI scheme 파싱 및 검증
+ *
+ * @param uri 파싱할 URI
+ * @param start 검증 시작 위치
+ */
 void UriParser::ValidateScheme(std::string& uri, size_t& start) {
-  while (start < uri.size() && uri[start] != ':' && result_.is_valid) {
-    if (IsCharSet(ALPHA DIGIT "+-.", false)(uri[start])) {
+  if (result_.is_valid == false) {
+    return;
+  }
+  while (start < uri.size() && uri[start] != ':') {
+    if (IsCharSet(ALPHA DIGIT "+-.", false)(uri[start]) == true) {
       result_.is_valid = false;
       return;
     }
     ++start;
   }
-  result_.scheme = uri.substr(0, start);
+  result_.scheme.assign(uri, 0, start);
 }
 
+/**
+ * @brief (Absolute Form) URI 에서 hier-part 파싱
+ *
+ * @param uri 파싱할 URI
+ * @param start 검증 시작 위치
+ */
 void UriParser::ValidateHierPart(std::string& uri, size_t& start) {
   if (result_.is_valid == false) {
     return;
@@ -143,28 +196,34 @@ void UriParser::ValidateHierPart(std::string& uri, size_t& start) {
   }
 }
 
+/**
+ * @brief URI 에서 authority 파싱
+ *
+ * @param uri 파싱할 URI
+ * @param start 검증 시작 위치
+ */
 void UriParser::ValidateAuthority(std::string& uri, size_t& start) {
   if (result_.is_valid == false) {
     return;
   }
   size_t pos = start;
-  while (pos < uri.size() && IsCharSet("/:", false)(uri[pos]) &&
-         result_.is_valid) {
-    if (IsCharSet(UNRESERVED SUB_DELIMS, false)(uri[pos])) {
+  while (pos < uri.size() && IsCharSet("/:", false)(uri[pos]) == true &&
+         result_.is_valid == true) {
+    if (IsCharSet(UNRESERVED SUB_DELIMS, false)(uri[pos]) == true) {
       result_.is_valid = (uri[pos] == '%') ? DecodeHexToAscii(uri, pos) : false;
     }
     ++pos;
   }
-  result_.is_valid = result_.is_valid ? (pos != start) : false;
+  result_.is_valid = (result_.is_valid && (pos != start));
   if (result_.is_valid == false) {
     return;
   }
-  result_.host = uri.substr(start, pos - start);
+  result_.host.assign(uri, start, pos - start);
   if (uri[pos] == ':') {
     size_t pos_start = pos;
-    while (++pos < uri.size() && IsCharSet(DIGIT, true)(uri[pos]))
+    while (++pos < uri.size() && IsCharSet(DIGIT, true)(uri[pos]) == true)
       ;
-    result_.port = uri.substr(pos_start, pos - pos_start);
+    result_.port.assign(uri, pos_start, pos - pos_start);
   }
   start = pos;
 }

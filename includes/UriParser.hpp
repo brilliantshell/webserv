@@ -11,7 +11,6 @@
 #define INCLUDES_URIPARSER_HPP_
 
 #include <sstream>
-#include <string>
 
 #include "ParseUtils.hpp"
 

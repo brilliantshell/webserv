@@ -10,6 +10,7 @@
 #ifndef INCLUDES_TYPES_HPP_
 #define INCLUDES_TYPES_HPP_
 
+#include <iostream>
 #include <list>
 #include <map>
 #include <set>
