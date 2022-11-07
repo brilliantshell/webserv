@@ -87,7 +87,8 @@
 		"csignal": "cpp",
 		"queue": "cpp",
 		"climits": "cpp",
-		"__functional_03": "cpp"
+		"__functional_03": "cpp",
+		"cerrno": "cpp"
 	},
 	"cmake.configureOnOpen": false
 }

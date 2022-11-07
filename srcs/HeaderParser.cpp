@@ -120,8 +120,7 @@ void HttpParser::TokenizeFieldValueList(size_t& cursor, std::string& name) {
   size_t start = cursor;
   while (cursor < header_buf_.size() &&
          (IsCharSet(VCHAR SP HTAB, true)(header_buf_[cursor]) == true ||
-          (static_cast<uint8_t>(header_buf_[cursor]) >= 0x80 &&
-           static_cast<uint8_t>(header_buf_[cursor]) <= 0xFF))) {
+          static_cast<uint8_t>(header_buf_[cursor]) >= 0x80)) {
     ++cursor;
   }
   size_t value_end = cursor;

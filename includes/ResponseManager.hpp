@@ -15,13 +15,11 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <sstream>
-
 #include "HeaderFormatter.hpp"
 #include "ResponseData.hpp"
 #include "Router.hpp"
-#include "Types.hpp"
 #include "UriParser.hpp"
+#include "Utils.hpp"
 
 #define LAST_ERROR_DOCUMENT                                               \
   "<!DOCTYPE html><title>500 Internal Server Error</title><body><h1>500 " \

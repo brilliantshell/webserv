@@ -8,7 +8,7 @@
 #include "HttpParser.hpp"
 #include "ResponseManager.hpp"
 #include "Router.hpp"
-#include "Types.hpp"
+#include "Utils.hpp"
 #include "Validator.hpp"
 
 #define CM_CONFIG_PATH_PREFIX "../configs/tests/CgiManager/"

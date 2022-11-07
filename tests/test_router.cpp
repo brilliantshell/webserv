@@ -16,7 +16,7 @@
 #include "Connection.hpp"
 #include "HttpParser.hpp"
 #include "Router.hpp"
-#include "Types.hpp"
+#include "Utils.hpp"
 #include "Validator.hpp"
 
 #define ROUTER_CONFIG_PATH_PREFIX "../configs/tests/router/"

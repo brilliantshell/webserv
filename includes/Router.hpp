@@ -11,10 +11,11 @@
 #define INCLUDES_SERVER_ROUTER_HPP_
 
 #include <utility>
+#include <vector>
 
 #include "CgiEnv.hpp"
 #include "PathResolver.hpp"
-#include "Types.hpp"
+#include "Utils.hpp"
 
 struct Location {
   bool error;

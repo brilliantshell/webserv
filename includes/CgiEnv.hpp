@@ -17,12 +17,9 @@
 #include <unistd.h>
 
 #include <algorithm>
-#include <cstdlib>
-#include <sstream>
-#include <string>
 
 #include "HttpParser.hpp"
-#include "Types.hpp"
+#include "Utils.hpp"
 
 class CgiEnv {
  public:
