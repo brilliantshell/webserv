@@ -48,7 +48,12 @@ void HttpServer::Run(void) {
     int number_of_events = kevent(kq_, NULL, 0, events, MAX_EVENTS, NULL);
     if (number_of_events == -1) {
       PRINT_ERROR("HttpServer : kevent failed : " << strerror(errno));
-      exit(EXIT_FAILURE);
+      for (ConnectionVector::iterator it = connections_.begin();
+           it != connections_.end(); ++it) {
+        ClearConnectionResources(it->get_fd());
+      }
+      sleep(1);
+      continue;
     }
     for (int i = 0; i < number_of_events; ++i) {
       if (events[i].filter == EVFILT_TIMER) {
@@ -172,10 +177,10 @@ void HttpServer::UpdateTimerEvent(int id, uint16_t ev_filt, intptr_t data) {
   struct kevent timer_ev;
   EV_SET(&timer_ev, id, EVFILT_TIMER, ev_filt, NOTE_SECONDS, data, NULL);
   if (kevent(kq_, &timer_ev, 1, NULL, 0, NULL) == -1) {
-    PRINT_ERROR("HttpServer : failed to update connection timeout : "
-                << strerror(errno));
     if (ev_filt != EV_DELETE) {
-      exit(EXIT_FAILURE);
+      PRINT_ERROR("HttpServer : failed to update connection timeout : "
+                  << strerror(errno));
+      ClearConnectionResources(id);
     }
   }
 }
@@ -293,6 +298,9 @@ void HttpServer::RegisterIoEvents(ResponseManager::IoFdPair io_fds,
  * @param socket_fd 연결 해제 된 소켓 fd
  */
 void HttpServer::ClearConnectionResources(int socket_fd) {
+  if (socket_fd == -1) {
+    return;
+  }
   close(socket_fd);
   for (IoFdMap::const_iterator it = io_fd_map_.begin();
        it != io_fd_map_.end();) {

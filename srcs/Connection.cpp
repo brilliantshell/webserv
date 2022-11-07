@@ -225,6 +225,13 @@ int Connection::get_send_status(void) const { return send_status_; }
  */
 int Connection::get_connection_status(void) const { return connection_status_; }
 
+/**
+ * @brief 현 Connection 의 fd 반환
+ *
+ * @return int
+ */
+int Connection::get_fd(void) const { return fd_; }
+
 // SECTION : private
 /**
  * @brief 요청 수신
@@ -240,8 +247,8 @@ ssize_t Connection::Receive(void) {
 }
 
 /**
- *3473227 @brief File/PIPE I/O 완료 여부에 따라 response manager 를 삭제하거나
- *자원 fd & ResponseManager 매핑
+ * @brief File/PIPE I/O 완료 여부에 따라 response manager 를 삭제하거나
+ * 자원 fd & ResponseManager 매핑
  *
  * @param io_fds File/PIPE I/O fd
  * @param manager 해당 응답 처리 중인 ResponseManager 객체 포인터

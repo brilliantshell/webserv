@@ -12,16 +12,13 @@
 
 #include <algorithm>
 #include <exception>
-#include <iostream>
-#include <list>
-#include <sstream>
-#include <string>
+#include <vector>
 
 #include "ParseUtils.hpp"
 #include "PathResolver.hpp"
 #include "Router.hpp"
-#include "Types.hpp"
 #include "UriParser.hpp"
+#include "Utils.hpp"
 
 // SECTION : Validator
 class Validator {

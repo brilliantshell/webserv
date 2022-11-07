@@ -13,7 +13,7 @@
 #include <sstream>
 
 #include "ResponseData.hpp"
-#include "Types.hpp"
+#include "Utils.hpp"
 
 class HeaderFormatter {
  public:

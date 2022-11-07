@@ -6,7 +6,7 @@
 
 #include "Connection.hpp"
 #include "HttpParser.hpp"
-#include "Types.hpp"
+#include "Utils.hpp"
 #include "Validator.hpp"
 
 #define PARSER_PATH_PREFIX "../tests/HttpParser/"

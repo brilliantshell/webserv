@@ -10,9 +10,11 @@
 #ifndef INCLUDES_HTTPPARSER_HPP_
 #define INCLUDES_HTTPPARSER_HPP_
 
+#include <limits>
+
 #include "PathResolver.hpp"
-#include "Types.hpp"
 #include "UriParser.hpp"
+#include "Utils.hpp"
 
 #define CRLF "\r\n"
 #define SP " "

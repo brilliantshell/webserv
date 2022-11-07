@@ -16,9 +16,9 @@
 #include <sys/uio.h>
 #include <unistd.h>
 
+#include <cerrno>
 #include <cstring>
 #include <queue>
-#include <string>
 
 #include "CgiManager.hpp"
 #include "FileManager.hpp"
@@ -73,6 +73,7 @@ class Connection {
 
   int get_send_status(void) const;
   int get_connection_status(void) const;
+  int get_fd(void) const;
 
  private:
   typedef std::queue<ResponseBuffer> ResponseQueue;
