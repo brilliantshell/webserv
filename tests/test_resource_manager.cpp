@@ -16,7 +16,7 @@
 #include "HttpParser.hpp"
 #include "ResponseManager.hpp"
 #include "Router.hpp"
-#include "Types.hpp"
+#include "Utils.hpp"
 #include "Validator.hpp"
 
 #define RM_CONFIG_PATH_PREFIX "../configs/tests/ResponseManager/"

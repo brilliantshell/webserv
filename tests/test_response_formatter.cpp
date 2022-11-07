@@ -8,7 +8,7 @@
 #include "ResponseFormatter.hpp"
 #include "ResponseManager.hpp"
 #include "Router.hpp"
-#include "Types.hpp"
+#include "Utils.hpp"
 #include "Validator.hpp"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"

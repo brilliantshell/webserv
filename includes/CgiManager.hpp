@@ -16,8 +16,8 @@
 
 #include "ResponseManager.hpp"
 #include "Router.hpp"
-#include "Types.hpp"
 #include "UriParser.hpp"
+#include "Utils.hpp"
 
 #define FIELD_LINE_MAX 8192    // 8KB
 #define HEADER_MAX 16384       // 16KB

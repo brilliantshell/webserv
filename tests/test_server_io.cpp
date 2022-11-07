@@ -7,7 +7,7 @@
 #include "HttpServer.hpp"
 #include "PassiveSockets.hpp"
 #include "ResponseData.hpp"
-#include "Types.hpp"
+#include "Utils.hpp"
 #include "Validator.hpp"
 
 StatusMap g_status_map;

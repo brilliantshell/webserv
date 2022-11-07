@@ -11,7 +11,7 @@
 #define INCLUDES_PATH_RESOLVER_HPP_
 
 #include "ParseUtils.hpp"
-#include "Types.hpp"
+#include "Utils.hpp"
 
 class PathResolver {
  public:

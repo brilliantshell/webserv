@@ -182,7 +182,7 @@ void HttpParser::TokenizePath(size_t& pos) {
   if (pos_back == std::string::npos) {
     return UpdateStatus(400, kClose);  // BAD REQUEST
   }
-  if (pos_back - pos > REQUEST_PATH_MAX) {
+  if (pos_back > REQUEST_PATH_MAX + pos) {
     return UpdateStatus(414, kRLLenErr);  // URI TOO LONG
   }
   UriParser uri_parser;

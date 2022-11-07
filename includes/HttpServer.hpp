@@ -10,14 +10,12 @@
 #ifndef INCLUDES_HTTPSERVER_HPP_
 #define INCLUDES_HTTPSERVER_HPP_
 
-#include <arpa/inet.h>
-#include <fcntl.h>
 #include <sys/event.h>
 #include <sys/resource.h>
 
 #include "Connection.hpp"
 #include "PassiveSockets.hpp"
-#include "Types.hpp"
+#include "Utils.hpp"
 
 #define MAX_EVENTS 64
 

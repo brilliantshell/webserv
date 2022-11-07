@@ -1,5 +1,5 @@
 /**
- * @file Types.hpp
+ * @file Utils.hpp
  * @author ghan, jiskim, yongjule
  * @brief fixed width integer types definition
  * @date 2022-09-07
@@ -10,12 +10,12 @@
 #ifndef INCLUDES_TYPES_HPP_
 #define INCLUDES_TYPES_HPP_
 
+#include <cerrno>
 #include <iostream>
 #include <list>
 #include <map>
 #include <set>
 #include <string>
-#include <vector>
 
 #define GET 0x01
 #define POST 0x02
@@ -26,11 +26,12 @@
 
 struct ServerRouter;
 
+/* Signed */
 typedef signed char int8_t;
 typedef short int int16_t;
 typedef int int32_t;
 
-/* Unsigned.  */
+/* Unsigned */
 typedef unsigned char uint8_t;
 typedef unsigned short int uint16_t;
 typedef unsigned int uint32_t;
