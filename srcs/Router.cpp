@@ -236,6 +236,7 @@ bool Router::GetHostAddr(std::string& server_addr) const {
   std::string host(sysconf(_SC_HOST_NAME_MAX), '\0');
   gethostname(&host[0], sysconf(_SC_HOST_NAME_MAX));
   struct hostent* host_ent = gethostbyname(&host[0]);
+  // herror();
   if (host_ent == NULL) {
     return false;
   }

@@ -162,7 +162,7 @@ void HttpParser::TokenizeMethod(size_t& pos) {
     result_.request.req.method = DELETE;
   } else {
     UpdateStatus((token.find_first_not_of(UPPER_ALPHA) == std::string::npos)
-                     ? 405   // NOT IMPLEMENTED
+                     ? 405   // METHOD NOT ALLOWED
                      : 400,  // BAD REQUEST
                  kComplete);
   }
