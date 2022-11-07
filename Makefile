@@ -30,9 +30,9 @@ SRCS			= $(addprefix $(SRCS_DIR), \
 				  CgiManager.cpp \
 				  FileManager.cpp\
 				  HeaderFormatter.cpp \
-				  ClientConnection.cpp \
 				)
 
+CGI_DIR = ./cgi_src
 
 OBJS			= ${SRCS:%.cpp=%.o}
 
@@ -76,7 +76,7 @@ clean			:
 
 .PHONY			:	fclean
 fclean			:	clean
-					@rm -f $(NAME)
+					@rm -f $(NAME) $(CGI_DIR)/cgi_redir.out $(CGI_DIR)/cgi.out
 					@echo $(RED) Remove🧹 $(NAME) 📣 $(RESET)
 
 .PHONY			:	re
@@ -93,3 +93,11 @@ debug			:
 leaks			:
 					@make LEAKS=1
 					@echo $(RED)$(BOLD) Is there Leaks?🚰$(RESET)
+
+
+
+.PHONY			:	cgi
+cgi				:
+				@$(CXX) $(CGI_DIR)/cgi_redir.cpp -o $(CGI_DIR)/cgi_redir.out 
+				@$(CXX) $(CGI_DIR)/cgi.cpp -o $(CGI_DIR)/cgi.out
+				@echo $(RED)$(BOLD) BUILD CGI🔥 $(RESET)

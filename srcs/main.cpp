@@ -7,6 +7,8 @@
  * @copyright Copyright (c) 2022
  */
 
+#include <fstream>
+
 #include "HttpServer.hpp"
 #include "ResponseData.hpp"
 #include "Validator.hpp"
@@ -14,9 +16,7 @@
 StatusMap g_status_map;
 MimeMap g_mime_map;
 
-#include <fstream>
-
-std::string FileToString(const std::string& kFilePath) {
+static std::string FileToString(const std::string& kFilePath) {
   std::ifstream ifs(kFilePath);
   if (!ifs.good()) {
     throw std::runtime_error("Config open failure");
@@ -27,21 +27,11 @@ std::string FileToString(const std::string& kFilePath) {
 }
 
 int main(int argc, char* argv[]) {
-  if (argc < 2) {
-    std::cerr
-        << "BrilliantServer : Usage: ./BrilliantServer  [config file path]\n";
-    return EXIT_FAILURE;
-  }
+  std::string config_path((argc < 2) ? "./default.config" : argv[1]);
+
   signal(SIGPIPE, SIG_IGN);
   signal(SIGCHLD, SIG_IGN);
-  // redirect error to file
-  // {
-  //   int fd = open("error.log", O_WRONLY | O_CREAT | O_TRUNC, 0644);
-  //   dup2(fd, 2);
-  //   close(fd);
-  // }
 
-  std::string config_path = argv[1];
   size_t last_dot = config_path.rfind('.');
   if (config_path.size() < 8 || last_dot == std::string::npos ||
       config_path.compare(last_dot, 7, ".config") != 0) {

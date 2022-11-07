@@ -1,0 +1,26 @@
+# GET 200
+http://localhost:4142/get/CMakeLists.txt
+
+# POST - CREATED 201
+http://localhost:4142/post/ghan.txt POST ghan
+
+# POST - CONTENT TOO LARGE 413
+http://localhost:4142/post/image.png POST <large.png
+
+# DELETE 200
+http://localhost:4142/delete/ghan.txt DELETE
+
+# MOVED PERMANANTLY 301
+http://localhost:4142/redirect_to/
+
+# FORBIDDEN 403
+http://localhost:4142/forbidden
+
+# NOT FOUND 404
+http://localhost:4142/not_found
+
+# METHOD NOT ALLOWED 405
+http://localhost:4142/get/CMakeLists.txt POST <large.png
+
+# INTERNAL SERVER ERROR 500
+http://localhost:4142/cgi_src/cgi_redir.php?

@@ -215,6 +215,7 @@ bool CgiManager::OpenPipes(void) {
  * @return false
  */
 bool CgiManager::CheckFileMode(const char* kPath) {
+  errno = 0;
   if (access(kPath, X_OK) == -1) {
     if (errno == ENOENT) {
       result_.status = 404;  // PAGE NOT FOUND
@@ -235,7 +236,6 @@ void CgiManager::PassContent(void) {
   size_t size = (request_.content.size() < write_offset_ + PIPE_BUF_SIZE)
                     ? request_.content.size() - write_offset_
                     : PIPE_BUF_SIZE;
-  errno = 0;
   ssize_t sent_bytes = write(in_fd_[1], &request_.content[write_offset_], size);
   if (sent_bytes < 0) {
     result_.status = 500;  // INTERNAL SERVER ERROR
