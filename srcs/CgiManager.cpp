@@ -383,7 +383,7 @@ bool CgiManager::ParseCgiHeader(ResponseHeaderMap& header) {
   if (type == kError) {
     return false;
   }
-  ResponseHeaderMap::const_iterator it = header.find("status");
+  ResponseHeaderMap::iterator it = header.find("status");
   if (it != header.end()) {
     std::stringstream ss(it->second);
     ss >> result_.status;

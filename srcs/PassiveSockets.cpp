@@ -64,8 +64,6 @@ void PassiveSockets::InitializeSockAddr(const uint16_t kPort,
  * @return int fd, 에러 시 -1
  */
 int PassiveSockets::OpenSocket(const uint16_t kPort) {
-  sockaddr_in addr;
-  InitializeSockAddr(kPort, &addr);
   errno = 0;
   int fd = socket(AF_INET, SOCK_STREAM, 6);
   if (fd < 0) {
