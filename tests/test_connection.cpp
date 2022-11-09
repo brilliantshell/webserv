@@ -110,7 +110,7 @@ void HandleClient(uint16_t port, const std::string& test_id,
 }
 
 bool AcceptSetUpConnection(int listen_fd, Connection& connection,
-                           PortMap& port_map, uint16_t port) {
+                           HostPortMap& host_port_map, uint16_t port) {
   sockaddr_in client_addr;
   socklen_t addr_len = sizeof(sockaddr_in);
   int fd =
@@ -120,7 +120,7 @@ bool AcceptSetUpConnection(int listen_fd, Connection& connection,
     return false;
   }
   connection.SetAttributes(fd, inet_ntoa(client_addr.sin_addr), port,
-                           port_map[port]);
+                           host_port_map[port]);
   if (connection.get_status() == CONNECTION_ERROR) {
     return false;
   }
@@ -131,7 +131,7 @@ void TestConnection(const std::string& test_id, const uint16_t port,
                     std::vector<std::string>& expected_header,
                     const std::string& expected_response) {
   ServerConfig result = TestValidatorSuccess(CN_CONFIG_PATH_PREFIX + test_id);
-  PortMap port_map = result.port_map;
+  HostPortMap host_port_map = result.host_port_map;
   if (listen_fd > 0) {
     pid_t client_pid = fork();
     if (client_pid == 0) {
@@ -141,7 +141,8 @@ void TestConnection(const std::string& test_id, const uint16_t port,
       return;
     }
     Connection connection;
-    if (AcceptSetUpConnection(listen_fd, connection, port_map, port) == false) {
+    if (AcceptSetUpConnection(listen_fd, connection, host_port_map, port) ==
+        false) {
       kill(client_pid, SIGTERM);
     } else {
       connection.HandleRequest();

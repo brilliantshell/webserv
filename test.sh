@@ -174,12 +174,15 @@ function press_enter {
  ( set -x ; siege -f ./siege/status_code.txt -c 1 --reps=once )
  rm forbidden
 
+ press_enter
+ echo  -e "501, 505 상태 코드 확인\n"
+
  echo "501 NOT IMPLEMENTED"
- ( set -x ; echo -ne "GETGETGET / HTTP/1.1\r\nHost: ghan\r\n\r\n" | nc localhost 4141 )
+ ( set -x ; { echo -ne "GETGETGET / HTTP/1.1\r\nHost: ghan\r\n\r\n"; sleep 1; } | nc localhost 4141 )
  printf "\n\n"
 
  echo "505 HTTP VERSION NOT SUPPORTED"
- ( set -x ; echo -ne "GET / HTTP/2.0\r\nHost: ghan\r\n\r\n" | nc localhost 4141 )
+ ( set -x ; { echo -ne "GET / HTTP/2.0\r\nHost: ghan\r\n\r\n"; sleep 1; } | nc localhost 4141 )
  printf "\n\n"
 
  pkill ${SERVER:2}
@@ -202,7 +205,7 @@ function press_enter {
  ( set -x ; $SERVER configs/www.config & )
  printf "\n\n"
 
- ( set -x ; curl -v http://localhost:4143/file_does_not_exist )
+ ( set -x ; curl -v http://$(hostname):4143/file_does_not_exist )
 
  press_enter
 

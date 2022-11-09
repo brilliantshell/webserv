@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
   Validator validator(FileToString(argv[1]));
   ServerConfig ret = validator.Validate();
 
-  HttpServer server(ret.port_set);
+  HttpServer server(ret.host_port_set);
   server.Run();
   return EXIT_SUCCESS;
 }

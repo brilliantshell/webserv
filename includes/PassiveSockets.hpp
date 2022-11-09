@@ -16,20 +16,22 @@
 #include <sys/types.h>
 #include <unistd.h>
 
+#include <utility>
+
 #include "Utils.hpp"
 
 #define BACKLOG 128
 
 class PassiveSockets : public ListenerMap {
  public:
-  PassiveSockets(const PortSet& kPortSet);
+  PassiveSockets(const HostPortSet& kHostPortSet);
   ~PassiveSockets(void);
 
  private:
-  void Listen(const PortSet& kPortSet);
-  void InitializeSockAddr(const uint16_t kPort, sockaddr_in* addr);
-  int OpenSocket(const uint16_t kPort);
-  int BindSocket(int fd, const uint16_t kPort);
+  void Listen(const HostPortSet& kHostPortSet);
+  void InitializeSockAddr(const HostPortPair& kHostPort, sockaddr_in* addr);
+  int OpenSocket(const HostPortSet::const_iterator& kIt);
+  int BindSocket(int fd, const HostPortPair& kHostPort);
 };
 
 #endif  // INCLUDES_PASSIVE_SOCKETS_HPP_

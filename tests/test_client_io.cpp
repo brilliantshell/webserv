@@ -63,12 +63,12 @@ static std::string RandomString(size_t length) {
 int main(int argc, char* argv[]) {
   std::map<pid_t, uint16_t> pid_port_map;
   Validator validator(FileToString(argv[1]));
-  const PortSet& port_set = validator.Validate().port_set;
+  const HostPortSet& host_port_set = validator.Validate().host_port_set;
   int connection_count = atoi(argv[2]);
 
   for (int i = 0; i < connection_count; ++i) {
-    for (PortSet::const_iterator it = port_set.begin(); it != port_set.end();
-         ++it) {
+    for (HostPortSet::const_iterator it = host_port_set.begin();
+         it != host_port_set.end(); ++it) {
       pid_t pid = fork();
       if (pid == 0) {
         ClientConnection connection;

@@ -36,9 +36,9 @@ TEST(ResponseManager, GETMethod) {
   // s 00 GET SUCCESS
   {
     ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_00");
-    PortMap port_map = result.port_map;
-    EXPECT_EQ(port_map.size(), 1);
-    EXPECT_EQ(port_map.count(80), 1);
+    HostPortMap host_port_map = result.host_port_map;
+    EXPECT_EQ(host_port_map.size(), 1);
+    EXPECT_EQ(host_port_map.count(80), 1);
 
     HttpParser parser;
     std::string req_buf = FileToString(RM_REQ_PATH_PREFIX "s_00.txt");
@@ -46,7 +46,7 @@ TEST(ResponseManager, GETMethod) {
     EXPECT_EQ(status, HttpParser::kComplete);
     HttpParser::Result parse_result = parser.get_result();
 
-    Router router(port_map[80]);
+    Router router(host_port_map[80]);
     Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
@@ -66,9 +66,9 @@ TEST(ResponseManager, GETMethod) {
   // f 00 GET FAIL 404
   {
     ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_00");
-    PortMap port_map = result.port_map;
-    EXPECT_EQ(port_map.size(), 1);
-    EXPECT_EQ(port_map.count(80), 1);
+    HostPortMap host_port_map = result.host_port_map;
+    EXPECT_EQ(host_port_map.size(), 1);
+    EXPECT_EQ(host_port_map.count(80), 1);
 
     HttpParser parser;
     std::string req_buf = FileToString(RM_REQ_PATH_PREFIX "f_00.txt");
@@ -76,7 +76,7 @@ TEST(ResponseManager, GETMethod) {
     EXPECT_EQ(status, HttpParser::kComplete);
     HttpParser::Result parse_result = parser.get_result();
 
-    Router router(port_map[80]);
+    Router router(host_port_map[80]);
     Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
@@ -96,9 +96,9 @@ TEST(ResponseManager, GETMethod) {
   // f 01 GET FAIL 403
   {
     ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_01");
-    PortMap port_map = result.port_map;
-    EXPECT_EQ(port_map.size(), 1);
-    EXPECT_EQ(port_map.count(80), 1);
+    HostPortMap host_port_map = result.host_port_map;
+    EXPECT_EQ(host_port_map.size(), 1);
+    EXPECT_EQ(host_port_map.count(80), 1);
 
     HttpParser parser;
     std::string req_buf = FileToString(RM_REQ_PATH_PREFIX "f_01.txt");
@@ -107,7 +107,7 @@ TEST(ResponseManager, GETMethod) {
     HttpParser::Result parse_result = parser.get_result();
 
     chmod("./resources/f_01.html", 0111);
-    Router router(port_map[80]);
+    Router router(host_port_map[80]);
     Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
@@ -128,9 +128,9 @@ TEST(ResponseManager, GETMethod) {
   // f 02 GET FAIL 404 (ERROR, BUT NO ERROR PAGE, GET DEFAULT ERROR PAGE)
   {
     ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_02");
-    PortMap port_map = result.port_map;
-    EXPECT_EQ(port_map.size(), 1);
-    EXPECT_EQ(port_map.count(80), 1);
+    HostPortMap host_port_map = result.host_port_map;
+    EXPECT_EQ(host_port_map.size(), 1);
+    EXPECT_EQ(host_port_map.count(80), 1);
 
     HttpParser parser;
     std::string req_buf = FileToString(RM_REQ_PATH_PREFIX "f_02.txt");
@@ -138,7 +138,7 @@ TEST(ResponseManager, GETMethod) {
     EXPECT_EQ(status, HttpParser::kComplete);
     HttpParser::Result parse_result = parser.get_result();
 
-    Router router(port_map[80]);
+    Router router(host_port_map[80]);
     Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
@@ -157,9 +157,9 @@ TEST(ResponseManager, GETMethod) {
   // f 03 ERROR PATH IS DIRECTORY - http1.1
   {
     ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_03");
-    PortMap port_map = result.port_map;
-    EXPECT_EQ(port_map.size(), 1);
-    EXPECT_EQ(port_map.count(80), 1);
+    HostPortMap host_port_map = result.host_port_map;
+    EXPECT_EQ(host_port_map.size(), 1);
+    EXPECT_EQ(host_port_map.count(80), 1);
 
     HttpParser parser;
     std::string req_buf = FileToString(RM_REQ_PATH_PREFIX "f_03.txt");
@@ -167,7 +167,7 @@ TEST(ResponseManager, GETMethod) {
     EXPECT_EQ(status, HttpParser::kClose);
     HttpParser::Result parse_result = parser.get_result();
 
-    Router router(port_map[80]);
+    Router router(host_port_map[80]);
     Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
@@ -186,9 +186,9 @@ TEST(ResponseManager, GETMethod) {
   // s 01 AUTOINDEX
   {
     ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_01");
-    PortMap port_map = result.port_map;
-    EXPECT_EQ(port_map.size(), 1);
-    EXPECT_EQ(port_map.count(80), 1);
+    HostPortMap host_port_map = result.host_port_map;
+    EXPECT_EQ(host_port_map.size(), 1);
+    EXPECT_EQ(host_port_map.count(80), 1);
 
     HttpParser parser;
     std::string req_buf = FileToString(RM_REQ_PATH_PREFIX "s_01.txt");
@@ -196,7 +196,7 @@ TEST(ResponseManager, GETMethod) {
     EXPECT_EQ(status, HttpParser::kComplete);
     HttpParser::Result parse_result = parser.get_result();
 
-    Router router(port_map[80]);
+    Router router(host_port_map[80]);
     Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
@@ -223,9 +223,9 @@ pre><hr></body></html>");
   // s 02 AUTOINDEX with file
   {
     ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_02");
-    PortMap port_map = result.port_map;
-    EXPECT_EQ(port_map.size(), 1);
-    EXPECT_EQ(port_map.count(80), 1);
+    HostPortMap host_port_map = result.host_port_map;
+    EXPECT_EQ(host_port_map.size(), 1);
+    EXPECT_EQ(host_port_map.count(80), 1);
 
     HttpParser parser;
     std::string req_buf = FileToString(RM_REQ_PATH_PREFIX "s_02.txt");
@@ -233,7 +233,7 @@ pre><hr></body></html>");
     EXPECT_EQ(status, HttpParser::kComplete);
     HttpParser::Result parse_result = parser.get_result();
 
-    Router router(port_map[80]);
+    Router router(host_port_map[80]);
     Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
@@ -263,9 +263,9 @@ pre><hr></body></html>");
   // s 03 AUTOINDEX off, response index file s_03.html
   {
     ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_03");
-    PortMap port_map = result.port_map;
-    EXPECT_EQ(port_map.size(), 1);
-    EXPECT_EQ(port_map.count(80), 1);
+    HostPortMap host_port_map = result.host_port_map;
+    EXPECT_EQ(host_port_map.size(), 1);
+    EXPECT_EQ(host_port_map.count(80), 1);
 
     HttpParser parser;
     std::string req_buf = FileToString(RM_REQ_PATH_PREFIX "s_03.txt");
@@ -273,7 +273,7 @@ pre><hr></body></html>");
     EXPECT_EQ(status, HttpParser::kComplete);
     HttpParser::Result parse_result = parser.get_result();
 
-    Router router(port_map[80]);
+    Router router(host_port_map[80]);
     Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
@@ -293,9 +293,9 @@ pre><hr></body></html>");
   // f 04 GET file name too long
   {
     ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_04");
-    PortMap port_map = result.port_map;
-    EXPECT_EQ(port_map.size(), 1);
-    EXPECT_EQ(port_map.count(80), 1);
+    HostPortMap host_port_map = result.host_port_map;
+    EXPECT_EQ(host_port_map.size(), 1);
+    EXPECT_EQ(host_port_map.count(80), 1);
 
     HttpParser parser;
     std::string req_buf = FileToString(RM_REQ_PATH_PREFIX "f_04.txt");
@@ -303,7 +303,7 @@ pre><hr></body></html>");
     EXPECT_EQ(status, HttpParser::kComplete);
     HttpParser::Result parse_result = parser.get_result();
 
-    Router router(port_map[80]);
+    Router router(host_port_map[80]);
     Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
@@ -332,9 +332,9 @@ TEST(ResponseManager, POSTMethod) {
   // s 04 file upload
   {
     ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_04");
-    PortMap port_map = result.port_map;
-    EXPECT_EQ(port_map.size(), 1);
-    EXPECT_EQ(port_map.count(80), 1);
+    HostPortMap host_port_map = result.host_port_map;
+    EXPECT_EQ(host_port_map.size(), 1);
+    EXPECT_EQ(host_port_map.count(80), 1);
 
     HttpParser parser;
     std::string req_buf = FileToString(RM_REQ_PATH_PREFIX "s_04.txt");
@@ -342,7 +342,7 @@ TEST(ResponseManager, POSTMethod) {
     EXPECT_EQ(status, HttpParser::kComplete);
     HttpParser::Result parse_result = parser.get_result();
 
-    Router router(port_map[80]);
+    Router router(host_port_map[80]);
     Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
@@ -365,9 +365,9 @@ TEST(ResponseManager, POSTMethod) {
   // f 05 file upload to read-only directory
   {
     ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_05");
-    PortMap port_map = result.port_map;
-    EXPECT_EQ(port_map.size(), 1);
-    EXPECT_EQ(port_map.count(80), 1);
+    HostPortMap host_port_map = result.host_port_map;
+    EXPECT_EQ(host_port_map.size(), 1);
+    EXPECT_EQ(host_port_map.count(80), 1);
 
     HttpParser parser;
     std::string req_buf = FileToString(RM_REQ_PATH_PREFIX "f_05.txt");
@@ -375,7 +375,7 @@ TEST(ResponseManager, POSTMethod) {
     EXPECT_EQ(status, HttpParser::kComplete);
     HttpParser::Result parse_result = parser.get_result();
 
-    Router router(port_map[80]);
+    Router router(host_port_map[80]);
     Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
@@ -400,9 +400,9 @@ TEST(ResponseManager, POSTMethod) {
   // s 05 file already exist
   {
     ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_05");
-    PortMap port_map = result.port_map;
-    EXPECT_EQ(port_map.size(), 1);
-    EXPECT_EQ(port_map.count(80), 1);
+    HostPortMap host_port_map = result.host_port_map;
+    EXPECT_EQ(host_port_map.size(), 1);
+    EXPECT_EQ(host_port_map.count(80), 1);
 
     HttpParser parser;
     std::string req_buf = FileToString(RM_REQ_PATH_PREFIX "s_05.txt");
@@ -410,7 +410,7 @@ TEST(ResponseManager, POSTMethod) {
     EXPECT_EQ(status, HttpParser::kComplete);
     HttpParser::Result parse_result = parser.get_result();
 
-    Router router(port_map[80]);
+    Router router(host_port_map[80]);
     Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
@@ -433,16 +433,16 @@ TEST(ResponseManager, POSTMethod) {
   // s 06 file already exist
   {
     ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_06");
-    PortMap port_map = result.port_map;
-    EXPECT_EQ(port_map.size(), 1);
-    EXPECT_EQ(port_map.count(80), 1);
+    HostPortMap host_port_map = result.host_port_map;
+    EXPECT_EQ(host_port_map.size(), 1);
+    EXPECT_EQ(host_port_map.count(80), 1);
     HttpParser parser;
     std::string req_buf = FileToString(RM_REQ_PATH_PREFIX "s_06.txt");
     int status = parser.Parse(req_buf);
     EXPECT_EQ(status, HttpParser::kComplete);
     HttpParser::Result parse_result = parser.get_result();
 
-    Router router(port_map[80]);
+    Router router(host_port_map[80]);
     Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
@@ -467,16 +467,16 @@ TEST(ResponseManager, DELETEMethod) {
   // s 07 DELETE A FILE
   {
     ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "s_07");
-    PortMap port_map = result.port_map;
-    EXPECT_EQ(port_map.size(), 1);
-    EXPECT_EQ(port_map.count(80), 1);
+    HostPortMap host_port_map = result.host_port_map;
+    EXPECT_EQ(host_port_map.size(), 1);
+    EXPECT_EQ(host_port_map.count(80), 1);
     HttpParser parser;
     std::string req_buf = FileToString(RM_REQ_PATH_PREFIX "s_07.txt");
     int status = parser.Parse(req_buf);
     EXPECT_EQ(status, HttpParser::kComplete);
     HttpParser::Result parse_result = parser.get_result();
 
-    Router router(port_map[80]);
+    Router router(host_port_map[80]);
     Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
@@ -501,16 +501,16 @@ TEST(ResponseManager, DELETEMethod) {
   // f 06 DELETE A FILE, NO WRITE PERMISSION
   {
     ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_06");
-    PortMap port_map = result.port_map;
-    EXPECT_EQ(port_map.size(), 1);
-    EXPECT_EQ(port_map.count(80), 1);
+    HostPortMap host_port_map = result.host_port_map;
+    EXPECT_EQ(host_port_map.size(), 1);
+    EXPECT_EQ(host_port_map.count(80), 1);
     HttpParser parser;
     std::string req_buf = FileToString(RM_REQ_PATH_PREFIX "f_06.txt");
     int status = parser.Parse(req_buf);
     EXPECT_EQ(status, HttpParser::kComplete);
     HttpParser::Result parse_result = parser.get_result();
 
-    Router router(port_map[80]);
+    Router router(host_port_map[80]);
     Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));
@@ -539,16 +539,16 @@ TEST(ResponseManager, DELETEMethod) {
   // f 07 DELETE file not exist
   {
     ServerConfig result = TestValidatorSuccess(RM_CONFIG_PATH_PREFIX "f_07");
-    PortMap port_map = result.port_map;
-    EXPECT_EQ(port_map.size(), 1);
-    EXPECT_EQ(port_map.count(80), 1);
+    HostPortMap host_port_map = result.host_port_map;
+    EXPECT_EQ(host_port_map.size(), 1);
+    EXPECT_EQ(host_port_map.count(80), 1);
     HttpParser parser;
     std::string req_buf = FileToString(RM_REQ_PATH_PREFIX "f_07.txt");
     int status = parser.Parse(req_buf);
     EXPECT_EQ(status, HttpParser::kComplete);
     HttpParser::Result parse_result = parser.get_result();
 
-    Router router(port_map[80]);
+    Router router(host_port_map[80]);
     Router::Result router_result =
         router.Route(parse_result.status, parse_result.request,
                      ConnectionInfo(80, "127.0.0.1"));

@@ -20,11 +20,11 @@ Validator::Validator(const std::string& kConfig) : kConfig_(kConfig) {}
 /**
  * @brief config 파일 구성 요소 검증
  *
- * @return ServerConfig 파싱된 server port 정보 구조체
+ * @return ServerConfig 파싱된 server 정보 구조체
  */
 ServerConfig Validator::Validate(void) {
   ServerConfig result;
-  PortServerList_ port_server_list;
+  HostPortServerList_ host_port_server_list_;
 
   for (cursor_ = std::find_if(kConfig_.begin(), kConfig_.end(),
                               IsCharSet(" \n\t", false));
@@ -38,15 +38,16 @@ ServerConfig Validator::Validate(void) {
       throw SyntaxErrorException("invalid configuration file");
     }
     ++cursor_;
-    PortServerPair port_server = ValidateLocationRouter(result.port_set);
-    port_server_list.push_back(port_server);
+    HostPortServerPair port_server =
+        ValidateLocationRouter(result.host_port_set);
+    host_port_server_list_.push_back(port_server);
     cursor_ =
         std::find_if(++cursor_, kConfig_.end(), IsCharSet(" \n\t", false));
   }
-  if (port_server_list.empty()) {
+  if (host_port_server_list_.empty()) {
     throw SyntaxErrorException("invalid configuration file");
   }
-  GeneratePortMap(result, port_server_list);
+  GeneratePortMap(result, host_port_server_list_);
   return result;
 }
 
@@ -141,7 +142,7 @@ Validator::RouteKeyIt_ Validator::FindDirectiveKey(ConstIterator_& delim,
 }
 
 /**
- * @brief LocationRouter 의 listen 디렉티브의 파라미터 (PORT NUMBER) 파싱 &
+ * @brief LocationRouter 의 listen 디렉티브의 파라미터에서 포트 부분 파싱 &
  * 유효성 검사
  *
  * @param delim 파라미터 종료 위치 가리킬 레퍼런스, 파싱 후 개행 위치로 설정
@@ -155,6 +156,29 @@ uint32_t Validator::TokenizeNumber(ConstIterator_& delim) {
   ss.str(std::string(cursor_, delim));
   ss >> nbr;
   return nbr;
+}
+
+/**
+ * @brief LocationRouter 의 listen 디렉티브의 파라미터에서 호스트 부분 파싱 &
+ * 유효성 검사
+ *
+ * @param delim 파라미터 종료 위치 가리킬 레퍼런스, 파싱 후 개행 위치로 설정
+ * @return in_addr_t network byte order 로 변한된 host 값
+ */
+in_addr_t Validator::TokenizeHost(ConstIterator_& delim) {
+  delim = std::find_if(cursor_, kConfig_.end(), IsCharSet(":", true));
+  if (delim == kConfig_.end()) {
+    throw SyntaxErrorException("invalid listen directive");
+  }
+  in_addr_t host_addr = host_addr =
+      (delim - cursor_ == 1 && *cursor_ == '*')
+          ? INADDR_ANY
+          : inet_addr(std::string(cursor_, delim).c_str());
+  if (host_addr == INADDR_NONE) {
+    throw SyntaxErrorException("invalid listen directive");
+  }
+  cursor_ = delim + 1;
+  return host_addr;
 }
 
 /**
@@ -254,7 +278,7 @@ void Validator::ValidateRedirectToToken(std::string& redirect_to_token) {
  *
  * @param delim 디렉티브 종료 위치 가리킬 레퍼런스, 파싱 후 개행 위치로
  * @param location_router 파싱한 파라미터 저장할 LocationRouter
- * @param port LocationRouter 의 port
+ * @param host_port LocationRouter 의 host + port
  * @param server_name LocationRouter 의 server_name
  * @param key_map  서버 디렉티브 map
  * @return true
@@ -262,7 +286,7 @@ void Validator::ValidateRedirectToToken(std::string& redirect_to_token) {
  */
 bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
                                              LocationRouter& location_router,
-                                             uint16_t& port,
+                                             HostPortPair& host_port,
                                              std::string& server_name,
                                              ServerKeyMap_& key_map) {
   ServerKeyIt_ key_it = FindDirectiveKey(delim, key_map);
@@ -271,12 +295,13 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
   }
   switch (key_it->second) {
     case kListen: {
+      host_port.host = TokenizeHost(delim);
       uint32_t num = TokenizeNumber(delim);
       if (num == 0 || num > 65535) {
         throw SyntaxErrorException(
             "the port number must be in a range, 1-65535");
       }
-      port = num;
+      host_port.port = num;
       key_map.erase(key_it->first);
       break;
     }
@@ -379,23 +404,24 @@ bool Validator::SwitchDirectivesToParseParam(ConstIterator_& delim,
 }
 
 /**
- * @brief port와 serverNode<string, LocationRouter> 정보를 담은 PortServerPair
- * 구조체 리턴
+ * @brief host:port와 serverNode<string, LocationRouter> 정보를 담은
+ * HostPortServerPair 구조체 리턴
  *
- * @param port_set port set
- * @return Validator::PortServerPair
+ * @param host_port_set host + port set
+ * @return Validator::HostPortServerPair
  */
-Validator::PortServerPair Validator::ValidateLocationRouter(PortSet& port_set) {
+Validator::HostPortServerPair Validator::ValidateLocationRouter(
+    HostPortSet& host_port_set) {
   LocationRouter location_router;
-  uint16_t port;
+  HostPortPair host_port;
   std::string server_name;
   ServerKeyMap_ key_map;
   ConstIterator_ delim;
 
   InitializeKeyMap(key_map);
   for (; cursor_ != kConfig_.end(); ++cursor_) {
-    if (!SwitchDirectivesToParseParam(delim, location_router, port, server_name,
-                                      key_map)) {
+    if (!SwitchDirectivesToParseParam(delim, location_router, host_port,
+                                      server_name, key_map)) {
       break;
     }
     cursor_ = delim;
@@ -406,8 +432,9 @@ Validator::PortServerPair Validator::ValidateLocationRouter(PortSet& port_set) {
     throw SyntaxErrorException(
         "listen directive and location block are required");
   }
-  port_set.insert(port);
-  return PortServerPair(port, LocationRouterNode(server_name, location_router));
+  host_port_set.insert(host_port);
+  return HostPortServerPair(host_port,
+                            LocationRouterNode(server_name, location_router));
 }
 
 /**
@@ -443,20 +470,21 @@ LocationNode Validator::ValidateLocation(ConstIterator_& delim,
 }
 
 /**
- * @brief PortMap 에 port 별 ServerMap 저장
+ * @brief HostPortMap 에 host:port 별 ServerMap 저장
  *
- * @param result <PortMap, Portset>
- * @param port_server_list <port, LocationRouterNode> 의 리스트
+ * @param result <HostPortMap, HostPortSet>
+ * @param host_port_server_list <HostPortPair, LocationRouterNode> 의 리스트
  */
-void Validator::GeneratePortMap(ServerConfig& result,
-                                PortServerList_& port_server_list) const {
-  for (PortSet::const_iterator it = result.port_set.begin();
-       it != result.port_set.end(); ++it) {
+void Validator::GeneratePortMap(
+    ServerConfig& result, HostPortServerList_& host_port_server_list) const {
+  for (HostPortSet::const_iterator it = result.host_port_set.begin();
+       it != result.host_port_set.end(); ++it) {
     ServerRouter server_router;
-    for (PortServerList_::const_iterator it2 = port_server_list.begin();
-         it2 != port_server_list.end();) {
-      PortServerList_::const_iterator it2_backup = it2++;
-      if (it2_backup->port == *it) {
+    for (HostPortServerList_::const_iterator it2 =
+             host_port_server_list.begin();
+         it2 != host_port_server_list.end();) {
+      HostPortServerList_::const_iterator it2_backup = it2++;
+      if (it2_backup->host_port_pair == *it) {
         if (server_router.location_router_map.size() == 0) {
           server_router.default_server =
               it2_backup->location_router_node.second;
@@ -466,9 +494,9 @@ void Validator::GeneratePortMap(ServerConfig& result,
                 .second == false) {
           throw SyntaxErrorException("duplicated server name and port");
         }
-        port_server_list.erase(it2_backup);
+        host_port_server_list.erase(it2_backup);
       }
     }
-    result.port_map.insert(PortNode(*it, server_router));
+    result.host_port_map.insert(HostPortNode(*it, server_router));
   }
 }

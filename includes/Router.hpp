@@ -96,7 +96,7 @@ class Router {
   void RouteToCgi(Result& result, Request& request,
                   const CgiDiscriminator& kCgiDiscriminator,
                   const ConnectionInfo& kConnectionInfo);
-  bool GetHostAddr(std::string& server_addr) const;
+  bool GetHostAddr(ConnectionInfo& connection_info) const;
   void UpdateStatus(Result& result, int status);
 };
 

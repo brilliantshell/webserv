@@ -56,7 +56,8 @@ void Connection::Reset(bool does_next_req_exist) {
 void Connection::Clear(void) {
   close(fd_);
   fd_ = -1;
-  port_ = 0;
+  host_port_.host = 0;
+  host_port_.port = 0;
   connection_status_ = KEEP_ALIVE;
   send_status_ = KEEP_SENDING;
   parser_.Reset();
@@ -97,7 +98,7 @@ ResponseManager::IoFdPair Connection::HandleRequest(void) {
   Request& request = req_data.request;
   PRINT_REQ_LOG(request.req);
   Router::Result location_data = router_->Route(
-      req_data.status, request, ConnectionInfo(port_, client_addr_));
+      req_data.status, request, ConnectionInfo(host_port_, client_addr_));
   response_queue_.push(ResponseBuffer());
   ResponseManager* response_manager =
       GenerateResponseManager((req_status == HttpParser::kComplete), request,
@@ -173,15 +174,15 @@ void Connection::Send(void) {
  *
  * @param kFd socket fd
  * @param kClientAddr client 주소
- * @param kPort 연결된 port
+ * @param kHostPortPair 연결된 host + port
  * @param server_router port 에 해당하는 서버 라우터
  */
 void Connection::SetAttributes(const int kFd, const std::string& kClientAddr,
-                               const uint16_t kPort,
+                               const HostPortPair& kHostPortPair,
                                ServerRouter& server_router) {
   fd_ = kFd;
   client_addr_ = kClientAddr;
-  port_ = kPort;
+  host_port_ = kHostPortPair;
   router_ = new (std::nothrow) Router(server_router);
   if (router_ == NULL) {
     SetConnectionError<void>("Connection : Router memory allocation failure");
@@ -302,7 +303,7 @@ ResponseManager::IoFdPair Connection::HandleCgiLocalRedirection(
   bool is_keep_alive = (*manager)->get_is_keep_alive();
   int status = ValidateLocalRedirPath(local_redir_path, request.req);
   Router::Result location_data =
-      router_->Route(status, request, ConnectionInfo(port_, client_addr_));
+      router_->Route(status, request, ConnectionInfo(host_port_, client_addr_));
   ResponseBuffer& current_response_buffer = (*manager)->get_response_buffer();
   response_manager_map_.Erase(*manager);
   delete *manager;

@@ -107,7 +107,7 @@ bool CgiEnv::SetMetaVariables(Request &request, const std::string &kRoot,
                                           : "DELETE"),
       "SCRIPT_NAME=" + script_uri.script_name,
       "SERVER_NAME=" + kConnectionInfo.server_name,
-      "SERVER_PORT=" + IntToString(kConnectionInfo.server_port),
+      "SERVER_PORT=" + IntToString(kConnectionInfo.host_port.port),
       "SERVER_PROTOCOL=" +
           std::string((request.req.version == HttpParser::kHttp1_0)
                           ? "HTTP/1.0"

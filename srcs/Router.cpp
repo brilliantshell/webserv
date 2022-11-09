@@ -108,7 +108,7 @@ Router::Result Router::Route(int status, Request& request,
   Result result(status);
   LocationRouter& location_router = server_router_[request.req.host];
   if (&location_router == &server_router_.default_server) {
-    if (GetHostAddr(connection_info.server_name) == false) {
+    if (GetHostAddr(connection_info) == false) {
       result.status = 500;  // INTERNAL SERVER ERROR
       return result;
     }
@@ -232,14 +232,21 @@ void Router::RouteToCgi(Result& result, Request& request,
  * @return true
  * @return false
  */
-bool Router::GetHostAddr(std::string& server_addr) const {
+bool Router::GetHostAddr(ConnectionInfo& connection_info) const {
+  if (connection_info.host_port.host != INADDR_ANY) {
+    in_addr addr;
+    addr.s_addr = connection_info.host_port.host;
+    connection_info.server_name = inet_ntoa(addr);
+    return true;
+  }
   std::string host(sysconf(_SC_HOST_NAME_MAX), '\0');
   gethostname(&host[0], sysconf(_SC_HOST_NAME_MAX));
   struct hostent* host_ent = gethostbyname(&host[0]);
   if (host_ent == NULL) {
     return false;
   }
-  server_addr = inet_ntoa(*(struct in_addr*)host_ent->h_addr_list[0]);
+  connection_info.server_name =
+      inet_ntoa(*(struct in_addr*)host_ent->h_addr_list[0]);
   return true;
 }
 

@@ -22,8 +22,8 @@
  * @param kConfig 서버 설정값 구조체
  */
 HttpServer::HttpServer(const ServerConfig& kConfig)
-    : port_map_(kConfig.port_map),
-      passive_sockets_(PassiveSockets(kConfig.port_set)) {
+    : host_port_map_(kConfig.host_port_map),
+      passive_sockets_(PassiveSockets(kConfig.host_port_set)) {
   struct rlimit fd_limit;
   getrlimit(RLIMIT_NOFILE, &fd_limit);
   connections_.resize(fd_limit.rlim_cur);
@@ -139,8 +139,11 @@ void HttpServer::InitKqueue(void) {
   for (ListenerMap::const_iterator it = passive_sockets_.begin();
        it != passive_sockets_.end(); ++it) {
     EV_SET(&sock_ev[i++], it->first, EVFILT_READ, EV_ADD, 0, 0, NULL);
+    in_addr addr;
+    addr.s_addr = it->second.host;
     PRINT_OUT("HttpServer : passive socket fd : " << it->first << " for "
-                                                  << it->second);
+                                                  << inet_ntoa(addr) << ':'
+                                                  << it->second.port);
   }
   if (kevent(kq_, sock_ev, passive_sockets_.size(), NULL, 0, NULL) == -1) {
     PRINT_ERROR("HttpServer : failed to listen : " << strerror(errno));
@@ -195,8 +198,11 @@ void HttpServer::AcceptConnection(int socket_fd) {
   socklen_t addr_len = sizeof(addr);
   int fd = accept(socket_fd, reinterpret_cast<sockaddr*>(&addr), &addr_len);
   if (fd == -1) {
+    in_addr addr;
+    addr.s_addr = passive_sockets_[socket_fd].host;
     PRINT_ERROR("HttpServer : failed to accept request via "
-                << passive_sockets_[socket_fd] << " : " << strerror(errno));
+                << inet_ntoa(addr) << ':' << passive_sockets_[socket_fd].port
+                << " : " << strerror(errno));
     return;
   }
   fcntl(fd, F_SETFL, O_NONBLOCK);
@@ -207,9 +213,9 @@ void HttpServer::AcceptConnection(int socket_fd) {
     close(fd);
     return;
   }
-  const uint16_t kPort = passive_sockets_[socket_fd];
-  connections_[fd].SetAttributes(fd, inet_ntoa(addr.sin_addr), kPort,
-                                 port_map_[kPort]);
+  const HostPortPair kHostPortPair = passive_sockets_[socket_fd];
+  connections_[fd].SetAttributes(fd, inet_ntoa(addr.sin_addr), kHostPortPair,
+                                 host_port_map_[kHostPortPair]);
   if (connections_[fd].get_connection_status() == CONNECTION_ERROR) {
     PRINT_ERROR("HttpServer : connection attributes set up failed : "
                 << strerror(errno));

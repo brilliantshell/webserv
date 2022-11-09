@@ -21,7 +21,7 @@ ServerConfig TestHostVectors(const std::string& case_id) {
 TEST(SocketGeneratorTest, SingleServer) {
   {
     ServerConfig result = TestHostVectors("s_01");
-    PassiveSockets passive_sockets(result.port_set);
+    PassiveSockets passive_sockets(result.host_port_set);
     ListenerMap::iterator it = passive_sockets.begin();
     sockaddr_in addr;
     socklen_t len = it->second;
@@ -34,7 +34,7 @@ TEST(SocketGeneratorTest, SingleServer) {
 TEST(SocketGeneratorTest, MultipleServers) {
   {
     ServerConfig result = TestHostVectors("s_02");
-    PassiveSockets passive_sockets(result.port_set);
+    PassiveSockets passive_sockets(result.host_port_set);
     EXPECT_EQ(2, passive_sockets.size());
     sockaddr_in addr;
     for (ListenerMap::iterator it = passive_sockets.begin();
@@ -48,7 +48,7 @@ TEST(SocketGeneratorTest, MultipleServers) {
 
   {
     ServerConfig result = TestHostVectors("s_03");
-    PassiveSockets passive_sockets(result.port_set);
+    PassiveSockets passive_sockets(result.host_port_set);
     EXPECT_EQ(8, passive_sockets.size());
     sockaddr_in addr;
     for (ListenerMap::iterator it = passive_sockets.begin();

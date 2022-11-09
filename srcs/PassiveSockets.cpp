@@ -12,9 +12,11 @@
 /**
  * @brief PassiveSockets 객체 생성
  *
- * @param kPortSet listen 할 포트 번호들
+ * @param kHostPortSet listen 할 호스트 + 포트
  */
-PassiveSockets::PassiveSockets(const PortSet& kPortSet) { Listen(kPortSet); }
+PassiveSockets::PassiveSockets(const HostPortSet& kHostPortSet) {
+  Listen(kHostPortSet);
+}
 
 /**
  * @brief PassiveSockets fd 정리 및 객체 소멸
@@ -28,15 +30,15 @@ PassiveSockets::~PassiveSockets(void) {
 
 // SECTION : private
 /**
- * @brief 소켓 open 후 bind 하고 fd 와 포트 번호를 매핑하여 저장
+ * @brief 소켓 open 후 bind 하고 fd 와 호스트 + 포트를 매핑하여 저장
  *
- * @param kPortSet Config 에서 읽어온 listen 할 포트 번호들
+ * @param kHostPortSet Config 에서 읽어온 listen 할 호스트 + 포트
  *
  */
-void PassiveSockets::Listen(const PortSet& kPortSet) {
-  for (PortSet::const_iterator it = kPortSet.begin(); it != kPortSet.end();
-       ++it) {
-    int fd = BindSocket(OpenSocket(*it), *it);
+void PassiveSockets::Listen(const HostPortSet& kHostPortSet) {
+  for (HostPortSet::const_iterator it = kHostPortSet.begin();
+       it != kHostPortSet.end(); ++it) {
+    int fd = BindSocket(OpenSocket(it), *it);
     if (fd != -1) {
       insert(std::make_pair(fd, *it));
     }
@@ -46,28 +48,30 @@ void PassiveSockets::Listen(const PortSet& kPortSet) {
 /**
  * @brief sockaddr_in 구조체 초기화
  *
- * @param kPort listen 할 포트 번호
+ * @param kHostPort listen 할 호스트 + 포트
  * @param addr 초기화할 구조체 주소값
  */
-void PassiveSockets::InitializeSockAddr(const uint16_t kPort,
+void PassiveSockets::InitializeSockAddr(const HostPortPair& kHostPort,
                                         sockaddr_in* addr) {
   memset(addr, 0, sizeof(sockaddr_in));
   addr->sin_family = AF_INET;
-  addr->sin_port = htons(kPort);
-  addr->sin_addr.s_addr = INADDR_ANY;
+  addr->sin_port = htons(kHostPort.port);
+  addr->sin_addr.s_addr = kHostPort.host;
 }
 
 /**
  * @brief 소켓 열기
  *
- * @param kPort bind 할 포트 번호
+ * @param kIt bind 할 호스트 + 포트
  * @return int fd, 에러 시 -1
  */
-int PassiveSockets::OpenSocket(const uint16_t kPort) {
+int PassiveSockets::OpenSocket(const HostPortSet::const_iterator& kIt) {
   errno = 0;
   int fd = socket(AF_INET, SOCK_STREAM, 6);
   if (fd < 0) {
-    PRINT_ERROR("socket for " << kPort
+    in_addr addr;
+    addr.s_addr = kIt->host;
+    PRINT_ERROR("socket for " << inet_ntoa(addr) << ':' << kIt->port
                               << " cannot be opened : " << strerror(errno));
   }
   return fd;
@@ -77,13 +81,13 @@ int PassiveSockets::OpenSocket(const uint16_t kPort) {
  * @brief open 한 소켓을 포트에 bind, listen
  *
  * @param fd open 한 소켓 fd
- * @param kPort bind 할 포트 번호
+ * @param kHostPort bind 할 호스트 + 포트
  * @return int fd, 에러 시 -1
  */
-int PassiveSockets::BindSocket(int fd, const uint16_t kPort) {
+int PassiveSockets::BindSocket(int fd, const HostPortPair& kHostPort) {
   sockaddr_in addr;
   if (fd != -1) {
-    InitializeSockAddr(kPort, &addr);
+    InitializeSockAddr(kHostPort, &addr);
     int opt = 1;
     errno = 0;
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
@@ -93,7 +97,9 @@ int PassiveSockets::BindSocket(int fd, const uint16_t kPort) {
     }
     errno = 0;
     if (bind(fd, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) < 0) {
-      PRINT_ERROR("socket for " << kPort
+      in_addr addr;
+      addr.s_addr = kHostPort.host;
+      PRINT_ERROR("socket for " << inet_ntoa(addr) << ':' << kHostPort.port
                                 << " cannot be bound : " << strerror(errno));
       close(fd);
       return -1;

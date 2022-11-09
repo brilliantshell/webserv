@@ -10,6 +10,8 @@
 #ifndef INCLUDES_VALIDATOR_HPP_
 #define INCLUDES_VALIDATOR_HPP_
 
+#include <arpa/inet.h>
+
 #include <algorithm>
 #include <exception>
 #include <vector>
@@ -51,15 +53,17 @@ class Validator {
     kRedirectTo
   };
 
-  struct PortServerPair {
-    uint16_t port;
+  struct HostPortServerPair {
+    HostPortPair host_port_pair;
     LocationRouterNode location_router_node;
 
-    PortServerPair(uint16_t port, LocationRouterNode location_router_node)
-        : port(port), location_router_node(location_router_node) {}
+    HostPortServerPair(HostPortPair host_port_pair,
+                       LocationRouterNode location_router_node)
+        : host_port_pair(host_port_pair),
+          location_router_node(location_router_node) {}
   };
 
-  typedef std::list<PortServerPair> PortServerList_;
+  typedef std::list<HostPortServerPair> HostPortServerList_;
   typedef std::string::const_iterator ConstIterator_;
   typedef std::map<std::string, ServerDirective> ServerKeyMap_;
   typedef std::map<std::string, ServerDirective>::iterator ServerKeyIt_;
@@ -81,6 +85,7 @@ class Validator {
   // parameter 파싱
   uint32_t TokenizeNumber(ConstIterator_& delim);
   const std::string TokenizeSingleString(ConstIterator_& delim);
+  in_addr_t TokenizeHost(ConstIterator_& delim);
   const std::string TokenizeRoutePath(ConstIterator_& delim,
                                       ServerDirective is_cgi);
   uint8_t TokenizeMethods(ConstIterator_& delim, ServerDirective is_cgi);
@@ -90,7 +95,8 @@ class Validator {
   // 디렉티브별로 파싱하는 switch
   bool SwitchDirectivesToParseParam(ConstIterator_& delim,
                                     LocationRouter& server_block,
-                                    uint16_t& port, std::string& server_name,
+                                    HostPortPair& host_port,
+                                    std::string& server_name,
                                     ServerKeyMap_& key_map);
   bool SwitchDirectivesToParseParam(ConstIterator_& delim,
                                     Location& route_block,
@@ -98,12 +104,12 @@ class Validator {
                                     ServerDirective is_cgi);
 
   // LocationRouter, Location 파싱 및 검증
-  PortServerPair ValidateLocationRouter(PortSet& port_set);
+  HostPortServerPair ValidateLocationRouter(HostPortSet& host_port_set);
   LocationNode ValidateLocation(ConstIterator_& token, ServerDirective is_cgi);
 
-  // PortMap 생성
+  // HostPortMap 생성
   void GeneratePortMap(ServerConfig& result,
-                       PortServerList_& port_server_list) const;
+                       HostPortServerList_& host_port_server_list) const;
 };
 
 #endif  // INCLUDES_VALIDATOR_HPP_

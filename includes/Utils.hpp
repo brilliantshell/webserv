@@ -37,17 +37,34 @@ typedef unsigned short int uint16_t;
 typedef unsigned int uint32_t;
 
 // SECTION : Validator 파싱 구조체 typedef
-typedef std::map<uint16_t, ServerRouter> PortMap;
-typedef std::pair<uint16_t, ServerRouter> PortNode;
-typedef std::set<uint16_t> PortSet;
+struct HostPortPair {
+  in_addr_t host;
+  uint16_t port;
+
+  HostPortPair(void) : host(0), port(0) {}
+  HostPortPair(in_addr_t host_ip, uint16_t port_num)
+      : host(host_ip), port(port_num) {}
+
+  bool operator==(const HostPortPair& rhs) const {
+    return (host == rhs.host && port == rhs.port);
+  }
+
+  bool operator<(const HostPortPair& rhs) const {
+    return (host < rhs.host || (host == rhs.host && port < rhs.port));
+  }
+};
+
+typedef std::map<HostPortPair, ServerRouter> HostPortMap;
+typedef std::pair<HostPortPair, ServerRouter> HostPortNode;
+typedef std::set<HostPortPair> HostPortSet;
 
 struct ServerConfig {
-  PortMap port_map;
-  PortSet port_set;
+  HostPortMap host_port_map;
+  HostPortSet host_port_set;
 };
 
 // SECTION : GenerateSocket 파싱 구조체 typedef
-typedef std::map<int, uint16_t> ListenerMap;  // key: fd, value: port
+typedef std::map<int, HostPortPair> ListenerMap;  // key: fd, value: port
 
 // SECTION : Http request 파싱 구조체
 typedef std::map<std::string, std::list<std::string> > Fields;
@@ -70,12 +87,12 @@ struct Request {
 
 // SECTION : Router 가 필요한 server & client 연결 정보
 struct ConnectionInfo {
-  uint16_t server_port;
+  HostPortPair host_port;
   std::string server_name;
   std::string client_addr;
 
-  ConnectionInfo(uint16_t port, std::string addr)
-      : server_port(port), client_addr(addr) {}
+  ConnectionInfo(HostPortPair host_port, std::string addr)
+      : host_port(host_port), client_addr(addr) {}
 };
 
 // SECTION : ResponseManager 가 반환하는 응답 헤더 필드

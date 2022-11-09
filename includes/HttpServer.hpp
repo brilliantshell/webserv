@@ -10,6 +10,7 @@
 #ifndef INCLUDES_HTTPSERVER_HPP_
 #define INCLUDES_HTTPSERVER_HPP_
 
+#include <arpa/inet.h>
 #include <sys/event.h>
 #include <sys/resource.h>
 
@@ -34,7 +35,7 @@ class HttpServer {
   typedef std::set<int> CloseIoFdSet;
 
   int kq_;
-  PortMap port_map_;
+  HostPortMap host_port_map_;
   PassiveSockets passive_sockets_;
   ConnectionVector connections_;
   IoFdMap io_fd_map_;

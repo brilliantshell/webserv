@@ -66,7 +66,8 @@ class Connection {
   void Send(void);
 
   void SetAttributes(const int kFd, const std::string& kClientAddr,
-                     const uint16_t kPort, ServerRouter& server_router);
+                     const HostPortPair& kHostPortPair,
+                     ServerRouter& server_router);
 
   bool IsResponseBufferReady(void) const;
   bool IsHttpPairSynced(void) const;
@@ -104,10 +105,11 @@ class Connection {
     }
   };
 
-  int fd_;  // connected socket fd
+  int fd_;
+
   int connection_status_;
   int send_status_;
-  uint16_t port_;
+  HostPortPair host_port_;
   std::string client_addr_;
   std::string buffer_;
   ResponseQueue response_queue_;
