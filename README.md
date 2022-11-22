@@ -847,10 +847,11 @@ document-response = Content-Type [ Status ] *other-field NL
 
 # 6 “서버는 죽지 않아!”
 
-- Server 는 어떤 상황에도 꺼지지 않으며
-- 최대한 자원 할당은 생성자에서, 해제는 소멸자에서 처리한다. (RAII)
-- BrilliantServer 는 heap use after free/double free/pointer being freed was not allocated 를 피하기 위해 할당 해제 후 포인터 `NULL` 로 설정한다.
-- 한정된 `fd` 테이블이 재사용되기 때문에 socket, file, pipe 의 I/O event 시 사용하는 `fd` 가 전혀 다른 device 를 가리킬 수 있다. 이를 방지하기 위해 재사용 되는 `fd` 변수들은 `close` 이후 -1 로 설정한다.
+- Server 는 어떤 상황에도 꺼지지 않아야하고, HTTP/1.1 의 특성 상 Connection keep-alive 의 경우 같은 Connection 객체가 재사용되기 때문에 자원 정리가 매우 중요하다.
+- 최대한 자원 할당은 생성자에서, 해제는 소멸자에서 처리한다(RAII).
+- 하지만 생성과 소멸 사이클을 돌 수 없고 반복적으로 재사용되는 객체의 경우 아래의 기본적인 규칙들을 주의하여 지켜야한다.
+    - heap use after free/double free/pointer being freed was not allocated 를 피하기 위해 할당 해제 후 포인터 `NULL` 로 설정한다.
+    - 한정된 `fd` 테이블이 재사용되기 때문에 socket, file, pipe 의 I/O event 시 사용하는 `fd` 가 전혀 다른 device 를 가리킬 수 있다. 이를 방지하기 위해 재사용 되는 `fd` 변수들은 `close` 이후 -1 로 설정한다.
 
 ---
 
