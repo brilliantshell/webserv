@@ -103,6 +103,8 @@ config 파일 작성 규칙은 다음과 같습니다. [Configuration 파일 규
 
 ![http_flowchart.png](/assets/http_flowchart.png)
 
+---
+
 # 1 socket 통신
 
 ## 1.0 socket 이란
@@ -115,6 +117,7 @@ config 파일 작성 규칙은 다음과 같습니다. [Configuration 파일 규
   #include <sys/socket.h>
   int socket(int domain, int type, int protocol);
   ```
+
   - `domain` 로 어떤 도메인에서 통신할지 정할 수 있다. 여러개가 있지만 (OS X 에는 8개, Linux 에는 더 많다) 중요한 두개는 `PF_LOCAL` 과 `PF_INET` 이다.
     - `PF_LOCAL` - 도메인/UNIX socket 이라고 부르는 로컬 프로세스 간 통신을 위한 도메인
     - `PF_INET` - TCP socket 이라고 부르는 IP 통신을 위한 도메인
@@ -124,7 +127,7 @@ config 파일 작성 규칙은 다음과 같습니다. [Configuration 파일 규
     - SOCK_RAW - datagram 으로 통신, 내부 네트워크 인터페이스에 접근 가능
   - `protocol` 에는 소켓이 따를 프로토콜을 지정한다. 같은 프로토콜로 열린 소켓들끼리만 통신이 가능하다. TCP 는 6. (`/etc/protocols` 참고)
 
-	> 💡 이 문서는 Web Server 에 관련된 문서이기 때문에 아래에서는 TCP socket 에 대해서만 설명한다.
+  > 💡 이 문서는 Web Server 에 관련된 문서이기 때문에 아래에서는 TCP socket 에 대해서만 설명한다.
 
 ## 1.1 주소 할당
 
@@ -134,9 +137,11 @@ config 파일 작성 규칙은 다음과 같습니다. [Configuration 파일 규
   #include <sys/socket.h>
   int bind(int socket, const struct sockaddr *address, socklen_t address_len);
   ```
+
   - `socket` 은 해당 socket 의 fd 이다.
   - `address` 는 할당할 주소 정보를 담는 구조체의 주소값이다. UNIX socket 의 경우 `struct sockaddr_un` 의 주소값을, TCP socket 의 경우 `struct sockaddr_in` (IPv4) / `struct sockaddr_in6` (IPv6) 의 주소값을 캐스팅해서 넣어준다.
   - `address_len` 에는 `address` 구조체의 길이를 넣어준다.
+
 - IPv4 의 경우 주소 구조체는 아래와 같다.
 
   ```c
@@ -163,13 +168,15 @@ config 파일 작성 규칙은 다음과 같습니다. [Configuration 파일 규
 - socket 간의 TCP connection 이 수립되는 과정을 순차적으로 설명하면 아래와 같다.
 
   - `bind` 이후 Server 의 소켓은 `listen` 함수를 호출하여 “passive”/”listening” 상태로 전환한다.
-  
+
     ```c
     #include <sys/socket.h>
     int listen(int socket, int backlog);
     ```
+
     - `socket` 은 해당 socket 의 fd 이다.
     - `backlog` 는 연결 수립을 기다리는 요청들의 queue 의 최대 길이이다. queue 가 꽉 차있는 상태에서 연결 수립 요청이 오면 Client 는 ECONNREFUSED 에러를 반환 받는다. (silent limit 128)
+
   - Server 는 “listening” socket 이 준비된 후 `accept` 함수로 block 하며 Client 의 연결 수립 요청을 기다린다.
 
     ```c
@@ -201,11 +208,11 @@ config 파일 작성 규칙은 다음과 같습니다. [Configuration 파일 규
 
 - Server 는 `accept` 함수가 반환한 fd 에 read/recv 하여 Client 가 보낸 요청을 읽고, write/send 하여 Client 에게 응답을 보낼 수 있다.
 
-	> 💡 socket 에 read/write 할 때, 한번의 호출로 시스템의 TCP window size 를 넘을 수 없다.
-`sysctl -a | grep buf` 로 max limit 을 확인할 수 있다. (auto * bufmax 가 window size)
+      > 💡 socket 에 read/write 할 때, 한번의 호출로 시스템의 TCP window size 를 넘을 수 없다.
 
-	![tcp max buffer](/assets/tcp-max-buffer.png)
+  `sysctl -a | grep buf` 로 max limit 을 확인할 수 있다. (auto \* bufmax 가 window size)
 
+      ![tcp max buffer](/assets/tcp-max-buffer.png)
 
 ## 1.4 socket 설정
 
@@ -243,6 +250,7 @@ config 파일 작성 규칙은 다음과 같습니다. [Configuration 파일 규
   }
   listen(fd, BACKLOG);
   ```
+
 - `SO_LINGER` 옵션으로도 이 문제를 해결할 수 있다. `SO_LINGER` 옵션은 `struct linger` 의 주소를 `setsockopt` 의 `option_value` 로 넘겨주며, `l_onoff` 가 0 이 아니고 `l_linger` 가 양의 정수로 설정될 경우, Server 가 socket 을 `close` 했을 때 아직 보내지지 않은 데이터가 남아 있다면 `l_linger` 초 만큼 `close` 를 block 하게 설정하는데 사용된다. `l_linger` 값을 0 으로 설정하면 정상적인 TCP 연결 종료 절차가 시작되지 않고, TCP 연결에서 `RST` control bit 이 보내지며 `close` 한 socket 이 `TIME-WAIT` 상태에 빠지지 않는다. 하지만 비정상적으로 TCP 연결을 끊기 때문에 이전 TCP 연결이 제대로 정리되지 않아 Connection Reset by Peer 에러가 발생할 위험이 크다.
 
   ```c
@@ -306,6 +314,7 @@ config 파일 작성 규칙은 다음과 같습니다. [Configuration 파일 규
        -------------------->|TIME-WAIT|------------------->| CLOSED  |
                             +---------+                    +---------+
   ```
+
 - TCP Header Format
 
   ```
@@ -438,15 +447,15 @@ TCP Peer A                                           TCP Peer B
 
 ## 3.0 I/O Multiplexing 이란
 
-I/O Multiplexing 은 하나의 `event loop` 에서 여러개의 `I/O events` 를 처리하는 방식이다.
+- I/O Multiplexing 은 하나의 `event loop` 에서 여러개의 `I/O events` 를 처리하는 방식이다.
 
-각 I/O 는 `non-block` 으로 이루어지며 I/O 작업이 일어나는 `FD` 들을 감시하는 시스템 콜(`select`, `poll`, `epoll`, `kqueue` … ) 을 활용하여 `FD` 에 `event` 의 발생 여부를 감시하고, 만약 이벤트가 있다면 적절한 작업을 해야한다.
+- 각 I/O 는 `non-block` 으로 이루어지며 I/O 작업이 일어나는 `FD` 들을 감시하는 시스템 콜(`select`, `poll`, `epoll`, `kqueue` … ) 을 활용하여 `FD` 에 `event` 의 발생 여부를 감시하고, 만약 이벤트가 있다면 적절한 작업을 해야한다.
 
-`kqueue` 를 예로 들면, `non-block I/O` 를 호출 한 뒤 `kevent` 로 `block` 을 시키고, `FD` 에 발생한 `event` 가 있는지 확인한다. `kevent` 는 하나의 `FD` 뿐만 아니라, 여러개의 `FD` 에 대한 `event` 를 감지할 수 있어서 여러의 I/O 를 한 프로세스에서 관리할 수 있게 된다.
+- `kqueue` 를 예로 들면, `non-block I/O` 를 호출 한 뒤 `kevent` 로 `block` 을 시키고, `FD` 에 발생한 `event` 가 있는지 확인한다. `kevent` 는 하나의 `FD` 뿐만 아니라, 여러개의 `FD` 에 대한 `event` 를 감지할 수 있어서 여러의 I/O 를 한 프로세스에서 관리할 수 있게 된다.
 
 ### 3.0.1 NON-BLOCKING I/O
 
-기존 `read/write` 호출은 프로세스를 `block` 시키고 I/O 작업이 완료되기를 기다리지만, `non-block` I/O 는 `read/write` 호출시 `read/write`가 가능하다면 작업이 수행되고, 그렇지 않다면 `-1` 을 반환하며 `errno`가`EAGAIN|EWOULDBLOCK` 로 설정된다.
+- 기존 `read/write` 호출은 프로세스를 `block` 시키고 I/O 작업이 완료되기를 기다리지만, `non-block` I/O 는 `read/write` 호출시 `read/write`가 가능하다면 작업이 수행되고, 그렇지 않다면 `-1` 을 반환하며 `errno`가`EAGAIN|EWOULDBLOCK` 로 설정된다.
 
 ![non-blocking I/O 설명](https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fk.kakaocdn.net%2Fdn%2FC3Sie%2Fbtry2TzbVIY%2FhovPcmvjCQQj31nE3Ue7wK%2Fimg.png)
 
@@ -458,80 +467,80 @@ I/O Multiplexing 은 하나의 `event loop` 에서 여러개의 `I/O events` 를
 
 - `kqueue` 와 `kevent` 는 kernel event notification mechanism 이며 각각 kernel queue, kernel event 를 뜻한다.
 
-	```c
-	#include <sys/types.h>
-	#include <sys/event.h>
-	#include <sys/time.h>
+  ```c
+  #include <sys/types.h>
+  #include <sys/event.h>
+  #include <sys/time.h>
 
-	int kqueue(void);
+  int kqueue(void);
 
-	int kevent(int kq, const struct kevent *changelist, int nchanges,
-		struct kevent *eventlist, int nevents, const struct timespec *timeout);
+  int kevent(int kq, const struct kevent *changelist, int nchanges,
+  	struct kevent *eventlist, int nevents, const struct timespec *timeout);
 
-	struct kevent {
-	       uintptr_t       ident;          /* identifier for this event */
-	       int16_t         filter;         /* filter for event */
-	       uint16_t        flags;          /* general flags */
-	       uint32_t        fflags;         /* filter-specific flags */
-	       intptr_t        data;           /* filter-specific data */
-	       void            *udata;         /* opaque user data identifier */
-	};
+  struct kevent {
+         uintptr_t       ident;          /* identifier for this event */
+         int16_t         filter;         /* filter for event */
+         uint16_t        flags;          /* general flags */
+         uint32_t        fflags;         /* filter-specific flags */
+         intptr_t        data;           /* filter-specific data */
+         void            *udata;         /* opaque user data identifier */
+  };
 
-	EV_SET(&kev, ident, filter, flags, fflags, data, udata);
+  EV_SET(&kev, ident, filter, flags, fflags, data, udata);
 
-	```
+  ```
 
 - `kqueue()` 시스템 콜은 새로운 `kqueue` `FD` 를 반환한다. 이 `FD` 는 filters 라고 하는 kernel code 의 결과를 기반으로 kernel event 가 발생하거나 조건을 충족하면, 사용자에게 알려주는 일반적인 방법을 제공한다.
   ![kqueue fd status](/assets/kqueue-fd-status.png)
 - `kevent` 구조체는 (`ident`, `filter`, `udata(optional)` ) 튜플로 식별되며 `kevent` 구조체에 해당 튜플에 대해 알림을 받을 조건을 지정한다. I/O event의 경우 `ident` 로 FD 가 들어가고, `filter` 에 `EVFILT_READ, EVFILT_WRITE` 값을 넣어서 `read/write` 이벤트를 등록 할 수 있다.
 
-	```cpp
-	void HttpServer::InitKqueue(void) {
-	  kq_ = kqueue(); // kqueue 생성
-	  if (kq_ == -1) {
-	    PRINT_ERROR("HttpServer : kqueue failed : " << strerror(errno));
-	    exit(EXIT_FAILURE);
-	  }
-		// kevent 구조체 동적 할당
-	  struct kevent* sock_ev =
-	      new (std::nothrow) struct kevent[passive_sockets_.size()];
-	  if (sock_ev == NULL) {
-	    PRINT_ERROR("HttpServer : failed to allocate memory");
-	    exit(EXIT_FAILURE);
-	  }
-	  int i = 0;
-	  for (ListenerMap::const_iterator it = passive_sockets_.begin();
-	       it != passive_sockets_.end(); ++it) {
-			// kevent 구조체 배열 초기화 (ident: fd)
-	    EV_SET(&sock_ev[i++], it->first, EVFILT_READ, EV_ADD, 0, 0, NULL);
-	  }
-		// kevent에 changlist, nchanges를 인자로 넘겨 이벤트 등록
-	  if (kevent(kq_, sock_ev, passive_sockets_.size(), NULL, 0, NULL) == -1) {
-	    PRINT_ERROR("HttpServer : failed to listen : " << strerror(errno));
-	    exit(EXIT_FAILURE);
-	  }
-	  delete[] sock_ev;
-	}
-	```
+  ```cpp
+  void HttpServer::InitKqueue(void) {
+    kq_ = kqueue(); // kqueue 생성
+    if (kq_ == -1) {
+      PRINT_ERROR("HttpServer : kqueue failed : " << strerror(errno));
+      exit(EXIT_FAILURE);
+    }
+  	// kevent 구조체 동적 할당
+    struct kevent* sock_ev =
+        new (std::nothrow) struct kevent[passive_sockets_.size()];
+    if (sock_ev == NULL) {
+      PRINT_ERROR("HttpServer : failed to allocate memory");
+      exit(EXIT_FAILURE);
+    }
+    int i = 0;
+    for (ListenerMap::const_iterator it = passive_sockets_.begin();
+         it != passive_sockets_.end(); ++it) {
+  		// kevent 구조체 배열 초기화 (ident: fd)
+      EV_SET(&sock_ev[i++], it->first, EVFILT_READ, EV_ADD, 0, 0, NULL);
+    }
+  	// kevent에 changlist, nchanges를 인자로 넘겨 이벤트 등록
+    if (kevent(kq_, sock_ev, passive_sockets_.size(), NULL, 0, NULL) == -1) {
+      PRINT_ERROR("HttpServer : failed to listen : " << strerror(errno));
+      exit(EXIT_FAILURE);
+    }
+    delete[] sock_ev;
+  }
+  ```
 
 - `kevent()` 함수는 `changelist` 에 감시할 `kevent 구조체`의 포인터를 받아 이벤트를 등록한다.
 
-	```cpp
-	while (true) {
-		// 이벤트가 발생할 때 까지 block
-	  int number_of_events = kevent(kq_, NULL, 0, events, MAX_EVENTS, NULL);
-	  if (number_of_events == -1) {
-	    PRINT_ERROR("HttpServer : kevent failed : " << strerror(errno));
-	  }
-	  for (int i = 0; i < number_of_events; ++i) {
-	    if (events[i].filter == EVFILT_READ) {
-				/* READ 이벤트 발생, read 작업 수행하기 */
-	    } else if (events[i].filter == EVFILT_WRITE) {
-	      /* Write 이벤트 발생, write 작업 수행하기 */
-	    }
-	  }
-	}
-	```
+  ```cpp
+  while (true) {
+  	// 이벤트가 발생할 때 까지 block
+    int number_of_events = kevent(kq_, NULL, 0, events, MAX_EVENTS, NULL);
+    if (number_of_events == -1) {
+      PRINT_ERROR("HttpServer : kevent failed : " << strerror(errno));
+    }
+    for (int i = 0; i < number_of_events; ++i) {
+      if (events[i].filter == EVFILT_READ) {
+  			/* READ 이벤트 발생, read 작업 수행하기 */
+      } else if (events[i].filter == EVFILT_WRITE) {
+        /* Write 이벤트 발생, write 작업 수행하기 */
+      }
+    }
+  }
+  ```
 
 - `eventlist` 에는 이벤트 발생시 이벤트 데이터를 받아올 `kevent 구조체`의 포인터를 받고, 이벤트 발생시 발생한 이벤트의 개수가 반환되고, `eventlist` 에 넣은 `kevent 구조체` 에 데이터가 담겨온다.
 - I/O 의 경우 kevent 구조체의 ident 를 FD 로 넘기고, filter 에 EVFILT_READ|WRITE 를 주면 다음과 같은 경우에 이벤트가 발생한다.
@@ -585,14 +594,14 @@ I/O Multiplexing 은 하나의 `event loop` 에서 여러개의 `I/O events` 를
 
 - 기존엔 `send` 를 이용하여 `response` 를 보냈으나 `response` 의 `header` 와 `content` 가 분리되어 있는 상황에서 `send` 를 사용하기 위해선 `content` 의 불필요한 복사가 일어나는 문제가 있었다.
 
-	```c
-	#include <sys/uio.h>
-	ssize_t writev(int fildes, const struct iovec *iov, int iovcnt);
-	struct iovec {
-	   char   *iov_base;  /* Base address. */
-	   size_t iov_len;    /* Length. */
-	};
-	```
+  ```c
+  #include <sys/uio.h>
+  ssize_t writev(int fildes, const struct iovec *iov, int iovcnt);
+  struct iovec {
+     char   *iov_base;  /* Base address. */
+     size_t iov_len;    /* Length. */
+  };
+  ```
 
 - `writev` 를 사용하면, `header` 와 `content` 가 다른 버퍼에 있더라도, `iovec` 구조체에 `header` 와 `content` 의 주소를 넘겨주면, 하나의 버퍼로 `write` 하는 것과 같은 효과가 있다. 따라서 불필요한 복사도 일어나지 않고, `write` 시스템 콜도 줄일 수 있다.
 
